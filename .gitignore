@@ -1,0 +1,39 @@
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Node modules and build outputs
+node_modules/
+dist/
+dist-ssr/
+
+# Local environment files
+*.local
+.env
+
+# IDE/editor specific files
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# macOS system files
+.DS_Store
+
+# Python cache
+__pycache__/
+
+# Database files
+*.db
+
+# Documentation
+README.md

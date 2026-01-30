@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Better Discord - Real-time chat application">
+    <meta name="theme-color" content="#141414">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+  
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <title>Xcord</title>
+
+    <script nonce="{{ nonce }}">
+      // window.GLOBAL_ENV = {
+      //   API_ENDPOINT: "{{ api_endpoint }}",
+      //   GATEWAY_ENDPOINT: "{{ gateway_endpoint }}",
+      //   BUILD_NUMBER: "{{ build_number }}",
+      //   ENVIRONMENT: "{{ environment }}"
+      // };
+
+      window.GLOBAL_ENV = {
+        API_ENDPOINT: "http://127.0.0.1:8000",
+        GATEWAY_ENDPOINT: "ws://127.0.0.1:8000",
+        BUILD_NUMBER: "20260130128",
+        ENVIRONMENT: "development"
+      };
+
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              primary: "#141414",
+              primaryhover: "#252525",
+              outline: "#2f2e36",
+              field: "#1D1D1D",
+              green: "#15803c",
+              greenhover: "#16a34a",
+            },
+          },
+        },
+      };
+    </script>
+
+    <script nonce="{{ nonce }}">
+      !function () {
+        if (window.WebSocket != null) {
+          const token = localStorage.getItem('token');
+
+          if (token) {
+            const gatewayUrl = `${window.GLOBAL_ENV.GATEWAY_ENDPOINT}/api/ws?token=` + encodeURIComponent(token);
+            console.log('[WS CONNECT] Connecting to: ' + gatewayUrl);
+
+            const ws = new WebSocket(gatewayUrl);
+            ws.binaryType = 'arraybuffer';
+
+            const connectionTime = Date.now();
+            const state = {
+                open: false,
+                authenticated: false,
+                gateway: gatewayUrl,
+                messages: []
+            };
+
+            ws.onopen = function() {
+                console.log('[WS CONNECT] Connected in ' + (Date.now() - connectionTime) + 'ms');
+                state.open = true;
+            };
+
+            ws.onclose = ws.onerror = function(error) {
+                console.warn('[WS CLOSED]', event.code, event.reason);
+                window._ws = null;
+            };
+
+            ws.onmessage = function(event) {
+              state.messages.push(event.data);
+            }
+
+            window._ws = { ws, state };
+        }
+      }
+    } ();
+    </script>
+
+    <style>
+      :root {
+        font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      }
+      *::-webkit-scrollbar {
+        display: none;
+      }
+      *::selection {
+        background-color: rgb(21, 128, 61);
+        color: white;
+      }
+      * {
+        user-select: none;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+      }
+
+      input,
+      textarea,
+      select,
+      [contenteditable="true"] {
+        -webkit-user-select: auto;
+        -moz-user-select: auto;
+        user-select: auto;
+      }
+    </style>
+  </head>
+
+  <body class="bg-primary text-white antialiased">
+    <div id="root"></div>
+    
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

@@ -1,0 +1,87 @@
+import { useState, useRef } from 'react';
+import UserCard from './UserCard';
+import SearchBar from './SearchBar';
+import { useAllFriends } from '../contexts/useAllFriends';
+
+interface User {
+  user_id: string;
+  username: string;
+  profile_image: string;
+  is_online: boolean;
+}
+
+export default function AddFriendContent() {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<User[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const debounceTimer = useRef<number | null>(null);
+  const apiUrl = window.GLOBAL_ENV.API_ENDPOINT;
+  const { allFriends } = useAllFriends();
+
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+    
+    if (!query.trim()) {
+      setSearchResults([]);
+      setIsLoading(false);
+      if (debounceTimer.current) clearTimeout(debounceTimer.current);
+      return;
+    }
+
+    if (debounceTimer.current) {
+      clearTimeout(debounceTimer.current);
+    }
+
+    setIsLoading(true);
+
+    debounceTimer.current = setTimeout(async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${apiUrl}/api/users/search?search=${encodeURIComponent(query)}`, {
+          headers: {
+            "Authorization": `Bearer ${token}`
+          }
+        });
+        
+        if (!response.ok) {
+          throw new Error('Search failed');
+        }
+        
+        const data = await response.json();
+        setSearchResults(data.users || []);
+        
+      } catch (error) {
+        console.error('Search error:', error);
+        setSearchResults([]);
+      } finally {
+        setIsLoading(false);
+      }
+    }, 300);
+  };
+
+  return (
+    <div className="h-full flex flex-col">
+      <div className="space-y-3 p-6 flex flex-col flex-1">
+        <SearchBar onSearch={handleSearch} />
+
+        {!isLoading && searchQuery && searchResults.length === 0 && (
+          <div className='flex-1 flex flex-col justify-center items-center'>
+            <div className="text-gray-400 text-sm">No results found</div>
+          </div>
+        )}
+
+        {searchResults.map(user => (
+          <UserCard
+            key={user.user_id}
+            id={user.user_id}
+            username={user.username}
+            image={user.profile_image}
+            addFriendBtn={!allFriends.some(f => f.user_id === user.user_id)}
+            optionsBtn={allFriends.some(f => f.user_id === user.user_id)}
+            isOnline={user.is_online}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
