@@ -78,7 +78,7 @@ export function useOnlineFriends() {
             ];
           });
           }
-        } else if (data.type === 'ally_remove_request') {
+        } else if (data.type === 'ally_removed') {
           setOnlineFriends(prev => prev.filter(p => p.user_id !== data.requester_id));
         } 
       } catch {}

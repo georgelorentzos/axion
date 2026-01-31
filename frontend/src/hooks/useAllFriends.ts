@@ -71,7 +71,7 @@ export function useAllFriends() {
           });
         }
 
-        if (data.type === 'ally_remove_request') {
+        if (data.type === 'ally_removed') {
           setAllFriends(prev => prev.filter(p => p.user_id !== data.requester_id));
         } 
 

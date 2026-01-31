@@ -1,6 +1,6 @@
 import ImageProfile from "../components/ImageProfile";
 import { useCurrentUser } from '../contexts/useCurrentUser';
-import DropDown from './Dropdown';
+import DropDown from './DropDown';
 import { useState, useEffect } from "react";
 
 type UserCardProps = {

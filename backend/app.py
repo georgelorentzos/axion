@@ -494,6 +494,8 @@ async def ally_remove(request: Request, req: AllyRequest, user_id: str = Depends
     requester = db.query(User).filter(
         User.id == req.requester_id
     ).first()
+
+    addressee = db.query(User).filter(User.id == user_id).first()
     
     if not db.query(User).filter(User.id == req.addressee_id).first():
         raise HTTPException(status_code=404, detail="User not found")
@@ -510,10 +512,17 @@ async def ally_remove(request: Request, req: AllyRequest, user_id: str = Depends
             db.commit()
 
             await manager.broadcast_to_user(req.addressee_id, {
-                "type": "ally_remove_request",
+                "type": "ally_removed",
                 "requester_id": req.requester_id,
                 "requester_username": requester.username,
                 "requester_profile_image": requester.profile_image
+            })
+
+            await manager.broadcast_to_user(user_id, {
+                "type": "ally_removed",
+                "requester_id": req.addressee_id,
+                "requester_username": addressee.username,
+                "requester_profile_image": addressee.profile_image
             })
 
             return {"success": True, "message": "Friend request removed"}
