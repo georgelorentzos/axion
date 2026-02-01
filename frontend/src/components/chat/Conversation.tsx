@@ -153,7 +153,7 @@ export default function Conversation() {
                                 sender_id: data.sender_id,
                                 recipient_id: data.recipient_id,
                                 message: data.message,
-                                created_at: data.sent_at,
+                                created_at: data.created_at,
                             },
                         ];
                     });
@@ -170,18 +170,18 @@ export default function Conversation() {
         }
     }, []);
 
-    useEffect(() => {
-        const messagesContainer = document.querySelector('.flex-1.w-full.overflow-y-auto');
-        const userCenteredInfo = document.querySelector('.pb-6');
+    // useEffect(() => {
+    //     const messagesContainer = document.querySelector('.flex-1.w-full.overflow-y-auto');
+    //     const userCenteredInfo = document.querySelector('.pb-6');
         
-        if (messagesContainer && messages.length > 0) {
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
-        }
+    //     if (messagesContainer && messages.length > 0) {
+    //         messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    //     }
         
-        if (messages.length > 0) {
-            userCenteredInfo?.classList.remove('hidden');
-        }
-    }, [messages]);
+    //     if (messages.length > 0) {
+    //         userCenteredInfo?.classList.remove('hidden');
+    //     }
+    // }, [messages]);
 
     return (
         <div className="flex-1 h-screen border-r border-outline flex flex-col">
@@ -203,7 +203,7 @@ export default function Conversation() {
             </div>
 
             <div className="flex-1 w-full overflow-y-auto min-h-0 p-6 space-y-3">
-                <div className="pb-6 hidden">
+                <div className="pb-6">
                     <div className="flex flex-col items-center gap-3">
                         <ImageProfile 
                             src={user?.profile_image || "https://static.vecteezy.com/system/resources/thumbnails/009/292/244/small/default-avatar-icon-of-social-media-user-vector.jpg"} 

@@ -20,7 +20,7 @@ export function UserProvider({ children }: UserProviderProps) {
 export function useCurrentUser() {
   const context = useContext(UserContext);
   if (!context) {
-    throw new Error('useUser must be used inside UserProvider');
+    throw new Error('useCurrentUser must be used inside UserProvider');
   }
   return context;
 }

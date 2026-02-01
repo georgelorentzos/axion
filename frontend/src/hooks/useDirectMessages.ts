@@ -5,7 +5,6 @@ interface DirectMessage {
     username: string;
     profile_image: string;
     is_online: boolean;
-    created_at: string;
     latest_message: string;
 }
 
@@ -43,5 +42,5 @@ export function useDirectMessages() {
         loadDirectMessages();
     }, []);
 
-    return { directMessages, loading };
+    return { directMessages, setDirectMessages, loading };
 }

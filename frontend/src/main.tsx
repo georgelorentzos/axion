@@ -3,38 +3,14 @@ import { createRoot } from 'react-dom/client';
 import Auth from './pages/Auth';
 import NotFound from './pages/NotFound';
 import MagicLink from './pages/MagicLink';
-import Home from './pages/Home';
-import DirectMessage from './pages/DirectMessage';
 import Logout from './pages/Logout';
+import FriendsPanel from './components/friendspanel/FriendsPanel';
+import Conversation from './components/chat/Conversation';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { ProtectedRoute, PublicRoute } from './hooks/useRouteGuards';
 import { UserProvider } from './contexts/useCurrentUser';
-import { OnlineFriendsProvider } from "./contexts/useOnlineFriends";
-import { AllFriendsProvider } from './contexts/useAllFriends';
-import { PendingsProvider } from './contexts/usePendings';
-import { DirectMessagesProvider } from './contexts/useDirectMessages';
-
-const HomeWithProviders = () => (
-  <UserProvider>
-    <OnlineFriendsProvider>
-      <AllFriendsProvider>
-        <PendingsProvider>
-          <DirectMessagesProvider>
-            <Home />
-          </DirectMessagesProvider>
-        </PendingsProvider>
-      </AllFriendsProvider>
-    </OnlineFriendsProvider>
-  </UserProvider>
-);
-
-const DirectMessageWithProviders = () => (
-  <UserProvider>
-    <DirectMessagesProvider>
-      <DirectMessage />
-    </DirectMessagesProvider>
-  </UserProvider>
-);
+import { MainLayout } from './layouts/MainLayout';
+import { MainWithProviders } from './layouts/Providers';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -60,7 +36,11 @@ createRoot(document.getElementById('root')!).render(
           path="/"
           element={
             <ProtectedRoute>
-              <HomeWithProviders />
+              <MainWithProviders>
+                <MainLayout>
+                  <FriendsPanel />
+                </MainLayout>
+              </MainWithProviders>
             </ProtectedRoute>
           }
         />
@@ -68,7 +48,11 @@ createRoot(document.getElementById('root')!).render(
           path="/chat/:userId"
           element={
             <ProtectedRoute>
-              <DirectMessageWithProviders />
+              <MainWithProviders>
+                <MainLayout>
+                  <Conversation />
+                </MainLayout>
+              </MainWithProviders>
             </ProtectedRoute>
           }
         />

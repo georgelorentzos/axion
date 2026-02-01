@@ -11,12 +11,14 @@ type UserCardProps = {
   isOnline: boolean;
   createdAt?: string;
   optionsBtn?: boolean;
+  removeDmBtn?: boolean;
   addFriendBtn?: boolean;
   acceptPendingBtn?: boolean;
   declinePendingBtn?: boolean;
-  noBorderLRT?: boolean;
   onDecline?: (id: string) => void;
   onAccept?: (id: string) => void;
+  showLatestMessage?: boolean;
+  latestMessage?: string;
 };
 
 type Pending = {
@@ -35,11 +37,14 @@ export default function UserCard({
   isOnline,
   createdAt,
   optionsBtn,
+  removeDmBtn,
   addFriendBtn,
   acceptPendingBtn,
   declinePendingBtn,
   onDecline,
-  onAccept
+  onAccept,
+  showLatestMessage,
+  latestMessage
 }: UserCardProps) {
   const { user } = useCurrentUser();
   const [loading, setLoading] = useState(false);
@@ -225,7 +230,33 @@ export default function UserCard({
     }
   };
 
+  const handleDeleteConversation = async () => {
+    if (!id || !user?.user_id) return;
+
+    setLoading(true);
+    try {
+      const response = await fetch(`${apiUrl}/api/conversation/${id}/delete`, {
+        method: 'DELETE',
+        headers: {
+          "Authorization": `Bearer ${token}`
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to delete friend (${response.status})`);
+      }
+
+      setisDropDownOpen(false);
+
+    } catch (error) {
+      console.error("Error removing friend:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleNavigateToChat = (e: React.MouseEvent<HTMLDivElement>) => {
+    e.preventDefault();
     if (!id) return;
     if (!(e.target as HTMLDivElement).closest('button')) {
       const userData = {
@@ -249,9 +280,15 @@ export default function UserCard({
         <ImageProfile src={image} online={isOnline} />
         <div className="flex flex-col leading-none gap-1">
           <div className="text-gray-100">{username}</div>
+          {showLatestMessage ? (
+          <div className="text-gray-500 text-[12px] truncate">
+            {latestMessage}
+          </div>
+          ) : (
           <div className="text-gray-500 text-[12px]">
             {isOnline ? "Online" : "Offline"}
           </div>
+          )}
         </div>
       </div>
 
@@ -278,7 +315,7 @@ export default function UserCard({
               />
             </svg>
           </button>
-          <DropDown isDropDownOpen={isDropDownOpen} onClose={() => setisDropDownOpen(false)} onRemoveFriend={handleRemoveFriend} />
+          <DropDown isDropDownOpen={isDropDownOpen} removeDmBtn={removeDmBtn} onClose={() => setisDropDownOpen(false)} onRemoveFriend={handleRemoveFriend} onDeleteConversation={handleDeleteConversation} />
           </div>
         )}
 

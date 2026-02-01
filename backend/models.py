@@ -49,6 +49,20 @@ class DirectMessage(Base):
     message = Column(String, nullable=False)
     created_at = Column(DateTime, default=datetime.now)
     is_read = Column(Boolean, nullable=False, default=False)
-    in_direct_messages_list = Column(Boolean, nullable=False ,default=True)
+    sender = relationship("User", foreign_keys=[sender_id])
+    recipient = relationship("User", foreign_keys=[recipient_id])
+
+class ConversationHistory(Base):
+    __tablename__ = "conversation_history"
+    
+    id = Column(String, primary_key=True, default=lambda: str(uuid4()))
+    sender_id = Column(String, ForeignKey("users.id"), nullable=False)
+    recipient_id = Column(String, ForeignKey("users.id"), nullable=False)
+    message = Column(String, nullable=False)
+    hidden_by_sender = Column(Boolean, nullable=False, default=False)
+    hidden_by_recipient = Column(Boolean, nullable=False, default=False)
+    created_at = Column(DateTime, default=datetime.now)
+    updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
+    
     sender = relationship("User", foreign_keys=[sender_id])
     recipient = relationship("User", foreign_keys=[recipient_id])

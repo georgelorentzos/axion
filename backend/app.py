@@ -13,7 +13,7 @@ from schemas import (
 from utils.database import get_db, Session as SessionLocal
 from sqlalchemy import and_, or_
 from sqlalchemy.orm import Session
-from models import User, Token, Friend, DirectMessage
+from models import User, Token, Friend, DirectMessage, ConversationHistory
 from utils.mail import send_mail
 from passlib.context import CryptContext
 from dotenv import load_dotenv
@@ -571,8 +571,27 @@ async def send_message(req: MessageRequest, user_id: str = Depends(get_user_id_f
         message=req.message
     )
 
+    existing_conversation = db.query(ConversationHistory).filter(
+        ((ConversationHistory.sender_id == sender.id) & 
+         (ConversationHistory.recipient_id == recipient.id)) |
+        ((ConversationHistory.sender_id == recipient.id) & 
+         (ConversationHistory.recipient_id == sender.id))
+    ).first()
+
     try:
         db.add(new_direct_message)
+        
+        if not existing_conversation:
+            new_conversation_history = ConversationHistory(
+                sender_id=sender.id,
+                recipient_id=recipient.id,
+                message=req.message
+            )
+            db.add(new_conversation_history)
+        else:
+            existing_conversation.message = req.message
+            existing_conversation.is_hidden = False
+        
         db.commit()
 
         await manager.broadcast_to_user(user_id, {
@@ -585,12 +604,30 @@ async def send_message(req: MessageRequest, user_id: str = Depends(get_user_id_f
         })
 
         await manager.broadcast_to_user(req.recipient_id, {
+            "type": "new_direct_message",
+            "user_id": sender.id,
+            "username": sender.username,
+            "profile_image": sender.profile_image,
+            "is_online": sender.is_online,
+            "latest_message": req.message
+        })
+
+        await manager.broadcast_to_user(req.recipient_id, {
             "type": "message_sent",
             "id": new_direct_message.id,
             "sender_id": user_id,
             "recipient_id": req.recipient_id,
             "message": req.message,
             "created_at": datetime.now().strftime("%H:%M"),
+        })
+
+        await manager.broadcast_to_user(user_id, {
+            "type": "new_direct_message",
+            "user_id": recipient.id,
+            "username": recipient.username,
+            "profile_image": recipient.profile_image,
+            "is_online": recipient.is_online,
+            "latest_message": req.message
         })
 
         return {"success": True, "message": "Message send successfuly!"}
@@ -648,22 +685,31 @@ def get_messages(
     }
 
 @app.get('/api/my/conversations', response_model=Dict[str, Any])
-@limiter.limit('30/minute')
+@limiter.limit('300/minute')
 def my_conversations(request: Request, user_id: str = Depends(get_user_id_from_token), db: Session = Depends(get_db)) -> Dict[str, Any]:
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
-    messages = db.query(DirectMessage).filter(
+    messages = db.query(ConversationHistory).filter(
         or_(
-            DirectMessage.recipient_id == user_id,
-            DirectMessage.sender_id == user_id
+            ConversationHistory.recipient_id == user_id,
+            ConversationHistory.sender_id == user_id
         )
-    ).order_by(DirectMessage.created_at.desc()).all()
+    ).order_by(ConversationHistory.created_at.desc()).all()
     
     seen_users = {} 
     for message in messages:
         other_user_id = message.sender_id if message.recipient_id == user_id else message.recipient_id
+        
+        is_hidden = False
+        if message.recipient_id == user_id and message.hidden_by_recipient:
+            is_hidden = True
+        elif message.sender_id == user_id and message.hidden_by_sender:
+            is_hidden = True
+        
+        if is_hidden:
+            continue
         
         if other_user_id not in seen_users:
             other_user = db.query(User).filter(User.id == other_user_id).first()
@@ -683,6 +729,45 @@ def my_conversations(request: Request, user_id: str = Depends(get_user_id_from_t
         "success": True,
         "conversations": conversation_list
     }
+
+@app.delete('/api/conversation/{user_id}/delete', response_model=Dict[str, Any])
+@limiter.limit('50/minute')
+async def delete_conversation(request: Request, user_id: str, current_user_id: str = Depends(get_user_id_from_token), db: Session = Depends(get_db)) -> Dict[str, Any]:
+    other_user = db.query(User).filter(User.id == user_id).first()
+    if not other_user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    conversation = db.query(ConversationHistory).filter(
+        (
+            (ConversationHistory.sender_id == current_user_id) &
+            (ConversationHistory.recipient_id == user_id)
+        ) |
+        (
+            (ConversationHistory.sender_id == user_id) &
+            (ConversationHistory.recipient_id == current_user_id)
+        )
+    ).first()
+
+    if not conversation:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+    
+    try:
+        if conversation.sender_id == current_user_id:
+            conversation.hidden_by_sender = True
+        else:
+            conversation.hidden_by_recipient = True
+        
+        db.commit()
+
+        await manager.broadcast_to_user(current_user_id, {
+            "type": "conversation_deleted",
+            "conversation_id": user_id
+        })
+
+        return {"success": True}
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Failed to delete conversation")
 
 if os.path.exists("dist/assets"):
     app.mount("/assets", StaticFiles(directory="dist/assets"), name="assets")
