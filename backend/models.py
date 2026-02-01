@@ -14,7 +14,8 @@ class User(Base):
     tokens = relationship('Token', back_populates='owner')
     profile_image = Column(String, default="https://static.vecteezy.com/system/resources/thumbnails/009/292/244/small/default-avatar-icon-of-social-media-user-vector.jpg")
     is_online = Column(Boolean, nullable=False, default=False)
-    last_seen = Column(DateTime, nullable=False, default=datetime.utcnow)
+    last_seen = Column(DateTime, nullable=False, default=datetime.now)
+    created_at = Column(DateTime, default=datetime.now)
 
 class Token(Base):
     __tablename__ = "tokens"
@@ -23,7 +24,7 @@ class Token(Base):
     token = Column(String, nullable=False)
     type = Column(String, nullable=False) 
     user_id = Column(String, ForeignKey('users.id'), nullable=False)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=datetime.now)
     expires_at = Column(DateTime, nullable=False)
     owner = relationship('User', back_populates='tokens')
 
@@ -34,7 +35,20 @@ class Friend(Base):
     requester_id = Column(String, ForeignKey("users.id"), nullable=False)
     addressee_id = Column(String, ForeignKey("users.id"), nullable=False)
     status = Column(String, nullable=False, default="pending")
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, default=datetime.now)
+    updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
     requester = relationship("User", foreign_keys=[requester_id])
     addressee = relationship("User", foreign_keys=[addressee_id])
+
+class DirectMessage(Base):
+    __tablename__ = "directmessages"
+
+    id = Column(String, primary_key=True, default=lambda: str(uuid4()))
+    sender_id = Column(String, ForeignKey("users.id"), nullable=False)
+    recipient_id = Column(String, ForeignKey("users.id"), nullable=False)
+    message = Column(String, nullable=False)
+    created_at = Column(DateTime, default=datetime.now)
+    is_read = Column(Boolean, nullable=False, default=False)
+    in_direct_messages_list = Column(Boolean, nullable=False ,default=True)
+    sender = relationship("User", foreign_keys=[sender_id])
+    recipient = relationship("User", foreign_keys=[recipient_id])

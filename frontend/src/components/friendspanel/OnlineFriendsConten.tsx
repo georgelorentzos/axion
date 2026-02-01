@@ -1,16 +1,16 @@
-import SearchBar from './SearchBar'
-import UserCard from './UserCard'
-import { useSearch } from '../hooks/useSearch';
-import { useOnlineFriends } from '../contexts/useOnlineFriends';
+import SearchBar from '../common/SearchBar'
+import UserCard from '../common/UserCard'
+import { useSearch } from '../../hooks/useSearch';
+import { useOnlineFriends } from '../../contexts/useOnlineFriends';
 
 export default function OnlineFriendsContent() {
-    const { onlineFriends, isLoading } = useOnlineFriends();
+    const { onlineFriends, loading } = useOnlineFriends();
     const { searchQuery, setSearchQuery, filtered } = useSearch(onlineFriends);
 
     return (
         <div className="h-full flex flex-col">
             <div className="space-y-3 p-6 flex flex-col flex-1">
-                {!isLoading && onlineFriends.length >= 1 && (
+                {!loading && onlineFriends.length >= 1 && (
                     <SearchBar value={searchQuery} onSearch={setSearchQuery} />
                 )}
                 
@@ -19,7 +19,7 @@ export default function OnlineFriendsContent() {
                         <div className="text-gray-400 text-sm">No results found</div>
                     </div>
                 )}
-                {!isLoading && !searchQuery && onlineFriends.length === 0 && (
+                {!loading && !searchQuery && onlineFriends.length === 0 && (
                     <div className='flex-1 flex flex-col justify-center items-center'>
                         <div className="text-gray-400 text-sm">No online friends</div>
                     </div>
@@ -32,6 +32,7 @@ export default function OnlineFriendsContent() {
                         image={friend.profile_image}
                         optionsBtn
                         isOnline={true}
+                        createdAt={friend.created_at}
                     />
                 ))}
             </div>

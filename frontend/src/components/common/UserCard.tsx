@@ -1,13 +1,15 @@
-import ImageProfile from "../components/ImageProfile";
-import { useCurrentUser } from '../contexts/useCurrentUser';
+import ImageProfile from "../common/ImageProfile";
+import { useCurrentUser } from '../../contexts/useCurrentUser';
 import DropDown from './DropDown';
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 type UserCardProps = {
   id?: string;
   username?: string;
   image?: string;
   isOnline: boolean;
+  createdAt?: string;
   optionsBtn?: boolean;
   addFriendBtn?: boolean;
   acceptPendingBtn?: boolean;
@@ -31,6 +33,7 @@ export default function UserCard({
   username,
   image,
   isOnline,
+  createdAt,
   optionsBtn,
   addFriendBtn,
   acceptPendingBtn,
@@ -46,6 +49,7 @@ export default function UserCard({
   const apiUrl = window.GLOBAL_ENV.API_ENDPOINT;
   const [ isDropDownOpen, setisDropDownOpen ] = useState(false);
   const token = localStorage.getItem("token");
+  const navigate = useNavigate();
 
   const isThisPending =
     id !== undefined && pendingIds.includes(id);
@@ -221,8 +225,24 @@ export default function UserCard({
     }
   };
 
+  const handleNavigateToChat = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!id) return;
+    if (!(e.target as HTMLDivElement).closest('button')) {
+      const userData = {
+        user_id: id,
+        username: username,
+        profile_image: image,
+        is_online: isOnline,
+        created_at: createdAt,
+      };
+      
+      navigate(`/chat/${id}`, { state: { userData } });
+    }
+  }
+
   return (
     <div
+      onClick={handleNavigateToChat}
       className="cursor-pointer transition duration-300 hover:bg-primaryhover h-[80px] border-outline px-6 flex justify-between items-center w-full rounded-xl"
     >
       <div className="flex items-center gap-3">

@@ -5,11 +5,12 @@ interface Pending {
   username: string;
   profile_image: string;
   is_online: boolean;
+  created_at: string;
 }
 
 export function usePendings() {
   const [pendings, setPendings] = useState<Pending[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [loading, setIsLoading] = useState(false);
   const apiUrl = window.GLOBAL_ENV.API_ENDPOINT;
   const token = localStorage.getItem('token');
 
@@ -55,7 +56,8 @@ export function usePendings() {
                 user_id: data.requester_id,
                 username: data.requester_username,
                 profile_image: data.requester_profile_image,
-                is_online: true
+                is_online: true,
+                created_at: data.created_at
               },
               ...prev
             ];
@@ -78,6 +80,6 @@ export function usePendings() {
   return {
     pendings,
     setPendings,
-    isLoading
+    loading
   };
 }

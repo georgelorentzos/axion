@@ -5,11 +5,12 @@ interface User {
   username: string;
   profile_image: string;
   is_online: boolean;
+  created_at: string;
 }
 
 export function useAllFriends() {
   const [allFriends, setAllFriends] = useState<User[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [loading, setIsLoading] = useState(true);
   const apiUrl = window.GLOBAL_ENV.API_ENDPOINT;
 
   useEffect(() => {
@@ -64,7 +65,8 @@ export function useAllFriends() {
                 user_id: data.requester_id,
                 username: data.requester_username,
                 profile_image: data.requester_profile_image,
-                is_online: data.is_online
+                is_online: data.is_online,
+                created_at: data.created_at
               },
               ...prev
             ];
@@ -87,5 +89,5 @@ export function useAllFriends() {
     }
   }, []);
 
-  return { allFriends, isLoading };
+  return { allFriends, loading };
 }

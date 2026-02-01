@@ -26,3 +26,8 @@ class ValidateToken(BaseModel):
 class AllyRequest(BaseModel):
     requester_id: str;
     addressee_id: str;
+
+class MessageRequest(BaseModel):
+    sender_id: str;
+    recipient_id: str;
+    message: str;

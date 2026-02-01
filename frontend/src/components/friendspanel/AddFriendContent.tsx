@@ -1,13 +1,14 @@
 import { useState, useRef } from 'react';
-import UserCard from './UserCard';
-import SearchBar from './SearchBar';
-import { useAllFriends } from '../contexts/useAllFriends';
+import UserCard from '../common/UserCard';
+import SearchBar from '../common/SearchBar';
+import { useAllFriends } from '../../contexts/useAllFriends';
 
 interface User {
   user_id: string;
   username: string;
   profile_image: string;
   is_online: boolean;
+  created_at?: string;
 }
 
 export default function AddFriendContent() {
@@ -79,6 +80,7 @@ export default function AddFriendContent() {
             addFriendBtn={!allFriends.some(f => f.user_id === user.user_id)}
             optionsBtn={allFriends.some(f => f.user_id === user.user_id)}
             isOnline={user.is_online}
+            createdAt={user.created_at}
           />
         ))}
       </div>

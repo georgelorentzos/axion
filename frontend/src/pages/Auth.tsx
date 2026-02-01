@@ -60,9 +60,9 @@ export default function Auth() {
     };
 
     return (
-        <div className="bg-[#141414] h-screen w-full flex justify-center items-center">
-            <div className="w-[420px] flex justify-center items-center flex-col gap-4 border border-[#4d4d4a] p-10 rounded-3xl">
-                <div className="text-white text-[30px]">Continue</div>
+        <div className="bg-[#141414] h-screen w-full flex flex-col justify-center items-center">
+            <div className="border border-outline w-[420px] flex justify-center items-center flex-col gap-4 p-10 rounded-3xl">
+            <div className="text-white text-[30px]">Continue</div>
                 {error && <div className="text-red-400 text-sm text-center">{error}</div>}
                 {!completed ? (
                 <>

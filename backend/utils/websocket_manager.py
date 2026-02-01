@@ -67,14 +67,16 @@ class ConnectionManager:
                     "type": "user_online",
                     "user_id": user.id,
                     "username": user.username,
-                    "profile_image": user.profile_image
+                    "profile_image": user.profile_image,
+                    "created_at": user.created_at.year
                 }))
                 if f_user.is_online:
                     await websocket.send_text(json.dumps({
                         "type": "user_online",
                         "user_id": f_user.id,
                         "username": f_user.username,
-                        "profile_image": f_user.profile_image
+                        "profile_image": f_user.profile_image,
+                        "created_at": f_user.created_at.year
                     }))
 
         pendings = db.query(Friend).filter(
@@ -90,14 +92,16 @@ class ConnectionManager:
                     "type": "pending_online",
                     "user_id": user.id,
                     "username": user.username,
-                    "profile_image": user.profile_image
+                    "profile_image": user.profile_image,
+                    "created_at": user.created_at.year
                 }))
                 if p_user.is_online:
                     await websocket.send_text(json.dumps({
                         "type": "pending_online",
                         "user_id": p_user.id,
                         "username": p_user.username,
-                        "profile_image": p_user.profile_image
+                        "profile_image": p_user.profile_image,
+                        "created_at": p_user.created_at.year
                     }))
         return True
 

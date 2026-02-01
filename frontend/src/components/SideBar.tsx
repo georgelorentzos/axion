@@ -1,11 +1,15 @@
-import ImageProfile from "../components/ImageProfile"
+import ImageProfile from "../components/common/ImageProfile"
 import { useCurrentUser } from '../contexts/useCurrentUser'
-// import UserCard from './UserCard'
-import SearchBar from './SearchBar'
+import UserCard from '../components/common/UserCard'
+import SearchBar from '../components/common/SearchBar'
+import { useSearch } from '../hooks/useSearch';
+import { useDirectMessages } from "../contexts/useDirectMessages";
 
 export default function SideBar() {
     const { user } = useCurrentUser();
-
+    const { directMessages, loading } = useDirectMessages();
+    const { searchQuery, setSearchQuery, filtered } = useSearch(directMessages);
+    
     return (
         <div className="w-[370px] h-screen border-r border-outline flex flex-col">
             <div className="w-full h-[100px] border-b border-outline flex items-center px-6 gap-3 flex-shrink-0">
@@ -15,12 +19,29 @@ export default function SideBar() {
                 <div className="text-gray-100">Direct Messages</div>
             </div>
 
-            <div className="flex-1 overflow-y-auto min-h-0 p-6 space-y-3">
-                <SearchBar />
-                {/* <UserCard optionsBtn username="lor" image="https://static.vecteezy.com/system/resources/thumbnails/009/292/244/small/default-avatar-icon-of-social-media-user-vector.jpg" />
-                  <UserCard optionsBtn  username="lor" image="https://static.vecteezy.com/system/resources/thumbnails/009/292/244/small/default-avatar-icon-of-social-media-user-vector.jpg" /> */}
-                  
-                
+            <div className="space-y-3 p-6 flex flex-col flex-1">
+                {!loading && directMessages.length >= 1 && (
+                <SearchBar value={searchQuery} onSearch={setSearchQuery} />
+                )}
+                {searchQuery && filtered.length === 0 && (
+                <div className='flex-1 flex flex-col justify-center items-center mt-[100px]'>
+                    <div className="text-gray-400 text-sm">No results found</div>
+                </div>
+                )}
+                {!loading && !searchQuery && directMessages.length === 0 && (
+                <div className='flex-1 flex flex-col justify-center items-center mt-[100px]'>
+                    <div className="text-gray-400 text-sm">No messages yet</div>
+                </div>
+                )}
+                {filtered.map(directmessage => (
+                    <UserCard 
+                    id={directmessage.user_id}
+                    username={directmessage.username}
+                    image={directmessage.profile_image}
+                    optionsBtn
+                    isOnline={directmessage.is_online}
+                    />
+                ))}
             </div>
             
             <div className="w-full h-[100px] border-t border-outline flex items-center flex-shrink-0">

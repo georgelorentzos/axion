@@ -7,12 +7,13 @@ from schemas import (
     CreateAccount, 
     CreateToken,
     ValidateToken,
-    AllyRequest
+    AllyRequest,
+    MessageRequest
 )
 from utils.database import get_db, Session as SessionLocal
 from sqlalchemy import and_, or_
 from sqlalchemy.orm import Session
-from models import User, Token, Friend
+from models import User, Token, Friend, DirectMessage
 from utils.mail import send_mail
 from passlib.context import CryptContext
 from dotenv import load_dotenv
@@ -220,7 +221,6 @@ async def get_current_user(request: Request, user_id: str = Depends(get_user_id_
 @limiter.limit('30/minute')
 def search_user(request: Request, search: str = Query(..., alias="search"), user_id: str = Depends(get_user_id_from_token), db: Session = Depends(get_db)) -> Dict[str, Any]:    
     users = db.query(User).filter(User.username.ilike(f"%{search}%"), User.id != user_id).limit(20).all()
-
     return {
         "success": True,
         "users": [
@@ -229,8 +229,25 @@ def search_user(request: Request, search: str = Query(..., alias="search"), user
                 "username": user.username,
                 "profile_image": user.profile_image,
                 "is_online": user.is_online,
+                "created_at": user.created_at.year
             } for user in users
         ]
+    }
+
+@app.get('/api/users/{user_id}', response_model=Dict[str, Any])
+@limiter.limit('300/minute')
+def get_user_profile(request: Request, user_id: str, db: Session = Depends(get_db)) -> Dict[str, Any]:
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    return {
+        "success": True,
+        "user_id": user.id,
+        "username": user.username,
+        "profile_image": user.profile_image,
+        "is_online": user.is_online,
+        "joined_at": user.created_at.year
     }
 
 @app.post('/api/ally', response_model=Dict[str, Any])
@@ -412,6 +429,7 @@ def get_pendings(request: Request, user_id: str = Depends(get_user_id_from_token
                 "username": pending.requester.username,
                 "profile_image": pending.requester.profile_image,
                 "is_online": pending.requester.is_online,
+                "created_at": pending.created_at.year
             } for pending in pendigs
         ]
     }
@@ -441,6 +459,7 @@ def my_friends_all(request: Request, user_id: str = Depends(get_user_id_from_tok
             "username": friend.User.username,
             "profile_image": friend.User.profile_image,
             "is_online": friend.User.is_online,
+            "created_at": friend.User.created_at.year
         } for friend in friends
     ]
     
@@ -473,7 +492,8 @@ def my_friends_online(request: Request, user_id: str = Depends(get_user_id_from_
         {
             "user_id": friend.User.id,
             "username": friend.User.username,
-            "profile_image": friend.User.profile_image
+            "profile_image": friend.User.profile_image,
+            "created_at": friend.User.created_at.year
         } for friend in friends
     ]
 
@@ -529,6 +549,140 @@ async def ally_remove(request: Request, req: AllyRequest, user_id: str = Depends
         except Exception as e:
             db.rollback()
             raise HTTPException(status_code=500, detail="Failed to cancel request")
+
+@app.post('/api/send/message', response_model=Dict[str, Any])
+async def send_message(req: MessageRequest, user_id: str = Depends(get_user_id_from_token), db: Session = Depends(get_db)) -> Dict[str, Any]:
+    
+    if req.sender_id != user_id:
+        raise HTTPException(status_code=403, detail="Cannot send as another user")
+
+    recipient = db.query(User).filter(User.id == req.recipient_id).first()
+    if not recipient:
+        raise HTTPException(status_code=404, detail="Recipient Not Found")
+    
+    if req.sender_id == req.recipient_id:
+        raise HTTPException(status_code=400, detail="Cannot send yourself")
+    
+    sender = db.query(User).filter(User.id == user_id).first()
+    
+    new_direct_message = DirectMessage(
+        sender_id=sender.id,
+        recipient_id=recipient.id,
+        message=req.message
+    )
+
+    try:
+        db.add(new_direct_message)
+        db.commit()
+
+        await manager.broadcast_to_user(user_id, {
+            "type": "message_sent",
+            "id": new_direct_message.id,
+            "sender_id": user_id,
+            "recipient_id": req.recipient_id,
+            "message": req.message,
+            "created_at": datetime.now().strftime("%H:%M"),
+        })
+
+        await manager.broadcast_to_user(req.recipient_id, {
+            "type": "message_sent",
+            "id": new_direct_message.id,
+            "sender_id": user_id,
+            "recipient_id": req.recipient_id,
+            "message": req.message,
+            "created_at": datetime.now().strftime("%H:%M"),
+        })
+
+        return {"success": True, "message": "Message send successfuly!"}
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Failed to send message")
+
+@app.get('/api/messages/{user_id}', response_model=Dict[str, Any])
+@limiter.limit("300/minute")
+def get_messages(
+    request: Request, 
+    user_id: str,
+    limit: int = Query(30, ge=1, le=50),
+    offset: int = Query(0, ge=0),
+    current_user_id: str = Depends(get_user_id_from_token), 
+    db: Session = Depends(get_db)
+) -> Dict[str, Any]:
+    other_user = db.query(User).filter(User.id == user_id).first()
+    if not other_user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    total_count = db.query(DirectMessage).filter(
+        or_(
+            and_(DirectMessage.sender_id == current_user_id, DirectMessage.recipient_id == user_id),
+            and_(DirectMessage.sender_id == user_id, DirectMessage.recipient_id == current_user_id)
+        )
+    ).count()
+    
+    messages = db.query(DirectMessage).filter(
+        or_(
+            and_(DirectMessage.sender_id == current_user_id, DirectMessage.recipient_id == user_id),
+            and_(DirectMessage.sender_id == user_id, DirectMessage.recipient_id == current_user_id)
+        )
+    ).order_by(DirectMessage.created_at.desc()).offset(offset).limit(limit).all()
+    
+    messages.reverse()
+    
+    messages_list = [
+        {
+            "id": message.id,
+            "sender_id": message.sender_id,
+            "recipient_id": message.recipient_id,
+            "message": message.message,
+            "created_at": message.created_at.strftime("%H:%M")
+        } for message in messages
+    ]
+    
+    return {
+        "success": True,
+        "messages": messages_list,
+        "total": total_count,
+        "limit": limit,
+        "offset": offset,
+        "has_more": (offset + limit) < total_count
+    }
+
+@app.get('/api/my/conversations', response_model=Dict[str, Any])
+@limiter.limit('30/minute')
+def my_conversations(request: Request, user_id: str = Depends(get_user_id_from_token), db: Session = Depends(get_db)) -> Dict[str, Any]:
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    messages = db.query(DirectMessage).filter(
+        or_(
+            DirectMessage.recipient_id == user_id,
+            DirectMessage.sender_id == user_id
+        )
+    ).order_by(DirectMessage.created_at.desc()).all()
+    
+    seen_users = {} 
+    for message in messages:
+        other_user_id = message.sender_id if message.recipient_id == user_id else message.recipient_id
+        
+        if other_user_id not in seen_users:
+            other_user = db.query(User).filter(User.id == other_user_id).first()
+            if other_user:
+                seen_users[other_user_id] = {
+                    "user_id": other_user.id,
+                    "username": other_user.username,
+                    "profile_image": other_user.profile_image,
+                    "is_online": other_user.is_online,
+                    "created_at": other_user.created_at.year,
+                    "latest_message": message.message
+                }
+    
+    conversation_list = list(seen_users.values())
+    
+    return {
+        "success": True,
+        "conversations": conversation_list
+    }
 
 if os.path.exists("dist/assets"):
     app.mount("/assets", StaticFiles(directory="dist/assets"), name="assets")
