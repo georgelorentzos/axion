@@ -590,8 +590,9 @@ async def send_message(req: MessageRequest, user_id: str = Depends(get_user_id_f
             db.add(new_conversation_history)
         else:
             existing_conversation.message = req.message
-            existing_conversation.is_hidden = False
-        
+            existing_conversation.hidden_by_sender = False
+            existing_conversation.hidden_by_recipient = False
+
         db.commit()
 
         await manager.broadcast_to_user(user_id, {
