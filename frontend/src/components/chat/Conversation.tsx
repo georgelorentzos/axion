@@ -160,6 +160,14 @@ export default function Conversation() {
                     });
 
                 }
+
+                if (data.type === 'user_online') {
+                    setUser(user => user ? { ...user, is_online: true } : null)
+                }
+
+                if (data.type === 'user_offline') {
+                    setUser(user => user ? { ...user, is_online: false } : null)
+                }
     
             } catch (error) {
                 console.error('Error parsing WebSocket message:', error);

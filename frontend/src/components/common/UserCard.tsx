@@ -1,7 +1,7 @@
 import ImageProfile from "../common/ImageProfile";
 import { useCurrentUser } from '../../contexts/useCurrentUser';
 import DropDown from './DropDown';
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 
 type UserCardProps = {
@@ -55,6 +55,7 @@ export default function UserCard({
   const [ isDropDownOpen, setisDropDownOpen ] = useState(false);
   const token = localStorage.getItem("token");
   const navigate = useNavigate();
+  const buttonRef = useRef<HTMLButtonElement | null>(null);
 
   const isThisPending =
     id !== undefined && pendingIds.includes(id);
@@ -296,6 +297,7 @@ export default function UserCard({
         {optionsBtn && (
           <div className="relative">
           <button 
+          ref={buttonRef}
           onClick={() => 
             setisDropDownOpen(prev => !prev)
           }
@@ -315,7 +317,7 @@ export default function UserCard({
               />
             </svg>
           </button>
-          <DropDown isDropDownOpen={isDropDownOpen} removeDmBtn={removeDmBtn} onClose={() => setisDropDownOpen(false)} onRemoveFriend={handleRemoveFriend} onDeleteConversation={handleDeleteConversation} />
+          <DropDown isDropDownOpen={isDropDownOpen} removeDmBtn={removeDmBtn} onClose={() => setisDropDownOpen(false)} onRemoveFriend={handleRemoveFriend} onDeleteConversation={handleDeleteConversation} buttonRef={buttonRef} />
           </div>
         )}
 
