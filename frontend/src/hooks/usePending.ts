@@ -8,29 +8,29 @@ interface Pending {
   created_at: string;
 }
 
-export function usePendings() {
-  const [pendings, setPendings] = useState<Pending[]>([]);
+export function usePending() {
+  const [pending, setPending] = useState<Pending[]>([]);
   const [loading, setIsLoading] = useState(false);
   const apiUrl = window.GLOBAL_ENV.API_ENDPOINT;
   const token = localStorage.getItem('token');
 
   useEffect(() => {
-    const fetchPendings = async () => {
+    const fetchPending = async () => {
       setIsLoading(true);
       try {
-        const response = await fetch(`${apiUrl}/api/my/pendings`, {
+        const response = await fetch(`${apiUrl}/api/my/pending`, {
           headers: { "Authorization": `Bearer ${token}` }
         });
         const data = await response.json();
-        setPendings(data.pendings || []);
+        setPending(data.pending || []);
       } catch (err) {
-        console.error('Failed to fetch pendings:', err);
+        console.error('Failed to fetch pending:', err);
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchPendings();
+    fetchPending();
   }, [apiUrl, token]);
 
   useEffect(() => {
@@ -38,7 +38,7 @@ export function usePendings() {
       try {
         const data = JSON.parse(event.data);
 
-        setPendings(prev =>
+        setPending(prev =>
           prev.map(p => {
             if (p.user_id === (data.user_id || data.requester_id)) {
               if (data.type === 'pending_online') return { ...p, is_online: true };
@@ -49,7 +49,7 @@ export function usePendings() {
         );
 
         if (data.type === 'ally_request') {
-          setPendings(prev => {
+          setPending(prev => {
             if (prev.find(p => p.user_id === data.requester_id)) return prev;
             return [
               {
@@ -63,7 +63,7 @@ export function usePendings() {
             ];
           });
         } else if (data.type === 'ally_cancel_request') {
-          setPendings(prev => prev.filter(p => p.user_id !== data.requester_id));
+          setPending(prev => prev.filter(p => p.user_id !== data.requester_id));
         }
       } catch (error) {
         console.error('Parse error:', error);
@@ -78,8 +78,8 @@ export function usePendings() {
   }, []);
 
   return {
-    pendings,
-    setPendings,
+    pending,
+    setPending,
     loading
   };
 }

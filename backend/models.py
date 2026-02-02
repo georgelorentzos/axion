@@ -47,6 +47,8 @@ class DirectMessage(Base):
     sender_id = Column(String, ForeignKey("users.id"), nullable=False)
     recipient_id = Column(String, ForeignKey("users.id"), nullable=False)
     message = Column(String, nullable=False)
+    hidden_by_sender = Column(Boolean, nullable=False, default=False)
+    hidden_by_recipient = Column(Boolean, nullable=False, default=False)
     created_at = Column(DateTime, default=datetime.now)
     is_read = Column(Boolean, nullable=False, default=False)
     sender = relationship("User", foreign_keys=[sender_id])

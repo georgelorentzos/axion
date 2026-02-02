@@ -136,7 +136,7 @@ def auth(request: Request, req: AuthRequest, background_tasks:BackgroundTasks, d
     )
 
 @app.post('/api/verify-token', response_model=Dict[str, Any])
-@limiter.limit("30/minute")
+@limiter.limit("50/minute")
 def verify_token(request: Request, req: CreateToken, db: Session = Depends(get_db)) -> Dict[str, Any]:
     token_record: Token | None = db.query(Token).filter(Token.token == req.token).first()
 
@@ -175,7 +175,7 @@ def verify_token(request: Request, req: CreateToken, db: Session = Depends(get_d
     }
 
 @app.post('/api/validate-token', response_model=Dict[str, Any])
-@limiter.limit("200/minute")
+@limiter.limit("100/minute")
 def validate_token(request: Request, req: ValidateToken, db: Session = Depends(get_db)) -> Dict[str, Any]:
     try:
         payload = jwt.decode(req.token, SECRET_KEY, algorithms=["HS256"])
@@ -203,7 +203,7 @@ def validate_token(request: Request, req: ValidateToken, db: Session = Depends(g
         raise HTTPException(status_code=401, detail="Token validation failed")
     
 @app.get('/api/me', response_model=Dict[str, Any])
-@limiter.limit("300/minute")
+@limiter.limit("100/minute")
 async def get_current_user(request: Request, user_id: str = Depends(get_user_id_from_token), db: Session = Depends(get_db)) -> Dict[str, Any]:
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
@@ -218,7 +218,7 @@ async def get_current_user(request: Request, user_id: str = Depends(get_user_id_
     }
 
 @app.get('/api/users/search', response_model=Dict[str, Any])
-@limiter.limit('30/minute')
+@limiter.limit('50/minute')
 def search_user(request: Request, search: str = Query(..., alias="search"), user_id: str = Depends(get_user_id_from_token), db: Session = Depends(get_db)) -> Dict[str, Any]:    
     users = db.query(User).filter(User.username.ilike(f"%{search}%"), User.id != user_id).limit(20).all()
     return {
@@ -336,9 +336,9 @@ async def cancel_ally(request: Request, req: AllyRequest, user_id: str = Depends
     else:
         return {"success": True, "message": "Request already canceled"}
 
-@app.delete("/api/ally/decline", response_model=Dict[str, Any])
-@limiter.limit('30/minute')
-def ally_decline(request: Request, req: AllyRequest, user_id: str = Depends(get_user_id_from_token), db: Session = Depends(get_db)) -> Dict[str, Any]:
+@app.delete("/api/ally/reject", response_model=Dict[str, Any])
+@limiter.limit('50/minute')
+async def ally_reject(request: Request, req: AllyRequest, user_id: str = Depends(get_user_id_from_token), db: Session = Depends(get_db)) -> Dict[str, Any]:
     existing = db.query(Friend).filter(
         Friend.addressee_id == user_id,
         Friend.requester_id == req.requester_id,
@@ -351,13 +351,19 @@ def ally_decline(request: Request, req: AllyRequest, user_id: str = Depends(get_
     try:
         db.delete(existing)
         db.commit()
-        return {"success": True, "message": "Friend request declined"}
+
+        # await manager.broadcast_to_user(req.addressee_id, {
+        #         "type": "ally_rejected",
+        #         "user_id": req.requester_id
+        # })
+        
+        return {"success": True, "message": "Friend request rejected"}
     except Exception as e:
         db.rollback()
-        raise HTTPException(status_code=500, detail="Failed to decline request")
+        raise HTTPException(status_code=500, detail="Failed to reject ally")
 
 @app.post('/api/ally/accept', response_model=Dict[str, Any])
-@limiter.limit('30/minute')
+@limiter.limit('50/minute')
 async def ally_accept(request: Request, req: AllyRequest, user_id: str = Depends(get_user_id_from_token), db: Session = Depends(get_db)):
     existing = db.query(Friend).filter(
         Friend.addressee_id == user_id,
@@ -397,33 +403,33 @@ async def ally_accept(request: Request, req: AllyRequest, user_id: str = Depends
         raise HTTPException(status_code=500, detail="Failed to accept friend request")
 
 @app.get('/api/my/ally/requests', response_model=Dict[str, Any])
-@limiter.limit('30/minute')
+@limiter.limit('100/minute')
 def my_ally_requests(request: Request, user_id: str = Depends(get_user_id_from_token), db: Session = Depends(get_db)) -> Dict[str, Any]:
-    pendings = db.query(Friend).filter(
+    pending = db.query(Friend).filter(
         and_(Friend.requester_id == user_id, Friend.status == "pending")
     ).all()
 
     return {
         "success": True,
-        "pendings": [
+        "pending": [
             {
                 "pending_user_id": pending.addressee_id,
                 "requester_username": pending.requester.username,
                 "requester_profile_image": pending.requester.profile_image
-            } for pending in pendings
+            } for pending in pending
         ]
     }
 
-@app.get('/api/my/pendings', response_model=Dict[str, Any])
-@limiter.limit('30/minute')
-def get_pendings(request: Request, user_id: str = Depends(get_user_id_from_token), db: Session = Depends(get_db)) -> Dict[str, Any]:
+@app.get('/api/my/pending', response_model=Dict[str, Any])
+@limiter.limit('100/minute')
+def get_pending(request: Request, user_id: str = Depends(get_user_id_from_token), db: Session = Depends(get_db)) -> Dict[str, Any]:
     pendigs = db.query(Friend).filter(
         and_(Friend.addressee_id == user_id, Friend.status == "pending")
     ).all()
 
     return {
         "success": True,
-        "pendings": [
+        "pending": [
             {
                 "user_id": pending.requester.id,
                 "username": pending.requester.username,
@@ -435,7 +441,7 @@ def get_pendings(request: Request, user_id: str = Depends(get_user_id_from_token
     }
 
 @app.get('/api/my/friends/all', response_model=Dict[str, Any])
-@limiter.limit('30/minute')
+@limiter.limit('100/minute')
 def my_friends_all(request: Request, user_id: str = Depends(get_user_id_from_token), db: Session = Depends(get_db)) -> Dict[str, Any]:
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
@@ -469,7 +475,7 @@ def my_friends_all(request: Request, user_id: str = Depends(get_user_id_from_tok
     }
         
 @app.get('/api/my/friends/online', response_model=Dict[str, Any])
-@limiter.limit('30/minute')
+@limiter.limit('100/minute')
 def my_friends_online(request: Request, user_id: str = Depends(get_user_id_from_token), db: Session = Depends(get_db)) -> Dict[str, Any]:
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
@@ -503,7 +509,7 @@ def my_friends_online(request: Request, user_id: str = Depends(get_user_id_from_
     }
 
 @app.delete('/api/ally/remove', response_model=Dict[str, Any])
-@limiter.limit('30/minute')
+@limiter.limit('50/minute')
 async def ally_remove(request: Request, req: AllyRequest, user_id: str = Depends(get_user_id_from_token), db: Session = Depends(get_db)) -> Dict[str, Any]:
     if req.requester_id != user_id:
         raise HTTPException(status_code=403, detail="Cannot remove as another user")
@@ -637,7 +643,7 @@ async def send_message(req: MessageRequest, user_id: str = Depends(get_user_id_f
         raise HTTPException(status_code=500, detail="Failed to send message")
 
 @app.get('/api/messages/{user_id}', response_model=Dict[str, Any])
-@limiter.limit("300/minute")
+@limiter.limit("100/minute")
 def get_messages(
     request: Request, 
     user_id: str,
@@ -655,12 +661,30 @@ def get_messages(
             and_(DirectMessage.sender_id == current_user_id, DirectMessage.recipient_id == user_id),
             and_(DirectMessage.sender_id == user_id, DirectMessage.recipient_id == current_user_id)
         )
+    ).filter(
+        ~and_(
+            DirectMessage.sender_id == current_user_id,
+            DirectMessage.hidden_by_sender == True
+        ),
+        ~and_(
+            DirectMessage.recipient_id == current_user_id,
+            DirectMessage.hidden_by_recipient == True
+        )
     ).count()
     
     messages = db.query(DirectMessage).filter(
         or_(
             and_(DirectMessage.sender_id == current_user_id, DirectMessage.recipient_id == user_id),
-            and_(DirectMessage.sender_id == user_id, DirectMessage.recipient_id == current_user_id)
+            and_(DirectMessage.sender_id == user_id, DirectMessage.recipient_id == current_user_id),
+        )
+    ).filter(
+        ~and_(
+            DirectMessage.sender_id == current_user_id,
+            DirectMessage.hidden_by_sender == True
+        ),
+        ~and_(
+            DirectMessage.recipient_id == current_user_id,
+            DirectMessage.hidden_by_recipient == True
         )
     ).order_by(DirectMessage.created_at.desc()).offset(offset).limit(limit).all()
     
@@ -686,7 +710,7 @@ def get_messages(
     }
 
 @app.get('/api/my/conversations', response_model=Dict[str, Any])
-@limiter.limit('300/minute')
+@limiter.limit('100/minute')
 def my_conversations(request: Request, user_id: str = Depends(get_user_id_from_token), db: Session = Depends(get_db)) -> Dict[str, Any]:
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
@@ -749,14 +773,37 @@ async def delete_conversation(request: Request, user_id: str, current_user_id: s
         )
     ).first()
 
+    messages = db.query(DirectMessage).filter(
+        (
+            (DirectMessage.sender_id == current_user_id) &
+            (DirectMessage.recipient_id == user_id)
+        ) |
+        (
+            (DirectMessage.sender_id == user_id) &
+            (DirectMessage.recipient_id == current_user_id)
+        )
+    ).all()
+
     if not conversation:
         raise HTTPException(status_code=404, detail="Conversation not found")
+    
+    if not messages:
+        raise HTTPException(status_code=404, detail="Messages not found")
     
     try:
         if conversation.sender_id == current_user_id:
             conversation.hidden_by_sender = True
         else:
             conversation.hidden_by_recipient = True
+
+        for message in messages:
+            if message.sender_id == current_user_id:
+                message.hidden_by_sender = True
+            else:
+                message.hidden_by_recipient = True
+
+            if message.hidden_by_sender and message.hidden_by_recipient:
+                db.delete(message)
         
         db.commit()
 

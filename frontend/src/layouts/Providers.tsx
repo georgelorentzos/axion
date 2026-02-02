@@ -1,18 +1,18 @@
 import { UserProvider } from '../contexts/useCurrentUser';
 import { OnlineFriendsProvider } from "../contexts/useOnlineFriends";
 import { AllFriendsProvider } from '../contexts/useAllFriends';
-import { PendingsProvider } from '../contexts/usePendings';
+import { PendingProvider } from '../contexts/usePending';
 import { DirectMessagesProvider } from '../contexts/useDirectMessages';
 
 export const MainWithProviders = ({ children }: { children: React.ReactNode }) => (
   <UserProvider>
     <OnlineFriendsProvider>
       <AllFriendsProvider>
-        <PendingsProvider>
+        <PendingProvider>
           <DirectMessagesProvider>
             {children}
           </DirectMessagesProvider>
-        </PendingsProvider>
+        </PendingProvider>
       </AllFriendsProvider>
     </OnlineFriendsProvider>
   </UserProvider>

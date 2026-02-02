@@ -14,8 +14,8 @@ type UserCardProps = {
   removeDmBtn?: boolean;
   addFriendBtn?: boolean;
   acceptPendingBtn?: boolean;
-  declinePendingBtn?: boolean;
-  onDecline?: (id: string) => void;
+  rejectPendingBtn?: boolean;
+  onReject?: (id: string) => void;
   onAccept?: (id: string) => void;
   showLatestMessage?: boolean;
   latestMessage?: string;
@@ -27,7 +27,7 @@ type Pending = {
 
 type PendingResponse = {
   success: boolean;
-  pendings: Pending[];
+  pending: Pending[];
 };
 
 export default function UserCard({
@@ -40,8 +40,8 @@ export default function UserCard({
   removeDmBtn,
   addFriendBtn,
   acceptPendingBtn,
-  declinePendingBtn,
-  onDecline,
+  rejectPendingBtn,
+  onReject,
   onAccept,
   showLatestMessage,
   latestMessage
@@ -70,7 +70,7 @@ export default function UserCard({
 
         if (response.ok) {
           const data: PendingResponse = await response.json();
-          setPendingIds(data.pendings.map(p => p.pending_user_id));
+          setPendingIds(data.pending.map(p => p.pending_user_id));
         }
       } finally {
         setPendingLoading(false);
@@ -148,12 +148,12 @@ export default function UserCard({
     }
   };
 
-  const handlePendingDeclined = async () => {
+  const handlePendingReject = async () => {
     if (!id || !user?.user_id) return;
 
     setLoading(true);
     try {
-      const response = await fetch(`${apiUrl}/api/ally/decline`, {
+      const response = await fetch(`${apiUrl}/api/ally/reject`, {
         method: "DELETE",
         headers: { 
           "Authorization": `Bearer ${token}`,
@@ -166,7 +166,7 @@ export default function UserCard({
       });
 
       if (!response.ok) throw new Error();
-      onDecline?.(id);
+      onReject?.(id);
 
     } catch (error) {
       console.error("Error declining request:", error);
@@ -329,9 +329,9 @@ export default function UserCard({
           </>
         )}
 
-        {declinePendingBtn && (
+        {rejectPendingBtn && (
           <>
-          <button onClick={handlePendingDeclined} disabled={loading}>
+          <button onClick={handlePendingReject} disabled={loading}>
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-6 text-gray-500 hover:text-gray-300 transition duration-300">
             <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
             </svg>

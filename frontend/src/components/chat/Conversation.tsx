@@ -2,7 +2,7 @@ import ImageProfile from '../common/ImageProfile';
 import MessageInput from './MessageInput';
 import MessageBubble from './MessageBubble'
 import { useParams, useLocation } from "react-router-dom";
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useCurrentUser } from '../../contexts/useCurrentUser';
 
 interface User {
@@ -41,6 +41,7 @@ export default function Conversation() {
     const [loadingJoinedAt, setLoadingJoinedAt] = useState(false);
     const apiUrl = window.GLOBAL_ENV.API_ENDPOINT;
     const [messages, setMessages] = useState<Message[]>([]);
+    const messagesEndRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         const state = location.state as LocationState;
@@ -157,7 +158,9 @@ export default function Conversation() {
                             },
                         ];
                     });
+
                 }
+    
             } catch (error) {
                 console.error('Error parsing WebSocket message:', error);
             }
@@ -183,6 +186,10 @@ export default function Conversation() {
     //     }
     // }, [messages]);
 
+    useEffect(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, [messages]);
+
     return (
         <div className="flex-1 h-screen border-r border-outline flex flex-col">
             <div className="h-[100px] border-b border-outline flex items-center px-6 gap-3 flex-shrink-0">
@@ -202,7 +209,7 @@ export default function Conversation() {
                 </div>
             </div>
 
-            <div className="flex-1 w-full overflow-y-auto min-h-0 p-6 space-y-3">
+            <div className="flex-1 w-full overflow-y-auto min-h-0 p-6 pb-3 space-y-3">
                 <div className="pb-6">
                     <div className="flex flex-col items-center gap-3">
                         <ImageProfile 
@@ -235,6 +242,7 @@ export default function Conversation() {
                             />
                         </div>
                     ))}
+                    <div ref={messagesEndRef} />
                 </div>
             </div>
 
