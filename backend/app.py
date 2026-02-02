@@ -616,7 +616,8 @@ async def send_message(req: MessageRequest, user_id: str = Depends(get_user_id_f
             "username": sender.username,
             "profile_image": sender.profile_image,
             "is_online": sender.is_online,
-            "latest_message": req.message
+            "latest_message": req.message,
+            "created_at": sender.created_at.year,
         })
 
         await manager.broadcast_to_user(req.recipient_id, {
@@ -634,7 +635,8 @@ async def send_message(req: MessageRequest, user_id: str = Depends(get_user_id_f
             "username": recipient.username,
             "profile_image": recipient.profile_image,
             "is_online": recipient.is_online,
-            "latest_message": req.message
+            "latest_message": req.message,
+            "created_at": recipient.created_at.year,
         })
 
         return {"success": True, "message": "Message send successfuly!"}

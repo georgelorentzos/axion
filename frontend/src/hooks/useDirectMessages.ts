@@ -6,6 +6,7 @@ interface DirectMessage {
     profile_image: string;
     is_online: boolean;
     latest_message: string;
+    created_at: string;
 }
 
 export function useDirectMessages() {

@@ -6,6 +6,7 @@ import { useSearch } from '../hooks/useSearch';
 import { useDirectMessages } from "../contexts/useDirectMessages";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useRef } from 'react';
+import notificationSound from '../assets/sounds/notification.mp3';
 
 export default function SideBar() {
     const { user } = useCurrentUser();
@@ -30,6 +31,7 @@ export default function SideBar() {
                                 profile_image: data.profile_image,
                                 is_online: data.is_online,
                                 latest_message: data.latest_message,
+                                created_at: data.created_at,
                             },
                             ...directmessages
                         ];
@@ -45,7 +47,7 @@ export default function SideBar() {
 
                 if (data.type === 'message_sent') {
                     if (data.recipient_id === user?.user_id && audioRef.current) {
-                        audioRef.current.src = '/sounds/notification.mp3';
+                        audioRef.current.src = notificationSound;
                         audioRef.current.play();
                     }
                 }
@@ -107,6 +109,7 @@ export default function SideBar() {
                     removeDmBtn
                     showLatestMessage
                     latestMessage={directmessage.latest_message}
+                    createdAt={directmessage.created_at}
                     />
                 ))}
             </div>
