@@ -4,8 +4,8 @@ import { useCommunities } from "../../contexts/useCommunities";
 // import { useState, useEffect } from "react";
 
 // interface Community {
-//     server_name: string;
-//     server_image: string
+//     Community_name: string;
+//     Community_image: string
 // }
 
 export default function Communities() {
@@ -26,7 +26,7 @@ export default function Communities() {
             {communities?.map(community => (
                 <CommunityButton 
                 key={community.community_id}
-                isServer
+                isCommunity
                 communityImage={community.community_image}
                 communityName={community.community_name}
                 />

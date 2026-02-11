@@ -6,7 +6,7 @@ type CommunityButtonProps = {
     onClick?: () => void;
     isHome?: boolean;
     isCreate?: boolean;
-    isServer?: boolean;
+    isCommunity?: boolean;
     communityImage?: string;
     communityName?: string;
 }
@@ -15,7 +15,7 @@ export default function CommunityButton({
     onClick,
     isHome,
     isCreate,
-    isServer,
+    isCommunity,
     communityImage,
     communityName
 }: CommunityButtonProps) {
@@ -86,7 +86,7 @@ export default function CommunityButton({
         );
     }
 
-    if (isServer) {
+    if (isCommunity) {
         return (
             <button
                 className="transition duration-300 bg-field hover:bg-charcoal h-[50px] w-[50px] rounded-full flex justify-center items-center text-gray-500 hover:text-gray-300"

@@ -12,10 +12,10 @@ type CreateCommunityModalProps = {
 export default function CreateCommunityModal({ isOpen, onClose }: CreateCommunityModalProps) {
     const [isVisible, setIsVisible] = useState(false);
     const [showFade, setShowFade] = useState(false);
-    const [isCreateServer, setIsCreateServer] = useState(false);
+    const [isCreateCommunity, setIsCreateCommunity] = useState(false);
     const apiUrl = window.GLOBAL_ENV.API_ENDPOINT;
     const token = localStorage.getItem('token');
-    const [serverName, setServerName] = useState('');
+    const [communityName, setCommunityName] = useState('');
     const [communityImage, setCommunityImage] = useState<File | null>(null);
     const { setCommunities } = useCommunities();
     const [error, setError] = useState('');
@@ -32,25 +32,25 @@ export default function CreateCommunityModal({ isOpen, onClose }: CreateCommunit
     }, [isOpen]);
 
     useEffect(() => {
-        setTimeout(() => {setIsCreateServer(false);}, 200)
+        setTimeout(() => {setIsCreateCommunity(false);}, 200)
     }, [onClose]);
 
-    const handleCreateServer = async () => {
+    const handleCreateCommunity = async () => {
         if (!token) return console.error("No token");
 
         setError("");
         
         try {
             const formData = new FormData();
-            formData.append("community_name", serverName);
+            formData.append("community_name", communityName);
             if (communityImage) {
                 formData.append("community_image", communityImage);
             }
-            if (!serverName.trim()) {
+            if (!communityName.trim()) {
                 setError("Community name required.");
                 return;
             }
-            if (serverName.length == 0) {
+            if (communityName.length == 0) {
                 setError("Community name required.");
                 return;
             }
@@ -71,7 +71,7 @@ export default function CreateCommunityModal({ isOpen, onClose }: CreateCommunit
                 return;
             }           
 
-            console.log("Server created!");
+            console.log("Community created!");
             setCommunities(prev => [
             {
             community_id: data.community_id,
@@ -83,7 +83,7 @@ export default function CreateCommunityModal({ isOpen, onClose }: CreateCommunit
             onClose();
             
         } catch (error) {
-            console.error("failed to create server: ", {error})
+            console.error("failed to create community: ", {error})
         }
     };
 
@@ -105,9 +105,9 @@ export default function CreateCommunityModal({ isOpen, onClose }: CreateCommunit
                 showFade ? 'opacity-100' : 'opacity-0'
             }`}
         >
-            <div onClick={(e) => e.stopPropagation()} className="relative bg-onyx w-[400px] rounded-3xl border border-outline overflow-hidden">
+            <div onClick={(e) => e.stopPropagation()} className="relative bg-onyx w-[400px] rounded-3xl ">
                 <button
-                    className="absolute top-3 right-3 cursor-pointer text-white"
+                    className="border border-onyx absolute top-[-6px] right-[-6px] flex items-center justify-center w-8 h-8 bg-forestgreen rounded-full absolute top-3 right-3 cursor-pointer text-white"
                     onClick={onClose}
                 >
                     <svg
@@ -116,38 +116,42 @@ export default function CreateCommunityModal({ isOpen, onClose }: CreateCommunit
                         viewBox="0 0 24 24"
                         strokeWidth="1.5"
                         stroke="currentColor"
-                        className="w-6 h-6 text-gray-500 hover:text-gray-300 transition duration-300"
+                        className="w-4 h-4 text-white"
                     >
                         <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
                     </svg>
                 </button>
-                {!isCreateServer ? (
+                {!isCreateCommunity ? (
                     <>
 
-                <div className="p-6 flex gap-4 flex-col items-center bg-onyx w-[400px] rounded-3xl border border-outline">
+                <div className="p-6 flex gap-4 flex-col items-center bg-onyx w-[400px] rounded-3xl">
                     <div className="flex flex-col text-center">
-                        <div className="font-bold text-[20px]">Create Your Server</div>
-                        <div className="text-gray-500">Your server is where you and your friends hangout. Make yours and start talking.</div>
+                        <div className="font-bold text-[20px]">Create Your Community</div>
+                        <div className="text-gray-500">Your community is where you and your friends hangout. Make yours and start talking.</div>
                     </div>
-                    <Button text="Create My Own" onClick={() => setIsCreateServer(true)} />
-                    <Button text="Join a Server" isGreen />
+                    <Button text="Create My Own" onClick={() => setIsCreateCommunity(true)} />
+                    <Button text="Join a Community" isGreen />
                 </div>
                 </>
                 ) : (
-                <div className="p-6 flex gap-4 flex-col items-center bg-onyx w-[400px] rounded-3xl border border-outline">
+                <div className="p-6 flex gap-4 flex-col items-center bg-onyx w-[400px] rounded-3xl">
                     <div className="flex flex-col text-center">
-                        <div className="font-bold text-[20px]">Customize Your Server</div>
-                        <div className="text-gray-500">Give your new server a personality with a name and an icon. You can always change it later.</div>
+                        <div className="font-bold text-[20px]">Customize Your Community</div>
+                        <div className="text-gray-500">Give your community a new name and a cool icon. You can always change them later.</div>
                     </div>
                     
                     <UploadImageProfile onFileSelect={setCommunityImage} />
                     {error && (
                         <div className="text-red-500 text-[12px]">{ error }</div>
                     )}
-                    <Input onChange={(e) => setServerName(e.target.value)} />
+                    <Input 
+                    onChange={(e) => setCommunityName(e.target.value)} 
+                    placeholder="Community Name" 
+                    svgD="M5.25 14.25h13.5m-13.5 0a3 3 0 0 1-3-3m3 3a3 3 0 1 0 0 6h13.5a3 3 0 1 0 0-6m-16.5-3a3 3 0 0 1 3-3h13.5a3 3 0 0 1 3 3m-19.5 0a4.5 4.5 0 0 1 .9-2.7L5.737 5.1a3.375 3.375 0 0 1 2.7-1.35h7.126c1.062 0 2.062.5 2.7 1.35l2.587 3.45a4.5 4.5 0 0 1 .9 2.7m0 0a3 3 0 0 1-3 3m0 3h.008v.008h-.008v-.008Zm0-6h.008v.008h-.008v-.008Zm-3 6h.008v.008h-.008v-.008Zm0-6h.008v.008h-.008v-.008Z"
+                    />
                     <div className="flex w-full gap-4">
-                        <Button text="Back" onClick={() => setIsCreateServer(false)} />
-                        <Button text="Create" isGreen onClick={handleCreateServer} />
+                        <Button text="Back" onClick={() => setIsCreateCommunity(false)} />
+                        <Button text="Create" isGreen onClick={handleCreateCommunity} />
                     </div>
                 </div>
                 )}
