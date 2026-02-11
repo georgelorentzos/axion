@@ -61,7 +61,7 @@ export default function MessageInput({ value: propValue, recipient_id }: Message
                 value={value}
                 onChange={(e) => setValue(e.target.value)}
                 onKeyPress={handleKeyPressEnter}
-                className="bg-field text-gray-100 focus:outline-none h-[60px] border-outline flex justify-between items-center w-full"
+                className="bg-field text-gray-100 focus:outline-none h-[52px] border-outline flex justify-between items-center w-full"
                 placeholder="Message"  
             />
             <button onClick={handleSendClick}>

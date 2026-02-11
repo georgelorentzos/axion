@@ -3,6 +3,7 @@ import { OnlineFriendsProvider } from "../contexts/useOnlineFriends";
 import { AllFriendsProvider } from '../contexts/useAllFriends';
 import { PendingProvider } from '../contexts/usePending';
 import { DirectMessagesProvider } from '../contexts/useDirectMessages';
+import { CommunitiesProvider } from '../contexts/useCommunities';
 
 export const MainWithProviders = ({ children }: { children: React.ReactNode }) => (
   <UserProvider>
@@ -10,7 +11,9 @@ export const MainWithProviders = ({ children }: { children: React.ReactNode }) =
       <AllFriendsProvider>
         <PendingProvider>
           <DirectMessagesProvider>
-            {children}
+            <CommunitiesProvider>
+                {children}
+            </CommunitiesProvider>
           </DirectMessagesProvider>
         </PendingProvider>
       </AllFriendsProvider>

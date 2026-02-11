@@ -25,7 +25,7 @@ export default function SearchBar({ value: propValue, onSearch }: SearchBarProps
             type="text" 
             value={value}
             onChange={handleChange}
-            className="bg-field text-gray-100 focus:outline-none h-[60px] border-outline flex justify-between items-center w-full"
+            className="bg-field text-gray-100 focus:outline-none h-[52px] border-outline flex justify-between items-center w-full"
             placeholder="Search"  
         />
         </div>

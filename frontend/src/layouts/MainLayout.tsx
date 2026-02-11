@@ -1,8 +1,10 @@
-import SideBar from '../components/SideBar';
+import ChatOverView from '../components/ChatOverView';
+import Communities from '../components/communities/Communities';
 
 export const MainLayout = ({ children }: { children: React.ReactNode }) => (
   <div className="h-screen w-full flex items-center">
-    <SideBar />
+    <Communities />
+    <ChatOverView />
     {children}
   </div>
 );

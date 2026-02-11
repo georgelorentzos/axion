@@ -21,7 +21,7 @@ export default function ImageProfile({ src, online, width , height, showStatus=t
                 <>
                     <span
                     className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border border-outline
-                    ${online ? "bg-greenhover" : "bg-red-500"}`}
+                    ${online ? "bg-emerald" : "bg-red-500"}`}
                     />
                 </>
             )}

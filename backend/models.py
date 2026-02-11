@@ -16,6 +16,7 @@ class User(Base):
     is_online = Column(Boolean, nullable=False, default=False)
     last_seen = Column(DateTime, nullable=False, default=datetime.now)
     created_at = Column(DateTime, default=datetime.now)
+    communities = relationship('Community', backref="owner")
 
 class Token(Base):
     __tablename__ = "tokens"
@@ -68,3 +69,33 @@ class ConversationHistory(Base):
     
     sender = relationship("User", foreign_keys=[sender_id])
     recipient = relationship("User", foreign_keys=[recipient_id])
+
+class Community(Base):
+    __tablename__ = "communities"
+
+    id = Column(String, primary_key=True, default=lambda: str(uuid4()))
+    community_name = Column(String, nullable=False)
+    community_image = Column(String, nullable=False)
+    owner_id = Column(String, ForeignKey("users.id"), nullable=False)
+    channels = relationship("CommunityChannel", back_populates="community")
+
+class CommunityChannel(Base):
+    __tablename__ = "community_channels"
+    
+    id = Column(String, primary_key=True, default=lambda: str(uuid4()))
+    channel_name = Column(String, nullable=False)
+    type = Column(String, nullable=False)
+    community_id = Column(String, ForeignKey("communities.id"), nullable=False)
+    community = relationship("Community", back_populates="channels")
+
+class CommunityMember(Base):
+    __tablename__ = "community_members"
+
+    id = Column(String, primary_key=True, default=lambda: str(uuid4()))
+    user_id = Column(String, ForeignKey("users.id"), nullable=False)
+    community_id = Column(String, ForeignKey("communities.id"), nullable=False)
+    role = Column(String, default="member")
+    joined_at = Column(DateTime, default=datetime.now)
+
+    user = relationship("User")
+    community = relationship("Community")

@@ -57,7 +57,7 @@ export default function MagicLink() {
                     </div>
                     <div className="flex flex-col gap-2">
                         <button 
-                            className="text-white transition duration-200 bg-green hover:bg-greenhover h-[3rem] w-[21rem] rounded-xl cursor-pointer"
+                            className="text-white transition duration-200 bg-forestgreen hover:bg-emerald h-[3rem] w-[21rem] rounded-xl cursor-pointer"
                             onClick={handleGoBack}
                         >
                             Go Back

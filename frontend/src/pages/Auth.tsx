@@ -61,21 +61,21 @@ export default function Auth() {
 
     return (
         <div className="bg-[#141414] h-screen w-full flex flex-col justify-center items-center">
-            <div className="border border-outline w-[420px] flex justify-center items-center flex-col gap-4 p-10 rounded-3xl">
+            <div className="border border-outline w-[420px] h-[290px] flex justify-center items-center flex-col gap-4 p-10 rounded-3xl">
             <div className="text-white text-[30px]">Continue</div>
                 {error && <div className="text-red-400 text-sm text-center">{error}</div>}
                 {!completed ? (
                 <>
                 <input 
                 type="email" 
-                className="transition duration-200 focus:outline-none pl-4 text-[#98968e] bg-field h-[3rem] w-[21rem] rounded-xl" 
+                className="transition duration-200 focus:outline-none pl-4 text-[#98968e] bg-field h-[52px] w-[21rem] rounded-xl" 
                 placeholder="Enter your email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 />
                 <div className="flex flex-col gap-2">
                     <button 
-                    className="transition duration-200 bg-green hover:bg-greenhover text-white h-[3rem] w-[21rem] rounded-xl cursor-pointer"
+                    className="transition duration-200 bg-forestgreen hover:bg-emerald text-white h-[52px] w-[21rem] rounded-xl cursor-pointer"
                     onClick={handleLogin}
                     disabled={loading}
                     >Continue with email</button>

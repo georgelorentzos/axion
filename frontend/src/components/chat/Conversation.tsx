@@ -254,7 +254,7 @@ export default function Conversation() {
                 </div>
             </div>
 
-            <div className="px-6 h-[100px] border-t border-outline flex items-center flex-shrink-0 justify-center">
+            <div className="px-6 h-[100px] flex items-center flex-shrink-0 justify-center">
                 <MessageInput 
                     recipient_id={user?.user_id || ''} 
                 />

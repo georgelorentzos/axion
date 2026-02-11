@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Depends, BackgroundTasks, Request, Query
+from fastapi import FastAPI, HTTPException, Depends, BackgroundTasks, Request, Query, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 from schemas import (
     AuthRequest, 
@@ -13,7 +13,7 @@ from schemas import (
 from utils.database import get_db, Session as SessionLocal
 from sqlalchemy import and_, or_
 from sqlalchemy.orm import Session
-from models import User, Token, Friend, DirectMessage, ConversationHistory
+from models import *
 from utils.mail import send_mail
 from passlib.context import CryptContext
 from dotenv import load_dotenv
@@ -22,8 +22,9 @@ from pathlib import Path
 from datetime import datetime, timedelta
 import jwt
 import secrets
-from typing import Dict, Any
-from utils.token_cleanup import token_cleanup_scheduler
+from typing import Dict, Any, Optional
+from schedulers.token_cleanup import token_cleanup_scheduler
+from schedulers.online_cleanup import forgotten_online_users_scheduler
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
@@ -31,8 +32,10 @@ from fastapi.responses import JSONResponse
 from utils.websocket_manager import router, manager
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, FileResponse
 import asyncio
+import uuid
+import shutil
 
 load_dotenv()
 
@@ -43,6 +46,9 @@ API_ENDPOINT = os.getenv('API_ENDPOINT')
 GATEWAY_ENDPOINT = os.getenv('GATEWAY_ENDPOINT')
 ENVIRONMENT = os.getenv('ENVIRONMENT', 'development')
 BUILD_NUMBER = datetime.now().strftime('%Y%m%d%H%M%S')
+
+os.makedirs("uploads", exist_ok=True)
+UPLOADS_FOLDER = Path("uploads")
 
 templates = Jinja2Templates(directory="dist")
 limiter = Limiter(key_func=get_remote_address)
@@ -83,6 +89,7 @@ def get_user_id_from_token(request: Request) -> str:
 @app.on_event('startup')
 def startup():
     token_cleanup_scheduler()
+    forgotten_online_users_scheduler()
 
 app.include_router(router, prefix="/api")
 
@@ -352,11 +359,6 @@ async def ally_reject(request: Request, req: AllyRequest, user_id: str = Depends
         db.delete(existing)
         db.commit()
 
-        # await manager.broadcast_to_user(req.addressee_id, {
-        #         "type": "ally_rejected",
-        #         "user_id": req.requester_id
-        # })
-        
         return {"success": True, "message": "Friend request rejected"}
     except Exception as e:
         db.rollback()
@@ -405,8 +407,12 @@ async def ally_accept(request: Request, req: AllyRequest, user_id: str = Depends
 @app.get('/api/my/ally/requests', response_model=Dict[str, Any])
 @limiter.limit('100/minute')
 def my_ally_requests(request: Request, user_id: str = Depends(get_user_id_from_token), db: Session = Depends(get_db)) -> Dict[str, Any]:
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
     pending = db.query(Friend).filter(
-        and_(Friend.requester_id == user_id, Friend.status == "pending")
+        and_(Friend.requester_id == user.id, Friend.status == "pending")
     ).all()
 
     return {
@@ -423,8 +429,12 @@ def my_ally_requests(request: Request, user_id: str = Depends(get_user_id_from_t
 @app.get('/api/my/pending', response_model=Dict[str, Any])
 @limiter.limit('100/minute')
 def get_pending(request: Request, user_id: str = Depends(get_user_id_from_token), db: Session = Depends(get_db)) -> Dict[str, Any]:
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
     pendigs = db.query(Friend).filter(
-        and_(Friend.addressee_id == user_id, Friend.status == "pending")
+        and_(Friend.addressee_id == user.id, Friend.status == "pending")
     ).all()
 
     return {
@@ -819,46 +829,135 @@ async def delete_conversation(request: Request, user_id: str, current_user_id: s
         db.rollback()
         raise HTTPException(status_code=500, detail="Failed to delete conversation")
 
-if os.path.exists("dist/assets"):
-    app.mount("/assets", StaticFiles(directory="dist/assets"), name="assets")
-    
-@app.get("/", response_class=HTMLResponse)
-@app.get("/{full_path:path}", response_class=HTMLResponse)
-def serve_app(request: Request, full_path: str = ""):
-    nonce = secrets.token_urlsafe(16)
-    
-    html_path = "dist/index.html"
-    if not os.path.exists(html_path):
-        return HTMLResponse(
-            content="<h1>Error: React build not found</h1><p>Run 'npm run build' first</p>",
-            status_code=500
+@app.post("/api/community/create", response_model=Dict[str, Any])
+@limiter.limit("20/minute")
+def create_community(
+    request: Request,
+    community_name: str = Form(...),
+    community_image: UploadFile | None = File(None),
+    current_user_id: str = Depends(get_user_id_from_token),
+    db: Session = Depends(get_db),
+) -> Dict[str, Any]:
+    user = db.query(User).filter(User.id == current_user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found.")
+
+    community_name = community_name.strip()
+    if not community_name:
+        raise HTTPException(status_code=400, detail="Community name required.")
+    if len(community_name) < 4:
+        raise HTTPException(status_code=400, detail="Community name must be at least 4 characters.")
+    if len(community_name) > 35:
+        raise HTTPException(status_code=400, detail="Community name can't be bigger than 35 characters.")
+
+    image_path = None
+    image_url: str | None = None
+    if community_image and community_image.filename:
+        ext = os.path.splitext(community_image.filename)[1].lower()
+        filename = f"{uuid.uuid4().hex}{ext}"
+        image_path = os.path.join(UPLOADS_FOLDER, filename)
+        with open(image_path, "wb") as f:
+            shutil.copyfileobj(community_image.file, f)
+        base = (os.getenv("MEDIA_CDN_URL") or "/api/serve/image").rstrip("/")
+        image_url = f"{base}/{filename}"
+    else:
+        image_url = "null"
+
+    try:
+        new_community = Community(
+            community_name=community_name,
+            community_image=image_url,
+            owner_id=user.id,
         )
-    
-    context = {
-        "request": request,
-        "nonce": nonce,
-        "api_endpoint": API_ENDPOINT,
-        "gateway_endpoint": GATEWAY_ENDPOINT,
-        "build_number": BUILD_NUMBER,
-        "environment": ENVIRONMENT,
-    }
-    
-    response = templates.TemplateResponse("index.html", context)
-    
-    csp = (
-        f"default-src 'self'; "
-        f"script-src 'nonce-{nonce}' https://cdn.tailwindcss.com https://cdn.jsdelivr.net 'self' https:; "
-        f"style-src 'unsafe-inline' https://fonts.googleapis.com https://cdn.tailwindcss.com; "
-        f"font-src https://fonts.gstatic.com; "
-        f"connect-src * data:; "
-        f"img-src 'self' data: https:; "
-        f"media-src 'self' https:;"
+        db.add(new_community)
+        db.flush()
+
+        db.add(CommunityMember(user_id=user.id, community_id=new_community.id, role="owner"))
+        db.commit()
+        return {"success": True,
+                "community_id": new_community.id,
+                "community_name": new_community.community_name,
+                "community_image": new_community.community_image
+                }
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/my/communities", response_model=Dict[str, Any])
+@limiter.limit("200/minute")
+def my_communities(request: Request, current_user_id: str = Depends(get_user_id_from_token) ,db: Session = Depends(get_db)) -> Dict[str, Any]:
+    user = db.query(User).filter(User.id == current_user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    communities = (
+        db.query(CommunityMember, Community).join(
+            Community,
+            Community.id == CommunityMember.community_id
+        ).filter(
+            CommunityMember.user_id == current_user_id
+        ).all()
     )
-    response.headers["Content-Security-Policy"] = csp
+
+    return {
+        "success": True,
+        "communities": [
+            {
+                "community_id": community.id,
+                "community_name": community.community_name,
+                "community_image": community.community_image,
+            } for member, community in communities
+        ]
+    }
+
+@app.get("/api/serve/image/{image_name}")
+def serve_image(image_name: str):
+    file_path = UPLOADS_FOLDER / image_name
+
+    if not file_path.exists() or not file_path.is_file():
+        raise HTTPException(status_code=404, detail="Image not found")
+
+    return FileResponse(path=str(file_path))
+
+# if os.path.exists("dist/assets"):
+#     app.mount("/assets", StaticFiles(directory="dist/assets"), name="assets")
+
+# @app.get("/", response_class=HTMLResponse)
+# @app.get("/{full_path:path}", response_class=HTMLResponse)
+# def serve_app(request: Request, full_path: str = ""):
+#     nonce = secrets.token_urlsafe(16)
     
-    response.headers["X-Content-Type-Options"] = "nosniff"
-    response.headers["X-Frame-Options"] = "SAMEORIGIN"
-    response.headers["X-XSS-Protection"] = "1; mode=block"
-    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+#     html_path = "dist/index.html"
+#     if not os.path.exists(html_path):
+#         return HTMLResponse(
+#             content="<h1>Error: React build not found</h1><p>Run 'npm run build' first</p>",
+#             status_code=500
+#         )
     
-    return response
+#     context = {
+#         "request": request,
+#         "nonce": nonce,
+#         "api_endpoint": API_ENDPOINT,
+#         "gateway_endpoint": GATEWAY_ENDPOINT,
+#         "build_number": BUILD_NUMBER,
+#         "environment": ENVIRONMENT,
+#     }
+    
+#     response = templates.TemplateResponse("index.html", context)
+    
+#     csp = (
+#         f"default-src 'self'; "
+#         f"script-src 'nonce-{nonce}' https://cdn.tailwindcss.com https://cdn.jsdelivr.net 'self' https:; "
+#         f"style-src 'unsafe-inline' https://fonts.googleapis.com https://cdn.tailwindcss.com; "
+#         f"font-src https://fonts.gstatic.com; "
+#         f"connect-src * data:; "
+#         f"img-src 'self' data: https:; "
+#         f"media-src 'self' https:;"
+#     )
+#     response.headers["Content-Security-Policy"] = csp
+    
+#     response.headers["X-Content-Type-Options"] = "nosniff"
+#     response.headers["X-Frame-Options"] = "SAMEORIGIN"
+#     response.headers["X-XSS-Protection"] = "1; mode=block"
+#     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    
+#     return response

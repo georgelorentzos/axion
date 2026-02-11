@@ -17,7 +17,7 @@ export default function NotFound() {
 
                 <button
                     onClick={handleGoBack}
-                    className="text-white transition duration-200 bg-green hover:bg-greenhover h-[3rem] w-[21rem] rounded-xl cursor-pointer flex items-center justify-center gap-2 font-medium"
+                    className="text-white transition duration-200 bg-forestgreen hover:bg-emerald h-[3rem] w-[21rem] rounded-xl cursor-pointer flex items-center justify-center gap-2 font-medium"
                 >
                     Go Back
                 </button>

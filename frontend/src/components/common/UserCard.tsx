@@ -275,7 +275,7 @@ export default function UserCard({
   return (
     <div
       onClick={handleNavigateToChat}
-      className="cursor-pointer transition duration-300 hover:bg-primaryhover h-[80px] border-outline px-6 flex justify-between items-center w-full rounded-xl"
+      className="cursor-pointer transition duration-300 hover:bg-charcoal h-[80px] border-outline px-6 flex justify-between items-center w-full rounded-xl"
     >
       <div className="flex items-center gap-3">
         <ImageProfile src={image} online={isOnline} />
