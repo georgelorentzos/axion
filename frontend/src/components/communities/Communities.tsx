@@ -24,9 +24,16 @@ export default function Communities() {
             </div>
 
             {communities?.map(community => (
-                <CommunityButton 
+                <CommunityButton
+                onClick={() => {
+                    const communityData = {
+                        "communityName": community.community_name
+                    }
+                    navigate(`/community/${community.community_id}`, { state: { communityData }})
+                }} 
                 key={community.community_id}
                 isCommunity
+                communityId={community.community_id}
                 communityImage={community.community_image}
                 communityName={community.community_name}
                 />

@@ -7,6 +7,7 @@ type CommunityButtonProps = {
     isHome?: boolean;
     isCreate?: boolean;
     isCommunity?: boolean;
+    communityId?: string;
     communityImage?: string;
     communityName?: string;
 }
@@ -16,6 +17,7 @@ export default function CommunityButton({
     isHome,
     isCreate,
     isCommunity,
+    communityId,
     communityImage,
     communityName
 }: CommunityButtonProps) {
@@ -30,11 +32,11 @@ export default function CommunityButton({
     if (isHome) {
         return (
             <button
-                className={`transition duration-300 ${
+                className={`transition duration-300 h-[50px] w-[50px] rounded-full flex justify-center items-center ${
                     location.pathname === '/'
                         ? "bg-forestgreen text-white"
                         : "bg-field text-gray-500 hover:bg-charcoal"
-                } h-[50px] w-[50px] rounded-full flex justify-center items-center`}
+                }`}
                 onClick={onClick}
             >
                 <svg
@@ -87,21 +89,27 @@ export default function CommunityButton({
     }
 
     if (isCommunity) {
+        const isSelected = location.pathname === `/community/${communityId}`;
+
         return (
             <button
-                className="transition duration-300 bg-field hover:bg-charcoal h-[50px] w-[50px] rounded-full flex justify-center items-center text-gray-500 hover:text-gray-300"
+                className={`transition duration-300 h-[50px] w-[50px] rounded-full flex justify-center items-center ${
+                    isSelected
+                        ? "bg-forestgreen text-white"
+                        : "bg-field text-gray-500 hover:bg-charcoal"
+                }`}
                 onClick={onClick}
             >
                 {communityImage && communityImage !== "null" ? (
-                <img
-                    src={`${apiUrl}${communityImage}`}
-                    alt=""
-                    className="transition duration-300 rounded-full hover:opacity-80 w-full h-full object-cover"
-                />
+                    <img
+                        src={`${apiUrl}${communityImage}`}
+                        alt=""
+                        className="rounded-full w-full h-full object-cover"
+                    />
                 ) : (
-                <span className="text-lg font-semibold">
-                    {communityName?.charAt(0).toUpperCase()}
-                </span>
+                    <span className="text-lg font-semibold">
+                        {communityName?.charAt(0).toUpperCase()}
+                    </span>
                 )}
             </button>
         );

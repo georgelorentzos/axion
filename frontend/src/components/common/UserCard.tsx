@@ -1,8 +1,8 @@
 import ImageProfile from "../common/ImageProfile";
 import { useCurrentUser } from '../../contexts/useCurrentUser';
-import DropDown from './DropDown';
+import ActionMenu from './ActionMenu';
 import React, { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 type UserCardProps = {
   id?: string;
@@ -52,10 +52,12 @@ export default function UserCard({
   const [pendingIds, setPendingIds] = useState<string[]>([]);
   const [pendingLoading, setPendingLoading] = useState(true);
   const apiUrl = window.GLOBAL_ENV.API_ENDPOINT;
-  const [ isDropDownOpen, setisDropDownOpen ] = useState(false);
+  const [ isActionMenuOpen, setisActionMenuOpen ] = useState(false);
   const token = localStorage.getItem("token");
   const navigate = useNavigate();
   const buttonRef = useRef<HTMLButtonElement | null>(null);
+  const location = useLocation();
+  const isSelected = location.pathname === `/chat/${id}`;
 
   const isThisPending =
     id !== undefined && pendingIds.includes(id);
@@ -222,7 +224,7 @@ export default function UserCard({
 
       if (!response.ok) throw new Error();
 
-      setisDropDownOpen(false);
+      setisActionMenuOpen(false);
 
     } catch (error) {
       console.error("Error removing friend:", error);
@@ -247,7 +249,7 @@ export default function UserCard({
         throw new Error(`Failed to delete friend (${response.status})`);
       }
 
-      setisDropDownOpen(false);
+      setisActionMenuOpen(false);
 
     } catch (error) {
       console.error("Error removing friend:", error);
@@ -275,7 +277,11 @@ export default function UserCard({
   return (
     <div
       onClick={handleNavigateToChat}
-      className="cursor-pointer transition duration-300 hover:bg-charcoal h-[80px] border-outline px-6 flex justify-between items-center w-full rounded-xl"
+      className={`cursor-pointer transition duration-300 h-[80px] border-outline px-6 flex justify-between items-center w-full rounded-xl ${
+    isSelected
+      ? "bg-charcoal"
+      : "hover:bg-charcoal"
+  }`}
     >
       <div className="flex items-center gap-3">
         <ImageProfile src={image} online={isOnline} />
@@ -299,7 +305,7 @@ export default function UserCard({
           <button 
           ref={buttonRef}
           onClick={() => 
-            setisDropDownOpen(prev => !prev)
+            setisActionMenuOpen(prev => !prev)
           }
           >
             <svg
@@ -317,7 +323,7 @@ export default function UserCard({
               />
             </svg>
           </button>
-          <DropDown isDropDownOpen={isDropDownOpen} removeDmBtn={removeDmBtn} onClose={() => setisDropDownOpen(false)} onRemoveFriend={handleRemoveFriend} onDeleteConversation={handleDeleteConversation} buttonRef={buttonRef} />
+          <ActionMenu isActionMenuOpen={isActionMenuOpen} removeFriendBtn removeDmBtn={removeDmBtn} onClose={() => setisActionMenuOpen(false)} onRemoveFriend={handleRemoveFriend} onDeleteConversation={handleDeleteConversation} buttonRef={buttonRef} />
           </div>
         )}
 
