@@ -19,13 +19,13 @@ export default function Auth() {
     const handleLogin = async () => {
 
         if (!email) {
-            setError('Please enter an email');
+            setError('Please enter an email address.');
             return;
         }
 
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
-            setError('Please enter a valid email');
+            setError('Please enter a valid email address.');
             return;
         }
 
@@ -61,7 +61,7 @@ export default function Auth() {
 
     return (
         <div className="bg-[#141414] h-screen w-full flex flex-col justify-center items-center">
-            <div className="border border-outline w-[420px] h-[290px] flex justify-center items-center flex-col gap-4 p-10 rounded-3xl">
+            <div className="border border-outline w-[420px] flex justify-center items-center flex-col gap-4 p-10 rounded-3xl">
             <div className="text-white text-[30px]">Continue</div>
                 {error && <div className="text-red-400 text-sm text-center">{error}</div>}
                 {!completed ? (

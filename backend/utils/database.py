@@ -1,10 +1,10 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 
-SQLALCHEMY_DATABASE_URI = 'sqlite:///site.db'
+SQLALCHEMY_DATABASE_URI = 'postgresql+psycopg2://axion_user:Axion%232026Secure%21@postgres:5432/axion_db'
 
 engine = create_engine(
-    SQLALCHEMY_DATABASE_URI, connect_args={"check_same_thread": False}
+    SQLALCHEMY_DATABASE_URI, pool_pre_ping=True
 )
 
 Session = sessionmaker(bind=engine, autocommit=False, autoflush=False)

@@ -4,108 +4,25 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sign In</title>
-    <style>
-        body {
-            margin: 0;
-            padding: 0;
-            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
-            line-height: 1.6;
-        }
-        .container {
-            max-width: 520px;
-            margin: 0 auto;
-            padding: 60px 24px;
-        }
-        .email-card {
-            background: white;
-            border-radius: 0.75rem;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07), 0 1px 3px rgba(0, 0, 0, 0.05);
-            padding: 48px 36px;
-        }
-        h1 {
-            margin: 0 0 12px 0;
-            color: #1a1a1a;
-            font-size: 32px;
-            font-weight: 600;
-            letter-spacing: -0.5px;
-        }
-        .subtitle {
-            margin: 0 0 40px 0;
-            color: #666666;
-            font-size: 16px;
-            line-height: 1.6;
-            font-weight: 400;
-        }
-        .cta-button {
-            display: inline-block;
-            background: black;
-            color: #ffffff !important;
-            padding: 14px 36px;
-            text-decoration: none !important;
-            font-size: 16px;
-            font-weight: 600;
-            border-radius: 0.75rem;
-            transition: all 0.3s ease;
-            letter-spacing: 0.3px;
-        }
-        .cta-section {
-            margin-bottom: 48px;
-        }
-        .security-notice {
-            background: #f5f5f5;
-            border-left: 3px solid #e0e0e0;
-            padding: 16px 20px;
-            margin-bottom: 24px;
-            border-radius: 0.75rem;
-        }
-        .security-notice p {
-            margin: 0;
-            color: #555555;
-            font-size: 14px;
-            line-height: 1.6;
-        }
-        .footer-text {
-            margin: 0 0 12px 0;
-            color: #888888;
-            font-size: 13px;
-            line-height: 1.6;
-        }
-        .footer-link {
-            color: #000000;
-            text-decoration: none;
-            font-weight: 500;
-            transition: color 0.2s ease;
-        }
-        .footer-link:hover {
-            color: #1a1a1a;
-            text-decoration: underline;
-        }
-        .expiration {
-            margin: 0;
-            color: #aaaaaa;
-            font-size: 12px;
-            font-weight: 500;
-        }
-    </style>
 </head>
-<body>
-    <div class="container">
-        <div class="email-card">
-            <h1>Sign in to your account</h1>
-            <p class="subtitle">Your secure sign-in link is ready. Click below to access your account.</p>
+<body style="margin: 0; padding: 0; background: #ffffff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif; line-height: 1.6;">
+    <div style="max-width: 480px; margin: 0 auto; padding: 60px 24px; display: flex; justify-content: center; align-items: center; height: auto;">
+        <div style="border: 1px solid #e0e0e0; border-radius: 24px; padding: 48px 40px; width: 100%; background: #ffffff;">
+            <h1 style="margin: 0 0 16px 0; color: #1a1a1a; font-size: 28px; font-weight: 600; letter-spacing: -0.5px;">Sign In to your account</h1>
             
-            <div class="cta-section">
-                <a href="http://localhost:5173/magic-link#{token}" class="cta-button">Sign in securely</a>
+            <p style="margin: 0 0 40px 0; color: #666666; font-size: 15px; line-height: 1.6; font-weight: 400;">Your secure sign-in link is ready. Click below to access your account.</p>
+            
+            <div style="margin-bottom: 40px;">
+                <a href="http://localhost:5173/magic-link#{token}" style="display: inline-block; background: #15803c; color: #ffffff !important; padding: 14px 36px; text-decoration: none !important; font-size: 16px; font-weight: 600; border-radius: 12px; letter-spacing: 0.3px; width: 100%; text-align: center; box-sizing: border-box; border: none;">Sign In securely</a>
             </div>
             
-            <div class="security-notice">
-                <p>This is a secure sign-in link. Never share it with anyone. We'll never ask for your password via email.</p>
+            <div style="background: #f9f9f9; border-left: 3px solid #15803c; padding: 16px 20px; margin-bottom: 32px;">
+                <p style="margin: 0; color: #666666; font-size: 14px; line-height: 1.6;">This is a secure Sign In link. Never share it with anyone. We'll never ask for your password via email.</p>
             </div>
             
-            <p class="footer-text">If you didn't request this sign-in link, you can safely ignore this email or contact <a href="mailto:support@atlacell.com" class="footer-link">support</a> if you have questions.</p>
+            <p style="margin: 0 0 20px 0; color: #666666; font-size: 14px; line-height: 1.6;">If you didn't request this Sign In link, you can safely ignore this email.</p>
             
-            <p class="expiration">This link expires in 15 minutes</p>
+            <p style="margin: 0; color: #999999; font-size: 12px; font-weight: 500;">This link expires in 15 minutes</p>
         </div>
     </div>
 </body>

@@ -8,4 +8,8 @@ pyjwt
 slowapi
 python-multipart
 pydantic
+pydantic[email]
 alembic
+psycopg2-binary
+apscheduler
+jinja2

@@ -77,7 +77,17 @@ class Community(Base):
     community_name = Column(String, nullable=False)
     community_image = Column(String, nullable=False)
     owner_id = Column(String, ForeignKey("users.id"), nullable=False)
-    channels = relationship("CommunityChannel", back_populates="community")
+    categories = relationship("CommunityCategory", back_populates="community")
+    channels = relationship("CommunityChannel", back_populates="community", foreign_keys="CommunityChannel.community_id")
+
+class CommunityCategory(Base):
+    __tablename__ = "community_categories"
+
+    id = Column(String, primary_key=True, default=lambda: str(uuid4()))
+    category_name = Column(String, nullable=False)
+    community_id = Column(String, ForeignKey("communities.id"), nullable=False)
+    community = relationship("Community", back_populates="categories")
+    channels = relationship("CommunityChannel", back_populates="category")
 
 class CommunityChannel(Base):
     __tablename__ = "community_channels"
@@ -86,7 +96,9 @@ class CommunityChannel(Base):
     channel_name = Column(String, nullable=False)
     type = Column(String, nullable=False)
     community_id = Column(String, ForeignKey("communities.id"), nullable=False)
+    category_id = Column(String, ForeignKey("community_categories.id"), nullable=True)
     community = relationship("Community", back_populates="channels")
+    category = relationship("CommunityCategory", back_populates="channels")
 
 class CommunityMember(Base):
     __tablename__ = "community_members"
