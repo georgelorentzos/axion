@@ -1,5 +1,5 @@
 import { useLocation } from 'react-router-dom';
-import CreateCommunityModal from "./CreateCommunityModal";
+import CreateCommunityModal from "./modals/CreateCommunityModal";
 import { useState } from 'react';
 
 type CommunityButtonProps = {

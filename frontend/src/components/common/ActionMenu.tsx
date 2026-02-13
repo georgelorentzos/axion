@@ -6,9 +6,11 @@ type ActionMenuProps = {
   onClose: () => void;
   onRemoveFriend?: () => void;
   onDeleteConversation?: () => void;
+  onCreateChannel?: () => void;
+  onCreateCategory?: () => void;
   removeFriendBtn?: boolean;
   removeDmBtn?: boolean;
-  createChannelBtn?: boolean;
+  isChannelList?: boolean;
   buttonRef?: React.RefObject<HTMLButtonElement | null>;
 };
 
@@ -17,10 +19,12 @@ export default function ActionMenu({
   onClose,
   onRemoveFriend,
   onDeleteConversation,
+  onCreateChannel,
+  onCreateCategory,
   removeDmBtn,
   buttonRef,
   position,
-  createChannelBtn,
+  isChannelList,
   removeFriendBtn,
 }: ActionMenuProps) {
   const actionMenuRef = useRef<HTMLDivElement>(null);
@@ -30,18 +34,25 @@ export default function ActionMenu({
     const handleClickOutside = (event: MouseEvent) => {
       if (buttonRef?.current?.contains(event.target as Node)) return;
 
-      if (actionMenuRef.current && !actionMenuRef.current.contains(event.target as Node)) {
+      if (
+        actionMenuRef.current &&
+        !actionMenuRef.current.contains(event.target as Node)
+      ) {
         onClose();
       }
     };
 
-    if (isActionMenuOpen) document.addEventListener("mousedown", handleClickOutside);
+    if (isActionMenuOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isActionMenuOpen, onClose, buttonRef]);
 
   useEffect(() => {
-    if (isActionMenuOpen) setIsVisible(true);
-    else {
+    if (isActionMenuOpen) {
+      setIsVisible(true);
+    } else {
       const timer = setTimeout(() => setIsVisible(false), 200);
       return () => clearTimeout(timer);
     }
@@ -49,29 +60,29 @@ export default function ActionMenu({
 
   if (!isVisible) return null;
 
-  const hasPos = typeof position?.x === "number" && typeof position?.y === "number";
+  const hasPos =
+    typeof position?.x === "number" && typeof position?.y === "number";
+
+  const baseButtonStyle =
+    "w-full px-4 py-2 flex items-center gap-2 text-left hover:bg-charcoal transition-colors";
 
   return (
     <div
       ref={actionMenuRef}
-      className={`z-[2] bg-field border border-outline w-max h-auto rounded-xl shadow-lg transition-opacity duration-200 ${
+      className={`z-[2] bg-field border border-outline w-auto min-w-[200px] rounded-xl shadow-lg overflow-hidden transition-opacity duration-200 ${
         isActionMenuOpen ? "opacity-100" : "opacity-0"
       } ${hasPos ? "fixed" : "absolute right-[-24px] top-7"}`}
       style={hasPos ? { left: position!.x, top: position!.y } : undefined}
     >
-
       {removeFriendBtn && (
-        <button
-          onClick={onRemoveFriend}
-          className="px-4 flex justify-start items-center w-full py-2 hover:bg-charcoal gap-2"
-        >
+        <button onClick={onRemoveFriend} className={baseButtonStyle}>
           <svg
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24"
             strokeWidth="1.5"
             stroke="currentColor"
-            className="size-6 text-gray-500"
+            className="size-5 text-gray-500"
           >
             <path
               strokeLinecap="round"
@@ -86,17 +97,14 @@ export default function ActionMenu({
       {removeDmBtn && (
         <>
           <div className="border-t border-outline" />
-          <button
-            onClick={onDeleteConversation}
-            className="px-4 flex justify-start items-center w-full py-2 hover:bg-charcoal gap-2"
-          >
+          <button onClick={onDeleteConversation} className={baseButtonStyle}>
             <svg
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
               viewBox="0 0 24 24"
               strokeWidth="1.5"
               stroke="currentColor"
-              className="size-6 text-gray-500"
+              className="size-5 text-gray-500"
             >
               <path
                 strokeLinecap="round"
@@ -109,20 +117,36 @@ export default function ActionMenu({
         </>
       )}
 
-      {createChannelBtn && (
+      {isChannelList && (
         <>
-          <div className="border-t border-outline" />
-          <button
-            onClick={onDeleteConversation}
-            className="px-4 flex justify-start items-center w-full py-2 hover:bg-charcoal gap-2"
-          >
+          <button onClick={onCreateCategory} className={baseButtonStyle}>
             <svg
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
               viewBox="0 0 24 24"
               strokeWidth="1.5"
               stroke="currentColor"
-              className="size-6 text-gray-500"
+              className="size-5 text-gray-500"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M12 4.5v15m7.5-7.5h-15"
+              />
+            </svg>
+            Create Category
+          </button>
+
+          <div className="border-t border-outline" />
+
+          <button onClick={onCreateChannel} className={baseButtonStyle}>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth="1.5"
+              stroke="currentColor"
+              className="size-5 text-gray-500"
             >
               <path
                 strokeLinecap="round"
@@ -134,13 +158,6 @@ export default function ActionMenu({
           </button>
         </>
       )}
-
-      {/*
-      <div className="border-t border-outline" />
-      <button className="px-4 py-2.5 flex justify-start items-center w-full hover:bg-charcoal transition-colors">
-        Block User
-      </button>
-      */}
     </div>
   );
 }

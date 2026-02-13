@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import Input from "../common/Input";
-import UploadImageProfile from "../common/UploadImageProfile";
-import Button from "../common/Button";
-import { useCommunities } from "../../contexts/useCommunities";
+import Input from "../../common/Input";
+import UploadImageProfile from "../../common/UploadImageProfile";
+import Button from "../../common/Button";
+import { useCommunities } from "../../../contexts/useCommunities";
 
 type CreateCommunityModalProps = {
     isOpen: boolean;
