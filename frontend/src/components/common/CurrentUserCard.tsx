@@ -4,9 +4,9 @@ import ImageProfile from "./ImageProfile";
 export default function CurrentUserCard() {
     const { user } = useCurrentUser();
     return(
-        <div className="w-full h-[100px] border-t border-outline flex items-center flex-shrink-0">
-         <div className="px-6 flex justify-between items-center w-full">
-                <div className="flex items-center gap-3">
+        <div className="border border-outline flex items-center bg-basalt rounded-lg gap-2 w-full h-[60px]">
+         <div className="px-4 flex justify-between items-center w-full">
+                <div className="flex items-center gap-2">
                     <ImageProfile src={user?.profile_image} online />
                     <div className="flex flex-col leading-none gap-1">
                         <div className="text-gray-100">{user?.username}</div>

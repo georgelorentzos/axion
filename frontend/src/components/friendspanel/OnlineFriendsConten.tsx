@@ -9,7 +9,7 @@ export default function OnlineFriendsContent() {
 
     return (
         <div className="h-full flex flex-col">
-            <div className="space-y-3 p-6 flex flex-col flex-1">
+            <div className="p-2 flex gap-2 flex-col flex-1">
                 {!loading && onlineFriends.length >= 1 && (
                     <SearchBar value={searchQuery} onSearch={setSearchQuery} />
                 )}

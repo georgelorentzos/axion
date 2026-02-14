@@ -50,7 +50,7 @@ export default function MessageInput({ value: propValue, recipient_id }: Message
     };
 
     return (
-        <div className='flex items-center bg-field px-4 rounded-xl gap-2 w-full'>
+        <div className='border border-outline flex items-center bg-basalt px-4 rounded-lg gap-2 w-full h-[60px]'>
             <button>
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-6 text-gray-500 hover:text-gray-300 transition duration-300">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
@@ -61,7 +61,7 @@ export default function MessageInput({ value: propValue, recipient_id }: Message
                 value={value}
                 onChange={(e) => setValue(e.target.value)}
                 onKeyPress={handleKeyPressEnter}
-                className="bg-field text-gray-100 focus:outline-none h-[52px] border-outline flex justify-between items-center w-full"
+                className="bg-basalt text-gray-100 focus:outline-none h-full border-outline flex justify-between items-center w-full"
                 placeholder="Message"  
             />
             <button onClick={handleSendClick}>

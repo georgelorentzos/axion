@@ -8,6 +8,7 @@ type ActionMenuProps = {
   onDeleteConversation?: () => void;
   onCreateChannel?: () => void;
   onCreateCategory?: () => void;
+  onCommunitySettings?: () => void;
   removeFriendBtn?: boolean;
   removeDmBtn?: boolean;
   isChannelList?: boolean;
@@ -22,6 +23,7 @@ export default function ActionMenu({
   onDeleteConversation,
   onCreateChannel,
   onCreateCategory,
+  onCommunitySettings,
   removeDmBtn,
   buttonRef,
   position,
@@ -66,12 +68,12 @@ export default function ActionMenu({
     typeof position?.x === "number" && typeof position?.y === "number";
 
   const baseButtonStyle =
-    "w-full px-4 py-2 flex items-center gap-2 text-left hover:bg-charcoal transition-colors";
+    "w-full px-4 py-2 flex items-center gap-2 text-left hover:bg-slate transition-colors";
 
   return (
     <div
       ref={actionMenuRef}
-      className={`z-[2] bg-field border border-outline w-auto min-w-[200px] rounded-xl shadow-lg overflow-hidden transition-opacity duration-200 ${
+      className={`z-[2] bg-basalt border border-outline w-auto min-w-[200px] rounded-xl shadow-lg overflow-hidden transition-opacity duration-200 ${
         isActionMenuOpen ? "opacity-100" : "opacity-0"
       } ${hasPos ? "fixed" : "absolute right-[-20px] top-7"}`}
       style={hasPos ? { left: position!.x, top: position!.y } : undefined}
@@ -163,7 +165,7 @@ export default function ActionMenu({
 
       {isServerOptions && (
         <>
-          <button onClick={onCreateCategory} className={baseButtonStyle}>
+          <button onClick={onCommunitySettings} className={baseButtonStyle}>
             <svg
               xmlns="http://www.w3.org/2000/svg"
               fill="none"

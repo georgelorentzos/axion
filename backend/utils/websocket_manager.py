@@ -7,8 +7,6 @@ from datetime import datetime, timedelta
 import json
 from sqlalchemy.orm import Session
 from sqlalchemy import or_
-from utils.database import get_db
-from models import User, Friend
 import asyncio
 from collections import defaultdict
 
@@ -37,107 +35,131 @@ class ConnectionManager:
         self.connection_attempts[user_id].append(now)
         return True
 
-    async def connect(self, websocket: WebSocket, user_id: str, db: Session):
-        user = db.query(User).filter(User.id == user_id).first()
-        if user:
-            user.is_online = True
-            user.last_seen = datetime.utcnow()
-            db.commit()
+    async def connect(self, websocket: WebSocket, user_id: str):
+        from utils.database import Session as SessionLocal
+        from models import User, Friend
         
-        if not self.can_connect(user_id):
-            await websocket.close(code=1008)
-            return False
-        
-        await websocket.accept()
+        db = SessionLocal()
+        try:
+            user = db.query(User).filter(User.id == user_id).first()
+            if user:
+                user.is_online = True
+                user.last_seen = datetime.utcnow()
+                db.commit()
+            
+            if not self.can_connect(user_id):
+                await websocket.close(code=1008)
+                return False
+            
+            await websocket.accept()
 
-        if user_id not in self.active_connections:
-            self.active_connections[user_id] = set()
-        self.active_connections[user_id].add(websocket)
+            if user_id not in self.active_connections:
+                self.active_connections[user_id] = set()
+            self.active_connections[user_id].add(websocket)
 
-        friends = db.query(Friend).filter(
-            or_(Friend.addressee_id == user_id, Friend.requester_id == user_id),
-            Friend.status == "friends"
-        ).all()
-        
-        for friend in friends:
-            f_id = friend.addressee_id if friend.addressee_id != user_id else friend.requester_id
-            f_user = db.query(User).filter(User.id == f_id).first()
-            if f_user:
-                asyncio.create_task(self.broadcast_to_user(f_id, {
-                    "type": "user_online",
-                    "user_id": user.id,
-                    "username": user.username,
-                    "profile_image": user.profile_image,
-                    "created_at": user.created_at.year
-                }))
-                if f_user.is_online:
-                    await websocket.send_text(json.dumps({
+            friends = db.query(Friend).filter(
+                or_(Friend.addressee_id == user_id, Friend.requester_id == user_id),
+                Friend.status == "friends"
+            ).all()
+            
+            for friend in friends:
+                f_id = friend.addressee_id if friend.addressee_id != user_id else friend.requester_id
+                f_user = db.query(User).filter(User.id == f_id).first()
+                if f_user:
+                    asyncio.create_task(self.broadcast_to_user(f_id, {
                         "type": "user_online",
-                        "user_id": f_user.id,
-                        "username": f_user.username,
-                        "profile_image": f_user.profile_image,
-                        "created_at": f_user.created_at.year
+                        "user_id": user.id,
+                        "username": user.username,
+                        "profile_image": user.profile_image,
+                        "created_at": user.created_at.year
                     }))
+                    if f_user.is_online:
+                        await websocket.send_text(json.dumps({
+                            "type": "user_online",
+                            "user_id": f_user.id,
+                            "username": f_user.username,
+                            "profile_image": f_user.profile_image,
+                            "created_at": f_user.created_at.year
+                        }))
 
-        pendings = db.query(Friend).filter(
-            or_(Friend.addressee_id == user_id, Friend.requester_id == user_id),
-            Friend.status == "pending"
-        ).all()
+            pendings = db.query(Friend).filter(
+                or_(Friend.addressee_id == user_id, Friend.requester_id == user_id),
+                Friend.status == "pending"
+            ).all()
 
-        for p in pendings:
-            p_id = p.addressee_id if p.addressee_id != user_id else p.requester_id
-            p_user = db.query(User).filter(User.id == p_id).first()
-            if p_user:
-                asyncio.create_task(self.broadcast_to_user(p_id, {
-                    "type": "pending_online",
-                    "user_id": user.id,
-                    "username": user.username,
-                    "profile_image": user.profile_image,
-                    "created_at": user.created_at.year
-                }))
-                if p_user.is_online:
-                    await websocket.send_text(json.dumps({
+            for p in pendings:
+                p_id = p.addressee_id if p.addressee_id != user_id else p.requester_id
+                p_user = db.query(User).filter(User.id == p_id).first()
+                if p_user:
+                    asyncio.create_task(self.broadcast_to_user(p_id, {
                         "type": "pending_online",
-                        "user_id": p_user.id,
-                        "username": p_user.username,
-                        "profile_image": p_user.profile_image,
-                        "created_at": p_user.created_at.year
+                        "user_id": user.id,
+                        "username": user.username,
+                        "profile_image": user.profile_image,
+                        "created_at": user.created_at.year
                     }))
-        return True
+                    if p_user.is_online:
+                        await websocket.send_text(json.dumps({
+                            "type": "pending_online",
+                            "user_id": p_user.id,
+                            "username": p_user.username,
+                            "profile_image": p_user.profile_image,
+                            "created_at": p_user.created_at.year
+                        }))
+            
+            return True
+        except Exception as e:
+            print(f"[DB ERROR] connect: {e}")
+            try:
+                await websocket.close(code=1011)
+            except:
+                pass
+            return False
+        finally:
+            db.close()
 
-    async def disconnect(self, websocket: WebSocket, user_id: str, db: Session):
+    async def disconnect(self, websocket: WebSocket, user_id: str):
+        from utils.database import Session as SessionLocal
+        from models import User, Friend
+        
         if user_id in self.active_connections:
             self.active_connections[user_id].discard(websocket)
             if not self.active_connections[user_id]:
                 del self.active_connections[user_id]
                 
-                user = db.query(User).filter(User.id == user_id).first()
-                if user:
-                    user.is_online = False
-                    user.last_seen = datetime.utcnow()
-                    db.commit()
+                db = SessionLocal()
+                try:
+                    user = db.query(User).filter(User.id == user_id).first()
+                    if user:
+                        user.is_online = False
+                        user.last_seen = datetime.utcnow()
+                        db.commit()
 
-                    friends = db.query(Friend).filter(
-                        or_(Friend.addressee_id == user_id, Friend.requester_id == user_id),
-                        Friend.status == "friends"
-                    ).all()
-                    for f in friends:
-                        f_id = f.addressee_id if f.addressee_id != user_id else f.requester_id
-                        asyncio.create_task(self.broadcast_to_user(f_id, {
-                            "type": "user_offline",
-                            "user_id": user.id
-                        }))
+                        friends = db.query(Friend).filter(
+                            or_(Friend.addressee_id == user_id, Friend.requester_id == user_id),
+                            Friend.status == "friends"
+                        ).all()
+                        for f in friends:
+                            f_id = f.addressee_id if f.addressee_id != user_id else f.requester_id
+                            asyncio.create_task(self.broadcast_to_user(f_id, {
+                                "type": "user_offline",
+                                "user_id": user.id
+                            }))
 
-                    pendings = db.query(Friend).filter(
-                        or_(Friend.addressee_id == user_id, Friend.requester_id == user_id),
-                        Friend.status == "pending"
-                    ).all()
-                    for p in pendings:
-                        p_id = p.addressee_id if p.addressee_id != user_id else p.requester_id
-                        asyncio.create_task(self.broadcast_to_user(p_id, {
-                            "type": "pending_offline",
-                            "user_id": user.id
-                        }))
+                        pendings = db.query(Friend).filter(
+                            or_(Friend.addressee_id == user_id, Friend.requester_id == user_id),
+                            Friend.status == "pending"
+                        ).all()
+                        for p in pendings:
+                            p_id = p.addressee_id if p.addressee_id != user_id else p.requester_id
+                            asyncio.create_task(self.broadcast_to_user(p_id, {
+                                "type": "pending_offline",
+                                "user_id": user.id
+                            }))
+                except Exception as e:
+                    print(f"[DB ERROR] disconnect: {e}")
+                finally:
+                    db.close()
 
     async def broadcast_to_user(self, user_id: str, message: dict):
         if user_id in self.active_connections:
@@ -150,7 +172,7 @@ class ConnectionManager:
 manager = ConnectionManager()
 
 @router.websocket('/ws')
-async def websocket_endpoint(websocket: WebSocket, db: Session = Depends(get_db)):
+async def websocket_endpoint(websocket: WebSocket):
     token = websocket.query_params.get("token", "")
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
@@ -162,11 +184,11 @@ async def websocket_endpoint(websocket: WebSocket, db: Session = Depends(get_db)
         await websocket.close(code=1008)
         return
 
-    if await manager.connect(websocket, user_id, db):
+    if await manager.connect(websocket, user_id):
         try:
             while True:
                 await websocket.receive_text()
         except:
             pass
         finally:
-            await manager.disconnect(websocket, user_id, db)
+            await manager.disconnect(websocket, user_id)

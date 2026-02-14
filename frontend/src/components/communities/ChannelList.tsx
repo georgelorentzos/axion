@@ -3,6 +3,7 @@ import { useLocation } from "react-router-dom";
 import { useState, useRef } from "react";
 import ActionMenu from "../common/ActionMenu";
 import ChannelListModal from "./modals/ChannelListModal";
+import CommunitySettingsModal from "./modals/CommunitySettingsModal";
 
 interface LocationState {
   communityData?: {
@@ -24,6 +25,7 @@ export default function ChannelList() {
   const [channels, setChannels] = useState<Channel[]>([]);
   const [isChannelListMenuOpen, setIsChannelListMenuOpen] = useState(false);
   const [isServerOptionsMenuOpen, setIsServerOptionsMenuOpen] = useState(false);
+  const [isCommunitySettingsModalOpen, setIsCommunitySettingsModalOpen] = useState(false);
   const serverOptionsButtonRef = useRef<HTMLButtonElement>(null);
   const [pos, setPos] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
 
@@ -70,8 +72,9 @@ export default function ChannelList() {
       className="w-[370px] h-screen border-r border-outline flex flex-col"
     >
       <audio preload="auto" />
-      <div className="w-full h-[100px] border-b border-outline flex items-center justify-between px-6 gap-3 flex-shrink-0">
-        <div className="flex gap-3">
+      <CommunitySettingsModal isOpen={isCommunitySettingsModalOpen} onClose={() => setIsCommunitySettingsModalOpen(false)} />
+      <div className="w-full h-[60px] border-b border-outline flex items-center justify-between px-6 gap-2 flex-shrink-0">
+        <div className="flex gap-2">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
@@ -113,11 +116,15 @@ export default function ChannelList() {
           onClose={() => setIsServerOptionsMenuOpen(false)}
           buttonRef={serverOptionsButtonRef}
           isServerOptions
+          onCommunitySettings={() => {
+            setIsCommunitySettingsModalOpen(true);
+            setIsServerOptionsMenuOpen(false);
+          }}
         />
         </div>
       </div>
 
-      <div onContextMenu={handleContextMenu} className="relative space-y-3 p-6 flex flex-col flex-1">
+      <div onContextMenu={handleContextMenu} className="relative space-y-3 p-2 flex flex-col flex-1">
         {channels.length === 0 && (
           <div className="flex-1 flex flex-col justify-center items-center mt-[100px]">
             <div className="text-gray-400 text-sm">No channels yet</div>
@@ -142,7 +149,9 @@ export default function ChannelList() {
         isCreateCategory={modalMode === "category"}
       />
 
-      <CurrentUserCard />
+      <div className="px-2 h-[80px] flex items-center flex-shrink-0 justify-center">
+          <CurrentUserCard />
+      </div>
     </div>
   );
 }

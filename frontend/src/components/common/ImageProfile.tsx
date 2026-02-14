@@ -9,7 +9,7 @@ type ImageProfileProps = {
 export default function ImageProfile({ src, online, width , height, showStatus=true  }: ImageProfileProps) {
     
     return (
-        <div className={`relative ${width ? `w-[${width}px]` : "w-[50px]"} ${height ? `h-[${height}px]` : "h-[50px]"} `}>
+        <div className={`relative ${width ? `w-[${width}px]` : "w-[40px]"} ${height ? `h-[${height}px]` : "h-[40px]"} `}>
             <img
                 src={src}
                 alt=""
@@ -20,7 +20,7 @@ export default function ImageProfile({ src, online, width , height, showStatus=t
             {showStatus && (
                 <>
                     <span
-                    className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border border-outline
+                    className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-outline
                     ${online ? "bg-emerald" : "bg-red-500"}`}
                     />
                 </>

@@ -3,6 +3,7 @@ import Input from "../../common/Input";
 import UploadImageProfile from "../../common/UploadImageProfile";
 import Button from "../../common/Button";
 import { useCommunities } from "../../../contexts/useCommunities";
+import ModalCloseButton from "../../common/modals/ModalCloseButton";
 
 type CreateCommunityModalProps = {
     isOpen: boolean;
@@ -106,21 +107,7 @@ export default function CreateCommunityModal({ isOpen, onClose }: CreateCommunit
             }`}
         >
             <div onClick={(e) => e.stopPropagation()} className="relative bg-onyx w-[400px] rounded-3xl ">
-                <button
-                    className="border border-onyx absolute top-[-6px] right-[-6px] flex items-center justify-center w-8 h-8 bg-forestgreen rounded-full absolute top-3 right-3 cursor-pointer text-white"
-                    onClick={onClose}
-                >
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        strokeWidth="1.5"
-                        stroke="currentColor"
-                        className="w-4 h-4 text-white"
-                    >
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
-                    </svg>
-                </button>
+                <ModalCloseButton onClose={onClose} />
                 {!isCreateCommunity ? (
                     <>
 

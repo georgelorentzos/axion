@@ -6,7 +6,7 @@ type ButtonProps = {
 
 export default function Button({ text, onClick, isGreen }: ButtonProps) {
     return (
-        <button onClick={onClick} className={` ${isGreen ? "bg-forestgreen hover:bg-emerald" : "hover:bg-charcoal border border-outline"} transition duration-200 w-full h-[52px] rounded-xl`}>
+        <button onClick={onClick} className={` ${isGreen ? "bg-forestgreen hover:bg-emerald" : "hover:bg-basalt border border-outline"} transition duration-200 w-full h-[50px] rounded-lg`}>
             {text}
         </button>
     );

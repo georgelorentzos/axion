@@ -277,13 +277,13 @@ export default function UserCard({
   return (
     <div
       onClick={handleNavigateToChat}
-      className={`cursor-pointer transition duration-300 h-[80px] border-outline px-6 flex justify-between items-center w-full rounded-xl ${
+      className={`cursor-pointer transition duration-300 h-[60px] px-4 flex justify-between items-center w-full rounded-lg ${
     isSelected
-      ? "bg-charcoal"
-      : "hover:bg-charcoal"
+      ? "bg-basalt"
+      : "hover:bg-basalt"
   }`}
     >
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2">
         <ImageProfile src={image} online={isOnline} />
         <div className="flex flex-col leading-none gap-1">
           <div className="text-gray-100">{username}</div>

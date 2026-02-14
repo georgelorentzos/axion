@@ -200,9 +200,9 @@ export default function Conversation() {
 
     return (
         <div className="flex-1 h-screen border-r border-outline flex flex-col">
-            <div className="h-[100px] border-b border-outline flex items-center px-6 gap-3 flex-shrink-0">
+            <div className="h-[60px] border-b border-outline flex items-center px-6 gap-2 flex-shrink-0">
                 <div className="flex justify-between items-center w-full">
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2">
                         <ImageProfile 
                             src={user?.profile_image || "https://static.vecteezy.com/system/resources/thumbnails/009/292/244/small/default-avatar-icon-of-social-media-user-vector.jpg"} 
                             online={user?.is_online} 
@@ -219,7 +219,7 @@ export default function Conversation() {
 
             <div className="flex-1 w-full overflow-y-auto min-h-0 p-6 pb-3 space-y-3">
                 <div className="pb-6">
-                    <div className="flex flex-col items-center gap-3">
+                    <div className="flex flex-col items-center gap-2">
                         <ImageProfile 
                             src={user?.profile_image || "https://static.vecteezy.com/system/resources/thumbnails/009/292/244/small/default-avatar-icon-of-social-media-user-vector.jpg"} 
                             width="80" 
@@ -235,7 +235,7 @@ export default function Conversation() {
                     </div>
                 </div>
 
-                <div className="flex flex-col gap-3">
+                <div className="flex flex-col gap-2">
                     {messages.map((message) => (
                         <div
                             key={message.id}
@@ -254,7 +254,7 @@ export default function Conversation() {
                 </div>
             </div>
 
-            <div className="px-6 h-[100px] flex items-center flex-shrink-0 justify-center">
+            <div className="px-2 h-[80px] flex items-center flex-shrink-0 justify-center">
                 <MessageInput 
                     recipient_id={user?.user_id || ''} 
                 />

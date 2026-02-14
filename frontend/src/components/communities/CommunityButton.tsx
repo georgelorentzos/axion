@@ -32,10 +32,10 @@ export default function CommunityButton({
     if (isHome) {
         return (
             <button
-                className={`transition duration-300 h-[50px] w-[50px] rounded-full flex justify-center items-center ${
+                className={`transition duration-300 h-[50px] w-[50px] rounded-2xl flex justify-center items-center ${
                     location.pathname === '/'
                         ? "bg-forestgreen text-white"
-                        : "bg-field text-gray-500 hover:bg-charcoal"
+                        : "bg-basalt text-gray-500 hover:bg-basalt"
                 }`}
                 onClick={onClick}
             >
@@ -61,7 +61,7 @@ export default function CommunityButton({
         return (
             <>
                 <button
-                    className="transition duration-300 bg-field hover:bg-charcoal h-[50px] w-[50px] rounded-full flex justify-center items-center text-gray-500 hover:text-gray-300"
+                    className="transition duration-300 bg-basalt hover:bg-basalt h-[50px] w-[50px] rounded-2xl flex justify-center items-center text-gray-500 hover:text-gray-300"
                     onClick={handleCreateCommunityModal}
                 >
                     <svg
@@ -93,10 +93,10 @@ export default function CommunityButton({
 
         return (
             <button
-                className={`transition duration-300 h-[50px] w-[50px] rounded-full flex justify-center items-center ${
+                className={`transition duration-300 h-[50px] w-[50px] rounded-2xl flex justify-center items-center ${
                     isSelected
                         ? "bg-forestgreen text-white"
-                        : "bg-field text-gray-500 hover:bg-charcoal"
+                        : "bg-basalt text-gray-500 hover:bg-basalt"
                 }`}
                 onClick={onClick}
             >
@@ -104,7 +104,7 @@ export default function CommunityButton({
                     <img
                         src={`${apiUrl}${communityImage}`}
                         alt=""
-                        className="rounded-full w-full h-full object-cover"
+                        className="rounded-2xl w-full h-full object-cover"
                     />
                 ) : (
                     <span className="text-lg font-semibold">
