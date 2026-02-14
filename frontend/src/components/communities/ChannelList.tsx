@@ -1,6 +1,6 @@
 import CurrentUserCard from "../common/CurrentUserCard";
 import { useLocation } from "react-router-dom";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import ActionMenu from "../common/ActionMenu";
 import ChannelListModal from "./modals/ChannelListModal";
 
@@ -22,7 +22,9 @@ export default function ChannelList() {
   const { communityData } = location.state as LocationState;
 
   const [channels, setChannels] = useState<Channel[]>([]);
-  const [isActionMenuOpen, setIsActionMenuOpen] = useState(false);
+  const [isChannelListMenuOpen, setIsChannelListMenuOpen] = useState(false);
+  const [isServerOptionsMenuOpen, setIsServerOptionsMenuOpen] = useState(false);
+  const serverOptionsButtonRef = useRef<HTMLButtonElement>(null);
   const [pos, setPos] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
 
   const [isChannelListModalOpen, setIsChannelListModalOpen] = useState(false);
@@ -32,19 +34,19 @@ export default function ChannelList() {
     e.preventDefault();
     e.stopPropagation();
     setPos({ x: e.clientX, y: e.clientY });
-    setIsActionMenuOpen(true);
+    setIsChannelListMenuOpen(true);
   };
 
   const openCreateChannelModal = () => {
     setModalMode("channel");
     setIsChannelListModalOpen(true);
-    setIsActionMenuOpen(false);
+    setIsChannelListMenuOpen(false);
   };
 
   const openCreateCategoryModal = () => {
     setModalMode("category");
     setIsChannelListModalOpen(true);
-    setIsActionMenuOpen(false);
+    setIsChannelListMenuOpen(false);
   };
 
   const closeModal = () => {
@@ -65,7 +67,6 @@ export default function ChannelList() {
 
   return (
     <div
-      onContextMenu={handleContextMenu}
       className="w-[370px] h-screen border-r border-outline flex flex-col"
     >
       <audio preload="auto" />
@@ -87,14 +88,17 @@ export default function ChannelList() {
           </svg>
           <div className="text-gray-100">{communityData?.communityName}</div>
         </div>
-        <div>
+        <div className="flex flex-col relative">
+        <button onClick={() => setIsServerOptionsMenuOpen(prev => !prev)} ref={serverOptionsButtonRef}>
           <svg
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24"
             strokeWidth="1.5"
             stroke="currentColor"
-            className="size-6 text-gray-500"
+            className={`size-6 text-gray-500 hover:text-gray-300 transition-transform duration-200 ${
+            isServerOptionsMenuOpen ? "rotate-180 text-gray-300" : ""
+            }`}
           >
             <path
               strokeLinecap="round"
@@ -102,10 +106,18 @@ export default function ChannelList() {
               d="m19.5 8.25-7.5 7.5-7.5-7.5"
             />
           </svg>
+        </button>
+
+       <ActionMenu
+          isActionMenuOpen={isServerOptionsMenuOpen}
+          onClose={() => setIsServerOptionsMenuOpen(false)}
+          buttonRef={serverOptionsButtonRef}
+          isServerOptions
+        />
         </div>
       </div>
 
-      <div className="relative space-y-3 p-6 flex flex-col flex-1">
+      <div onContextMenu={handleContextMenu} className="relative space-y-3 p-6 flex flex-col flex-1">
         {channels.length === 0 && (
           <div className="flex-1 flex flex-col justify-center items-center mt-[100px]">
             <div className="text-gray-400 text-sm">No channels yet</div>
@@ -113,8 +125,8 @@ export default function ChannelList() {
         )}
 
         <ActionMenu
-          isActionMenuOpen={isActionMenuOpen}
-          onClose={() => setIsActionMenuOpen(false)}
+          isActionMenuOpen={isChannelListMenuOpen}
+          onClose={() => setIsChannelListMenuOpen(false)}
           position={pos}
           isChannelList
           onCreateChannel={openCreateChannelModal}

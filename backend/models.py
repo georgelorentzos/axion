@@ -1,6 +1,7 @@
 from utils.database import Base
 from sqlalchemy import Column, String, ForeignKey, Boolean, DateTime
 from sqlalchemy.orm import relationship
+from sqlalchemy.dialects.postgresql import JSON
 from uuid import uuid4
 from datetime import datetime, timedelta
 
@@ -79,6 +80,7 @@ class Community(Base):
     owner_id = Column(String, ForeignKey("users.id"), nullable=False)
     categories = relationship("CommunityCategory", back_populates="community")
     channels = relationship("CommunityChannel", back_populates="community", foreign_keys="CommunityChannel.community_id")
+    roles = relationship("CommunityRole", back_populates="community")
 
 class CommunityCategory(Base):
     __tablename__ = "community_categories"
@@ -111,3 +113,15 @@ class CommunityMember(Base):
 
     user = relationship("User")
     community = relationship("Community")
+    roles = relationship("CommunityRole", back_populates="member")
+
+class CommunityRole(Base):
+    __tablename__ = "community_roles"
+    id = Column(String, primary_key=True, default=lambda: str(uuid4()))
+    role_name = Column(String, nullable=False)
+    permissions = Column(JSON, nullable=False, default=lambda: [])
+    community_id = Column(String, ForeignKey("communities.id"), nullable=False)
+    member_id = Column(String, ForeignKey("community_members.id"), nullable=False)
+    
+    community = relationship("Community", back_populates="roles")
+    member = relationship("CommunityMember", back_populates="roles")

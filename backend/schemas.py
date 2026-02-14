@@ -31,3 +31,7 @@ class MessageRequest(BaseModel):
     sender_id: str;
     recipient_id: str;
     message: str;
+
+class CategoryRequest(BaseModel):
+    community_id: str
+    category_name: str
