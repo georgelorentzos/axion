@@ -288,7 +288,7 @@ export default function UserCard({
         <div className="flex flex-col leading-none gap-1">
           <div className="text-gray-100">{username}</div>
           {showLatestMessage ? (
-          <div className="text-gray-500 text-[12px] truncate">
+          <div className="text-gray-500 text-[12px] truncate w-[200px]">
             {latestMessage}
           </div>
           ) : (

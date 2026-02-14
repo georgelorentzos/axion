@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import Button from "../components/common/Button";
 
 export default function MagicLink() {
     const token = window.location.hash.substring(1);
@@ -47,7 +48,7 @@ export default function MagicLink() {
     };
 
     return (
-        <div className="bg-[#141414] h-screen w-full flex justify-center items-center">
+        <div className="bg-onyx h-screen w-full flex justify-center items-center">
             {isExpired === null ? (
                 <></>
             ) : isExpired ? (
@@ -55,16 +56,9 @@ export default function MagicLink() {
                     <div className="text-white text-[30px]">
                         This link has expired
                     </div>
-                    <div className="flex flex-col gap-2">
-                        <button 
-                            className="text-white transition duration-200 bg-forestgreen hover:bg-emerald h-[3rem] w-[21rem] rounded-xl cursor-pointer"
-                            onClick={handleGoBack}
-                        >
-                            Go Back
-                        </button>
-                        <div className="text-[0.75rem] text-[#98968e] text-center">
-                            If the problem persists, please <a href="/privacy-policy" className="underline underline-offset-3">contact support.</a>
-                        </div>
+                    <Button text="Go Back" onClick={handleGoBack} isGreen />
+                    <div className="text-[0.75rem] text-[#98968e] text-center">
+                        If the problem persists, please <a href="/privacy-policy" className="underline underline-offset-3">contact support.</a>
                     </div>
                 </div>
             ) : null}

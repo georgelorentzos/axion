@@ -1,10 +1,12 @@
+import Button from "../components/common/Button";
+
 export default function NotFound() {
     const handleGoBack = () => {
         window.history.back();
     };
 
     return (
-        <div className="bg-[#141414] h-screen w-full flex justify-center items-center">
+        <div className="bg-onyx h-screen w-full flex justify-center items-center">
             <div className="w-[420px] flex justify-center items-center flex-col gap-6 p-10 rounded-3xl">
                 
                 <div className="flex flex-col gap-4 justify-center items-center text-center">
@@ -15,12 +17,7 @@ export default function NotFound() {
                     </div>
                 </div>
 
-                <button
-                    onClick={handleGoBack}
-                    className="text-white transition duration-200 bg-forestgreen hover:bg-emerald h-[3rem] w-[21rem] rounded-xl cursor-pointer flex items-center justify-center gap-2 font-medium"
-                >
-                    Go Back
-                </button>
+                <Button text="Go Back" onClick={handleGoBack} isGreen />
 
             </div>
         </div>
