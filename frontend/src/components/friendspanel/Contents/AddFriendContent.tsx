@@ -60,6 +60,7 @@ export default function AddFriendContent() {
     }, 300);
   };
 
+
   return (
     <div className="h-full flex flex-col">
       

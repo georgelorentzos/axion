@@ -288,7 +288,8 @@ async def ally(request: Request, req: AllyRequest, user_id: str = Depends(get_us
             "type": "ally_request",
             "requester_id": req.requester_id,
             "requester_username": requester.username,
-            "requester_profile_image": requester.profile_image
+            "requester_profile_image": requester.profile_image,
+            "created_at": requester.created_at.year
         })
 
         return {"success": True, "message": "Friend request sent"}
@@ -350,6 +351,11 @@ async def ally_reject(request: Request, req: AllyRequest, user_id: str = Depends
         db.delete(existing)
         db.commit()
 
+        await manager.broadcast_to_user(req.requester_id, {
+            "type": "ally_rejected",
+            "addressee_id": user_id
+        })
+
         return {"success": True, "message": "Friend request rejected"}
     except Exception as e:
         db.rollback()
@@ -379,7 +385,8 @@ async def ally_accept(request: Request, req: AllyRequest, user_id: str = Depends
             "requester_id": req.requester_id,
             "requester_username": requester.username,
             "requester_profile_image": requester.profile_image,
-            "is_online": requester.is_online
+            "is_online": requester.is_online,
+            "created_at": requester.created_at.year
         })
 
         await manager.broadcast_to_user(req.requester_id, {
@@ -387,7 +394,8 @@ async def ally_accept(request: Request, req: AllyRequest, user_id: str = Depends
             "requester_id": user_id,
             "requester_username": addressee.username,
             "requester_profile_image": addressee.profile_image,
-            "is_online": addressee.is_online
+            "is_online": addressee.is_online,
+            "created_at": addressee.created_at.year
         })
 
         return {"success": True, "message": "Friend request accepted"}

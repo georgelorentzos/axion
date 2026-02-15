@@ -49,7 +49,8 @@ export function useAllFriends() {
                   ...friend,
                   username: data.requester_username,
                   profile_image: data.requester_profile_image,
-                  is_online: data.is_online
+                  is_online: data.is_online,
+                  created_at: data.created_at
                 };
               }
             }

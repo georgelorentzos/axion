@@ -97,7 +97,7 @@ export default function UserCard({
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          requester_id: user.user_id,
+          requester_id: currentUser.user_id,
           addressee_id: id
         })
       });
@@ -124,7 +124,7 @@ export default function UserCard({
             "Content-Type": "application/json"
           },
           body: JSON.stringify({
-            requester_id: user.user_id,
+            requester_id: currentUser.user_id,
             addressee_id: id
           })
         }
@@ -164,7 +164,7 @@ export default function UserCard({
         },
         body: JSON.stringify({
           requester_id: id,
-          addressee_id: user.user_id
+          addressee_id: currentUser.user_id
         })
       });
 
@@ -191,7 +191,7 @@ export default function UserCard({
         },
         body: JSON.stringify({
           requester_id: id,
-          addressee_id: user.user_id
+          addressee_id: currentUser.user_id
         })
       });
 
@@ -217,7 +217,7 @@ export default function UserCard({
           "Content-type": "application/json"
         },
         body: JSON.stringify({
-            requester_id: user.user_id,
+            requester_id: currentUser.user_id,
             addressee_id: id
         })
       });
@@ -273,6 +273,26 @@ export default function UserCard({
       navigate(`/chat/${id}`, { state: { userData } });
     }
   }
+
+  useEffect(() => {
+    const handleMessage = (e: MessageEvent) => {
+      try{
+        const data = JSON.parse(e.data);
+        if (data.type === "ally_rejected" && data.addressee_id === id) {
+          setSent(false);
+          setPendingIds(prev => prev.filter(pid => pid !== id));
+        }
+      } catch (error) {
+        console.error('Parse error:', error);
+      }
+    };
+
+    const ws = window._ws?.ws;
+    if (ws) {
+      ws.addEventListener('message', handleMessage);
+      return () => ws.removeEventListener('message', handleMessage);
+    }
+  }, [id]);
 
   return (
     <div
