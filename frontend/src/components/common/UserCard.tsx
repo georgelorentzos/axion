@@ -46,7 +46,7 @@ export default function UserCard({
   showLatestMessage,
   latestMessage
 }: UserCardProps) {
-  const { user } = useCurrentUser();
+  const { currentUser } = useCurrentUser();
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
   const [pendingIds, setPendingIds] = useState<string[]>([]);
@@ -86,7 +86,7 @@ export default function UserCard({
   }, [addFriendBtn]);
 
   const handleAlly = async () => {
-    if (!id || !user?.user_id) return;
+    if (!id || !currentUser?.user_id) return;
 
     setLoading(true);
     try {
@@ -112,7 +112,7 @@ export default function UserCard({
   };
 
   const handleRemovePending = async () => {
-    if (!id || !user?.user_id) return;
+    if (!id || !currentUser?.user_id) return;
 
     setLoading(true);
     try {
@@ -152,7 +152,7 @@ export default function UserCard({
   };
 
   const handlePendingReject = async () => {
-    if (!id || !user?.user_id) return;
+    if (!id || !currentUser?.user_id) return;
 
     setLoading(true);
     try {
@@ -179,7 +179,7 @@ export default function UserCard({
   };
 
   const handlePendingAccept = async () => {
-    if (!id || !user?.user_id) return;
+    if (!id || !currentUser?.user_id) return;
 
     setLoading(true);
     try {
@@ -206,7 +206,7 @@ export default function UserCard({
   };
 
   const handleRemoveFriend = async () => {
-    if (!id || !user?.user_id) return;
+    if (!id || !currentUser?.user_id) return;
 
     setLoading(true);
     try {
@@ -234,7 +234,7 @@ export default function UserCard({
   };
 
   const handleDeleteConversation = async () => {
-    if (!id || !user?.user_id) return;
+    if (!id || !currentUser?.user_id) return;
 
     setLoading(true);
     try {

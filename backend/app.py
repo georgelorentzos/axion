@@ -59,7 +59,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
     allow_credentials=True,
-    allow_methods=["GET", "POST", "DELETE", "PUT"],
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allow_headers=["Content-Type", "Authorization"],
 )
 
@@ -983,11 +983,11 @@ def create_category(request: Request, req: CategoryRequest, user_id: str = Depen
 
     return {"id": category.id, "name": category.category_name}
 
-@app.post("/api/community/update", response_model=Dict[str, Any])
+@app.patch("/api/community/{community_id}", response_model=Dict[str, Any])
 @limiter.limit("20/minute")
 def update_community(
     request: Request,
-    community_id: str = Form(...),
+    community_id: str,
     community_name: str = Form(...),
     community_image: UploadFile | None = File(None),
     remove_image: str | None = Form(None),

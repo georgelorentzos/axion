@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import ActionMenu from "../common/ActionMenu";
 import ChannelListModal from "./modals/ChannelListModal";
 import CommunitySettingsModal from "./modals/CommunitySettingsModal";
+import CommunityInviteModal from "./modals/CommunityInviteModal";
 
 type CommunityData = {
   communityId: string;
@@ -42,6 +43,7 @@ export default function ChannelList() {
   const [isChannelListMenuOpen, setIsChannelListMenuOpen] = useState(false);
   const [isServerOptionsMenuOpen, setIsServerOptionsMenuOpen] = useState(false);
   const [isCommunitySettingsModalOpen, setIsCommunitySettingsModalOpen] = useState(false);
+  const [isCommunityInviteModalOpen, setIsCommunityInviteModalOpen] = useState(false);
   const serverOptionsButtonRef = useRef<HTMLButtonElement>(null);
   const [pos, setPos] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
 
@@ -90,6 +92,7 @@ export default function ChannelList() {
   return (
     <div className="w-[370px] h-screen border-r border-outline flex flex-col">
       <audio preload="auto" />
+      <CommunityInviteModal isOpen={isCommunityInviteModalOpen} onClose={() => setIsCommunityInviteModalOpen(false)} />
       <CommunitySettingsModal communityData={communityData} onCommunityUpdate={handleCommunityUpdate} isOpen={isCommunitySettingsModalOpen} onClose={() => setIsCommunitySettingsModalOpen(false)} />
       <div className="w-full h-[60px] border-b border-outline flex items-center justify-between px-6 gap-2 flex-shrink-0">
         <div className="flex gap-2">
@@ -136,6 +139,10 @@ export default function ChannelList() {
           isServerOptions
           onCommunitySettings={() => {
             setIsCommunitySettingsModalOpen(true);
+            setIsServerOptionsMenuOpen(false);
+          }}
+          onCommunityInvite={() => {
+            setIsCommunityInviteModalOpen(true);
             setIsServerOptionsMenuOpen(false);
           }}
         />

@@ -2,13 +2,15 @@ from utils.database import Base
 from sqlalchemy import Column, String, ForeignKey, Boolean, DateTime
 from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import JSON
-from uuid import uuid4
 from datetime import datetime, timedelta
+from nanoid import generate
+
+NUMERIC_ALPHABET = '0123456789'
 
 class User(Base):
     __tablename__ = "users"
 
-    id = Column(String, primary_key=True, default=lambda: str(uuid4()))
+    id = Column(String, primary_key=True, default=lambda: generate(NUMERIC_ALPHABET, 20))
     username = Column(String, nullable=False, unique=True)
     email = Column(String, nullable=False, unique=True)
     is_verified = Column(Boolean, nullable=False, default=False)
@@ -22,7 +24,7 @@ class User(Base):
 class Token(Base):
     __tablename__ = "tokens"
     
-    id = Column(String, primary_key=True, default=lambda: str(uuid4()))
+    id = Column(String, primary_key=True, default=lambda: generate(NUMERIC_ALPHABET, 20))
     token = Column(String, nullable=False)
     type = Column(String, nullable=False) 
     user_id = Column(String, ForeignKey('users.id'), nullable=False)
@@ -33,7 +35,7 @@ class Token(Base):
 class Friend(Base):
     __tablename__ = "friends"
 
-    id = Column(String, primary_key=True, default=lambda: str(uuid4()))
+    id = Column(String, primary_key=True, default=lambda: generate(NUMERIC_ALPHABET, 20))
     requester_id = Column(String, ForeignKey("users.id"), nullable=False)
     addressee_id = Column(String, ForeignKey("users.id"), nullable=False)
     status = Column(String, nullable=False, default="pending")
@@ -45,7 +47,7 @@ class Friend(Base):
 class DirectMessage(Base):
     __tablename__ = "directmessages"
 
-    id = Column(String, primary_key=True, default=lambda: str(uuid4()))
+    id = Column(String, primary_key=True, default=lambda: generate(NUMERIC_ALPHABET, 20))
     sender_id = Column(String, ForeignKey("users.id"), nullable=False)
     recipient_id = Column(String, ForeignKey("users.id"), nullable=False)
     message = Column(String, nullable=False)
@@ -59,7 +61,7 @@ class DirectMessage(Base):
 class ConversationHistory(Base):
     __tablename__ = "conversation_history"
     
-    id = Column(String, primary_key=True, default=lambda: str(uuid4()))
+    id = Column(String, primary_key=True, default=lambda: generate(NUMERIC_ALPHABET, 20))
     sender_id = Column(String, ForeignKey("users.id"), nullable=False)
     recipient_id = Column(String, ForeignKey("users.id"), nullable=False)
     message = Column(String, nullable=False)
@@ -74,7 +76,7 @@ class ConversationHistory(Base):
 class Community(Base):
     __tablename__ = "communities"
 
-    id = Column(String, primary_key=True, default=lambda: str(uuid4()))
+    id = Column(String, primary_key=True, default=lambda: generate(NUMERIC_ALPHABET, 20))
     community_name = Column(String, nullable=False)
     community_image = Column(String, nullable=True)
     owner_id = Column(String, ForeignKey("users.id"), nullable=False)
@@ -86,7 +88,7 @@ class Community(Base):
 class CommunityCategory(Base):
     __tablename__ = "community_categories"
 
-    id = Column(String, primary_key=True, default=lambda: str(uuid4()))
+    id = Column(String, primary_key=True, default=lambda: generate(NUMERIC_ALPHABET, 20))
     category_name = Column(String, nullable=False)
     community_id = Column(String, ForeignKey("communities.id"), nullable=False)
     community = relationship("Community", back_populates="categories")
@@ -95,7 +97,7 @@ class CommunityCategory(Base):
 class CommunityChannel(Base):
     __tablename__ = "community_channels"
     
-    id = Column(String, primary_key=True, default=lambda: str(uuid4()))
+    id = Column(String, primary_key=True, default=lambda: generate(NUMERIC_ALPHABET, 20))
     channel_name = Column(String, nullable=False)
     type = Column(String, nullable=False)
     community_id = Column(String, ForeignKey("communities.id"), nullable=False)
@@ -106,7 +108,7 @@ class CommunityChannel(Base):
 class CommunityMember(Base):
     __tablename__ = "community_members"
 
-    id = Column(String, primary_key=True, default=lambda: str(uuid4()))
+    id = Column(String, primary_key=True, default=lambda: generate(NUMERIC_ALPHABET, 20))
     user_id = Column(String, ForeignKey("users.id"), nullable=False)
     community_id = Column(String, ForeignKey("communities.id"), nullable=False)
     role = Column(String, default="member")
@@ -118,7 +120,7 @@ class CommunityMember(Base):
 
 class CommunityRole(Base):
     __tablename__ = "community_roles"
-    id = Column(String, primary_key=True, default=lambda: str(uuid4()))
+    id = Column(String, primary_key=True, default=lambda: generate(NUMERIC_ALPHABET, 20))
     role_name = Column(String, nullable=False)
     permissions = Column(JSON, nullable=False, default=lambda: [])
     community_id = Column(String, ForeignKey("communities.id"), nullable=False)

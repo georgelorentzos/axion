@@ -8,12 +8,12 @@ interface User {
 }
 
 interface UseCurrentUserReturn {
-    user: User | null;
+    currentUser: User | null;
     loading: boolean;
 }
 
 export function useCurrentUser(): UseCurrentUserReturn {
-    const [user, setUser] = useState<User | null>(null);
+    const [currentUser, setCurrentUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
     const apiUrl = window.GLOBAL_ENV.API_ENDPOINT;
 
@@ -34,7 +34,7 @@ export function useCurrentUser(): UseCurrentUserReturn {
                 const data = await response.json();
                 
                 if (data.success) {
-                    setUser({
+                    setCurrentUser({
                         user_id: data.user_id,
                         username: data.username,
                         email: data.email,
@@ -42,7 +42,7 @@ export function useCurrentUser(): UseCurrentUserReturn {
                     });
                 }
             } catch (error) {
-                setUser(null);
+                setCurrentUser(null);
             } finally {
                 setLoading(false);
             }
@@ -51,5 +51,5 @@ export function useCurrentUser(): UseCurrentUserReturn {
         fetchUser();
     }, []);
 
-    return { user, loading };
+    return { currentUser, loading };
 }

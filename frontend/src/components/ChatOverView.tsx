@@ -9,7 +9,7 @@ import notificationSound from '../assets/sounds/notification.mp3';
 import CurrentUserCard from "./common/CurrentUserCard";
 
 export default function ChatOverView() {
-    const { user } = useCurrentUser();
+    const { currentUser } = useCurrentUser();
     const { directMessages, setDirectMessages, loading } = useDirectMessages();
     const { searchQuery, setSearchQuery, filtered } = useSearch(directMessages);
     const navigate = useNavigate();
@@ -46,7 +46,7 @@ export default function ChatOverView() {
                 }
 
                 if (data.type === 'message_sent') {
-                    if (data.recipient_id === user?.user_id && audioRef.current) {
+                    if (data.recipient_id === currentUser?.user_id && audioRef.current) {
                         audioRef.current.src = notificationSound;
                         audioRef.current.play().catch(() => {});
                     }
@@ -78,7 +78,7 @@ export default function ChatOverView() {
             ws.addEventListener('message', handleMessage);
             return () => ws.removeEventListener('message', handleMessage);
         }
-    }, [user?.user_id]);
+    }, [currentUser?.user_id]);
 
     return (
         <div className="w-[370px] h-screen border-r border-outline flex flex-col">

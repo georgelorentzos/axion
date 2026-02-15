@@ -6,9 +6,10 @@ type InputProps = {
     svgD?: string;
     value?: string;
     maxLength?: number;
+    readOnly?: boolean;
 }
 
-export default function Input({ onChange, placeholder, svgD, value, maxLength } : InputProps) {
+export default function Input({ onChange, placeholder, svgD, value, maxLength, readOnly } : InputProps) {
     return (
         <div className='border border-outline flex items-center bg-basalt px-4 rounded-lg gap-2 w-full'>
 
@@ -19,6 +20,7 @@ export default function Input({ onChange, placeholder, svgD, value, maxLength } 
             )}
 
             <input 
+                readOnly={readOnly}
                 value={value}
                 onChange={onChange}
                 type="text" 

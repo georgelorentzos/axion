@@ -71,7 +71,6 @@ export default function ProfileContent({ communityData, onCommunityUpdate }: Pro
 
         try {
             const formData = new FormData();
-            formData.append("community_id", communityData?.communityId || "");
             formData.append("community_name", name || "");
 
             if (communityImageFile) {
@@ -80,8 +79,8 @@ export default function ProfileContent({ communityData, onCommunityUpdate }: Pro
                 formData.append("remove_image", "true");
             }
 
-            const response = await fetch(`${apiUrl}/api/community/update`, {
-                method: "POST",
+            const response = await fetch(`${apiUrl}/api/community/${communityData?.communityId}`, {
+                method: "PATCH",
                 headers: {
                     "Authorization": `Bearer ${token}`
                 },

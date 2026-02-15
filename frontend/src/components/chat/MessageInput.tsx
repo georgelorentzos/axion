@@ -10,7 +10,7 @@ export default function MessageInput({ value: propValue, recipient_id }: Message
     const [value, setValue] = useState(propValue || '');
     const token = localStorage.getItem('token');
     const apiUrl = window.GLOBAL_ENV.API_ENDPOINT;
-    const { user } = useCurrentUser();
+    const { currentUser } = useCurrentUser();
 
     const sendMessage = async (message: string) => {
         if (!message.trim()) return;
@@ -23,7 +23,7 @@ export default function MessageInput({ value: propValue, recipient_id }: Message
                     "Content-type": "application/json"
                 },
                 body: JSON.stringify({
-                    sender_id: user?.user_id,
+                    sender_id: currentUser?.user_id,
                     recipient_id: recipient_id,
                     message: message
                 })

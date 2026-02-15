@@ -36,7 +36,7 @@ export default function Conversation() {
     const { userId } = useParams();
     const location = useLocation();
     const token = localStorage.getItem('token');
-    const { user: currentUser } = useCurrentUser();
+    const { currentUser } = useCurrentUser();
     const [user, setUser] = useState<User | null>(null);
     const [loadingJoinedAt, setLoadingJoinedAt] = useState(false);
     const apiUrl = window.GLOBAL_ENV.API_ENDPOINT;

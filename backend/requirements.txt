@@ -13,3 +13,4 @@ alembic
 psycopg2-binary
 apscheduler
 jinja2
+nanoid
