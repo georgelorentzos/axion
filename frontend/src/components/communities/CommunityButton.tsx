@@ -1,6 +1,7 @@
 import { useLocation } from 'react-router-dom';
 import CreateCommunityModal from "./modals/CreateCommunityModal";
 import { useState } from 'react';
+import CommunityProfile from './CommunityProfile';
 
 type CommunityButtonProps = {
     onClick?: () => void;
@@ -35,7 +36,7 @@ export default function CommunityButton({
                 className={`transition duration-300 h-[50px] w-[50px] rounded-2xl flex justify-center items-center ${
                     location.pathname === '/'
                         ? "bg-forestgreen text-white"
-                        : "bg-basalt text-gray-500 hover:bg-basalt"
+                        : "bg-basalt text-gray-500 hover:bg-basalt hover:text-gray-300"
                 }`}
                 onClick={onClick}
             >
@@ -93,24 +94,18 @@ export default function CommunityButton({
 
         return (
             <button
-                className={`transition duration-300 h-[50px] w-[50px] rounded-2xl flex justify-center items-center ${
-                    isSelected
-                        ? "bg-forestgreen text-white"
-                        : "bg-basalt text-gray-500 hover:bg-basalt"
+                className={`rounded-2xl transition duration-300 flex justify-center items-center ${
+                  isSelected
+                    ? "bg-forestgreen text-white"
+                    : "bg-basalt text-gray-500 hover:bg-basalt hover:text-gray-300"
                 }`}
                 onClick={onClick}
             >
-                {communityImage && communityImage !== "null" ? (
-                    <img
-                        src={`${apiUrl}${communityImage}`}
-                        alt=""
-                        className="rounded-2xl w-full h-full object-cover"
-                    />
-                ) : (
-                    <span className="text-lg font-semibold">
-                        {communityName?.charAt(0).toUpperCase()}
-                    </span>
-                )}
+              {communityImage ? (
+                <CommunityProfile src={`${apiUrl}${communityImage}`} />
+              ) : (
+                <CommunityProfile name={communityName?.charAt(0).toUpperCase()} />
+              )}
             </button>
         );
     }

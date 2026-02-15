@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException, Depends, BackgroundTasks, Request, Q
 from fastapi.middleware.cors import CORSMiddleware
 from schemas import *
 from utils.database import get_db, Session as SessionLocal
-from sqlalchemy import and_, or_
+from sqlalchemy import and_, or_, func
 from sqlalchemy.orm import Session
 from models import *
 from utils.mail import send_mail
@@ -26,6 +26,7 @@ from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse, FileResponse
 import asyncio
 import uuid
+import shutil
 
 load_dotenv()
 
@@ -758,7 +759,7 @@ def my_conversations(request: Request, user_id: str = Depends(get_user_id_from_t
     }
 
 @app.delete('/api/conversation/{user_id}/delete', response_model=Dict[str, Any])
-@limiter.limit('50/minute')
+@limiter.limit('100/minute')
 async def delete_conversation(request: Request, user_id: str, current_user_id: str = Depends(get_user_id_from_token), db: Session = Depends(get_db)) -> Dict[str, Any]:
     other_user = db.query(User).filter(User.id == user_id).first()
     if not other_user:
@@ -837,8 +838,8 @@ def create_community(
         raise HTTPException(status_code=400, detail="Community name required.")
     if len(community_name) < 4:
         raise HTTPException(status_code=400, detail="Community name must be at least 4 characters.")
-    if len(community_name) > 35:
-        raise HTTPException(status_code=400, detail="Community name can't be bigger than 35 characters.")
+    if len(community_name) > 20:
+        raise HTTPException(status_code=400, detail="Community name can't be bigger than 20 characters.")
 
     image_path = None
     image_url: str | None = None
@@ -851,7 +852,7 @@ def create_community(
         base = (os.getenv("MEDIA_CDN_URL") or "/api/serve/image").rstrip("/")
         image_url = f"{base}/{filename}"
     else:
-        image_url = "null"
+        image_url = None
 
     try:
         new_community = Community(
@@ -862,7 +863,7 @@ def create_community(
         db.add(new_community)
         db.flush()
 
-        db.add(CommunityMember(user_id=user.id, community_id=new_community.id, role="owner"))
+        db.add(CommunityMember(user_id=user.id, community_id=new_community.id))
         db.commit()
         return {"success": True,
                 "community_id": new_community.id,
@@ -874,7 +875,7 @@ def create_community(
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/my/communities", response_model=Dict[str, Any])
-@limiter.limit("200/minute")
+@limiter.limit("50/minute")
 def my_communities(request: Request, current_user_id: str = Depends(get_user_id_from_token) ,db: Session = Depends(get_db)) -> Dict[str, Any]:
     user = db.query(User).filter(User.id == current_user_id).first()
     if not user:
@@ -888,6 +889,35 @@ def my_communities(request: Request, current_user_id: str = Depends(get_user_id_
         ).all()
     )
 
+    community_ids = [community.id for _, community in communities]
+
+    online_counts = (
+        db.query(
+            CommunityMember.community_id,
+            func.count(CommunityMember.id)
+        ).join(
+            User, User.id == CommunityMember.user_id
+        ).filter(
+            CommunityMember.community_id.in_(community_ids),
+            User.is_online.is_(True)
+        ).group_by(CommunityMember.community_id).all()
+    )
+
+    online_map = dict(online_counts)
+
+    total_counts = (
+        db.query(
+            CommunityMember.community_id,
+            func.count(CommunityMember.id)
+        ).filter(
+            CommunityMember.community_id.in_(community_ids)
+        )
+        .group_by(CommunityMember.community_id)
+        .all()
+    )
+
+    total_map = dict(total_counts)
+
     return {
         "success": True,
         "communities": [
@@ -895,6 +925,9 @@ def my_communities(request: Request, current_user_id: str = Depends(get_user_id_
                 "community_id": community.id,
                 "community_name": community.community_name,
                 "community_image": community.community_image,
+                "community_online_members": online_map.get(community.id, 0),
+                "community_total_members": total_map.get(community.id, 0),
+                "community_created_at": community.created_at.year,
             } for member, community in communities
         ]
     }
@@ -949,6 +982,106 @@ def create_category(request: Request, req: CategoryRequest, user_id: str = Depen
     db.refresh(category)
 
     return {"id": category.id, "name": category.category_name}
+
+@app.post("/api/community/update", response_model=Dict[str, Any])
+@limiter.limit("20/minute")
+def update_community(
+    request: Request,
+    community_id: str = Form(...),
+    community_name: str = Form(...),
+    community_image: UploadFile | None = File(None),
+    remove_image: str | None = Form(None),
+    current_user_id: str = Depends(get_user_id_from_token),
+    db: Session = Depends(get_db)
+) -> Dict[str, Any]:
+    user = db.query(User).filter(User.id == current_user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found.")
+
+    community = db.query(Community).filter(Community.id == community_id).first()
+    if not community:
+        raise HTTPException(status_code=404, detail="Community not found.")
+
+    is_owner = community.owner_id == user.id
+
+    has_permissions = False
+    member = db.query(CommunityMember).filter(
+        CommunityMember.community_id == community_id,
+        CommunityMember.user_id == user.id
+    ).first()
+    
+    if member:
+        roles = db.query(CommunityRole).filter(
+            CommunityRole.member_id == member.id
+        ).all()
+        has_permissions = any(
+            "MANAGE_COMMUNITY" in role.permissions 
+            for role in roles
+        )
+
+    if not is_owner and not has_permissions:
+        raise HTTPException(status_code=403, detail="You don't have permission to make changes")
+
+    community_name = community_name.strip()
+    if not community_name:
+        raise HTTPException(status_code=400, detail="Community name required.")
+    if len(community_name) < 4:
+        raise HTTPException(status_code=400, detail="Community name must be at least 4 characters.")
+    if len(community_name) > 20:
+        raise HTTPException(status_code=400, detail="Community name can't be bigger than 20 characters.")
+
+    image_url = None
+    old_image_path = None
+    should_remove_image = remove_image == "true"
+
+    if should_remove_image and community.community_image:
+        old_image_filename = community.community_image.split("/")[-1]
+        old_image_path = UPLOADS_FOLDER / old_image_filename
+        image_url = None
+
+    if community_image and community_image.filename:
+        if community.community_image and community.community_image != None:
+            old_image_filename = community.community_image.split("/")[-1]
+            old_image_path = UPLOADS_FOLDER / old_image_filename
+        
+        ext = os.path.splitext(community_image.filename)[1].lower()
+        filename = f"{uuid.uuid4().hex}{ext}"
+        new_image_path = UPLOADS_FOLDER / filename
+        with open(new_image_path, "wb") as f:
+            shutil.copyfileobj(community_image.file, f)
+        base = (os.getenv("MEDIA_CDN_URL") or "/api/serve/image").rstrip("/")
+        image_url = f"{base}/{filename}"
+
+    try:
+        community.community_name = community_name
+        if should_remove_image:
+            community.community_image = None
+        elif image_url:
+            community.community_image = image_url
+        db.commit()
+        
+        if old_image_path and old_image_path.exists() and old_image_path.is_file():
+            try:
+                old_image_path.unlink()
+            except Exception:
+                pass
+        
+        return {
+            "success": True,
+            "community_id": community.id,
+            "community_name": community.community_name,
+            "community_image": community.community_image
+        }
+    except Exception as e:
+        db.rollback()
+        if image_url:
+            new_file = UPLOADS_FOLDER / filename
+            if new_file.exists():
+                try:
+                    new_file.unlink()
+                except Exception:
+                    pass
+        raise HTTPException(status_code=500, detail=str(e))
 
 # if os.path.exists("dist/assets"):
 #     app.mount("/assets", StaticFiles(directory="dist/assets"), name="assets")

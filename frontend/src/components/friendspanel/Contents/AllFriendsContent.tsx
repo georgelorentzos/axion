@@ -1,7 +1,7 @@
-import SearchBar from '../common/SearchBar'
-import UserCard from '../common/UserCard'
-import { useSearch } from '../../hooks/useSearch';
-import { useAllFriends} from '../../contexts/useAllFriends';
+import SearchBar from '../../common/SearchBar'
+import UserCard from '../../common/UserCard'
+import { useSearch } from '../../../hooks/useSearch';
+import { useAllFriends} from '../../../contexts/useAllFriends';
 
 export default function AllFriendsContent() {
     const { allFriends, loading } = useAllFriends();

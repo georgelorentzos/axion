@@ -1,9 +1,9 @@
 import HeaderButton from './HeaderButton'
 import { useState } from 'react'
-import AddFriendContent from './AddFriendContent'
-import PendingContent from './PendingContent'
-import AllFriendsContent from './AllFriendsContent'
-import OnlineFriendsContent from './OnlineFriendsConten'
+import AddFriendContent from './Contents/AddFriendContent'
+import PendingContent from './Contents/PendingContent'
+import AllFriendsContent from './Contents/AllFriendsContent'
+import OnlineFriendsContent from './Contents/OnlineFriendsConten'
 export default function FriendsPanel() {
     const [selectedTab, setSelectedTab] = useState('Online');
     const renderContent = () => {

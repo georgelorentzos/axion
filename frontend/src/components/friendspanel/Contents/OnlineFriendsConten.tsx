@@ -1,7 +1,7 @@
-import SearchBar from '../common/SearchBar'
-import UserCard from '../common/UserCard'
-import { useSearch } from '../../hooks/useSearch';
-import { useOnlineFriends } from '../../contexts/useOnlineFriends';
+import SearchBar from '../../common/SearchBar'
+import UserCard from '../../common/UserCard'
+import { useSearch } from '../../../hooks/useSearch';
+import { useOnlineFriends } from '../../../contexts/useOnlineFriends';
 
 export default function OnlineFriendsContent() {
     const { onlineFriends, loading } = useOnlineFriends();

@@ -4,9 +4,11 @@ type InputProps = {
     onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
     placeholder?: string;
     svgD?: string;
+    value?: string;
+    maxLength?: number;
 }
 
-export default function Input({ onChange, placeholder, svgD } : InputProps) {
+export default function Input({ onChange, placeholder, svgD, value, maxLength } : InputProps) {
     return (
         <div className='border border-outline flex items-center bg-basalt px-4 rounded-lg gap-2 w-full'>
 
@@ -17,9 +19,11 @@ export default function Input({ onChange, placeholder, svgD } : InputProps) {
             )}
 
             <input 
+                value={value}
                 onChange={onChange}
                 type="text" 
-                className="bg-basalt text-gray-100 focus:outline-none h-[50px] border-outline flex justify-between items-center w-full"
+                maxLength={maxLength}
+                className="bg-basalt text-gray-100 focus:outline-none h-[40px] border-outline flex justify-between items-center w-full"
                 placeholder={placeholder} 
             />
         </div>

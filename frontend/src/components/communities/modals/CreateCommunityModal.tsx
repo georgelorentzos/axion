@@ -78,10 +78,14 @@ export default function CreateCommunityModal({ isOpen, onClose }: CreateCommunit
             community_id: data.community_id,
             community_name: data.community_name,
             community_image: data.community_image,
+            community_online_members: data.community_online_members,
+            community_total_members: data.community_total_members,
+            community_created_at: data.community_created_at,
             },
             ...(prev || []),
             ]);
             onClose();
+            setCommunityImage(null);
             
         } catch (error) {
             console.error("failed to create community: ", {error})
@@ -106,7 +110,7 @@ export default function CreateCommunityModal({ isOpen, onClose }: CreateCommunit
                 showFade ? 'opacity-100' : 'opacity-0'
             }`}
         >
-            <div onClick={(e) => e.stopPropagation()} className="relative bg-onyx w-[400px] rounded-3xl ">
+            <div onClick={(e) => e.stopPropagation()} className="border border-outline relative bg-onyx w-[400px] rounded-3xl ">
                 <ModalCloseButton onClose={onClose} />
                 {!isCreateCommunity ? (
                     <>

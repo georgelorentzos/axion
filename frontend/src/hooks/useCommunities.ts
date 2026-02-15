@@ -3,7 +3,10 @@ import { useState, useEffect } from "react";
 interface Community {
     community_id: string;
     community_name: string;
-    community_image: string
+    community_image: string;
+    community_online_members: string;
+    community_total_members: string;
+    community_created_at: string;
 }
 
 export function useCommunities() {
@@ -21,7 +24,7 @@ export function useCommunities() {
                     headers: {"Authorization": `Bearer ${token}`}
                 });
 
-                const data = await response.json()
+                const data = await response.json();
                 setCommunities(data.communities || []);
             } catch (error) {
                 console.error('Fetch all friends error:', error);
@@ -29,10 +32,27 @@ export function useCommunities() {
             } finally {
                 setIsLoading(false);
             }
-
         };
         handleCommunities();
     }, []);
 
-    return { communities, setCommunities, loading }
+    const updateCommunity = (updatedCommunity: {
+        communityId: string;
+        communityName: string;
+        communityImage: string;
+    }) => {
+        setCommunities(prev => 
+            prev?.map(c => 
+                c.community_id === updatedCommunity.communityId 
+                    ? { 
+                        ...c, 
+                        community_name: updatedCommunity.communityName,
+                        community_image: updatedCommunity.communityImage 
+                    }
+                    : c
+            ) || null
+        );
+    };
+
+    return { communities, setCommunities, loading, updateCommunity };
 }

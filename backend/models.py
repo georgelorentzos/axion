@@ -76,8 +76,9 @@ class Community(Base):
 
     id = Column(String, primary_key=True, default=lambda: str(uuid4()))
     community_name = Column(String, nullable=False)
-    community_image = Column(String, nullable=False)
+    community_image = Column(String, nullable=True)
     owner_id = Column(String, ForeignKey("users.id"), nullable=False)
+    created_at = Column(DateTime, default=datetime.now)
     categories = relationship("CommunityCategory", back_populates="community")
     channels = relationship("CommunityChannel", back_populates="community", foreign_keys="CommunityChannel.community_id")
     roles = relationship("CommunityRole", back_populates="community")

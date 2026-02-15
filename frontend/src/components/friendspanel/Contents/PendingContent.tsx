@@ -1,7 +1,7 @@
-import UserCard from '../common/UserCard'
-import SearchBar from '../common/SearchBar'
-import { useSearch } from '../../hooks/useSearch';
-import { usePending } from '../../contexts/usePending';
+import UserCard from '../../common/UserCard'
+import SearchBar from '../../common/SearchBar'
+import { useSearch } from '../../../hooks/useSearch';
+import { usePending } from '../../../contexts/usePending';
 
 export default function PendingContent() {
     const { pending, setPending, loading } = usePending();

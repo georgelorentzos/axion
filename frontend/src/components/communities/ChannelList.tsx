@@ -1,13 +1,21 @@
 import CurrentUserCard from "../common/CurrentUserCard";
-import { useLocation } from "react-router-dom";
-import { useState, useRef } from "react";
+import { useLocation, useParams } from "react-router-dom";
+import { useState, useRef, useEffect } from "react";
 import ActionMenu from "../common/ActionMenu";
 import ChannelListModal from "./modals/ChannelListModal";
 import CommunitySettingsModal from "./modals/CommunitySettingsModal";
 
+type CommunityData = {
+  communityId: string;
+  communityName: string;
+  communityImage: string;
+};
+
 interface LocationState {
   communityData?: {
+    communityId: string;
     communityName: string;
+    communityImage: string;
   };
 }
 
@@ -20,7 +28,15 @@ type ModalMode = "channel" | "category" | null;
 
 export default function ChannelList() {
   const location = useLocation();
-  const { communityData } = location.state as LocationState;
+  const { communityId } = useParams();
+  const [communityData, setCommunityData] = useState<CommunityData | undefined>(undefined);
+
+  useEffect(() => {
+    const state = location.state as LocationState;
+    if (state?.communityData) {
+      setCommunityData(state.communityData);
+    }
+  }, [location.state, communityId]);
 
   const [channels, setChannels] = useState<Channel[]>([]);
   const [isChannelListMenuOpen, setIsChannelListMenuOpen] = useState(false);
@@ -67,12 +83,14 @@ export default function ChannelList() {
     }
   };
 
+  const handleCommunityUpdate = (updatedData: CommunityData) => {
+    setCommunityData(updatedData); 
+  };
+
   return (
-    <div
-      className="w-[370px] h-screen border-r border-outline flex flex-col"
-    >
+    <div className="w-[370px] h-screen border-r border-outline flex flex-col">
       <audio preload="auto" />
-      <CommunitySettingsModal isOpen={isCommunitySettingsModalOpen} onClose={() => setIsCommunitySettingsModalOpen(false)} />
+      <CommunitySettingsModal communityData={communityData} onCommunityUpdate={handleCommunityUpdate} isOpen={isCommunitySettingsModalOpen} onClose={() => setIsCommunitySettingsModalOpen(false)} />
       <div className="w-full h-[60px] border-b border-outline flex items-center justify-between px-6 gap-2 flex-shrink-0">
         <div className="flex gap-2">
           <svg
