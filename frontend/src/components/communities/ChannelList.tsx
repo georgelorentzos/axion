@@ -151,7 +151,7 @@ export default function ChannelList() {
 
       <div onContextMenu={handleContextMenu} className="relative space-y-3 p-2 flex flex-col flex-1">
         {channels.length === 0 && (
-          <div className="flex-1 flex flex-col justify-center items-center mt-[100px]">
+          <div className="flex-1 flex flex-col justify-center items-center mt-[80px]">
             <div className="text-gray-400 text-sm">No channels yet</div>
           </div>
         )}

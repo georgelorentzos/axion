@@ -18,7 +18,7 @@ export default function PendingContent() {
                     <SearchBar value={searchQuery} onSearch={setSearchQuery} />
                 )}
                 {searchQuery && filtered.length === 0 && (
-                    <div className='flex-1 flex flex-col justify-center items-center'>
+                    <div className='flex-1 flex flex-col justify-center items-center mb-[58px]'>
                         <div className="text-gray-400 text-sm">No results found</div>
                     </div>
                 )}

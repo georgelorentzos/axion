@@ -95,12 +95,12 @@ export default function ChatOverView() {
                 <SearchBar value={searchQuery} onSearch={setSearchQuery} />
                 )}
                 {searchQuery && filtered.length === 0 && (
-                <div className='flex-1 flex flex-col justify-center items-center mt-[100px]'>
+                <div className='flex-1 flex flex-col justify-center items-center mt-[22px]'>
                     <div className="text-gray-400 text-sm">No results found</div>
                 </div>
                 )}
                 {!loading && !searchQuery && directMessages.length === 0 && (
-                <div className='flex-1 flex flex-col justify-center items-center mt-[100px]'>
+                <div className='flex-1 flex flex-col justify-center items-center mt-[80px]'>
                     <div className="text-gray-400 text-sm">No messages yet</div>
                 </div>
                 )}
