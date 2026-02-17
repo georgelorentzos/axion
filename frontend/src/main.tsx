@@ -8,6 +8,7 @@ import MagicLink from "./pages/MagicLink";
 import Logout from "./pages/Logout";
 import FriendsPanel from "./components/friendspanel/FriendsPanel";
 import Conversation from "./components/chat/Conversation";
+import JoinCommunity from "./pages/JoinCommunity";
 
 import { ProtectedRoute, PublicRoute } from "./hooks/useRouteGuards";
 import { UserProvider } from "./contexts/useCurrentUser";
@@ -92,6 +93,11 @@ function App() {
           }
         />
         <Route path="*" element={<NotFound />} />
+        <Route
+        path="/join/:communityId/:userId?"
+        element={
+          <JoinCommunity />
+        }/>
       </Routes>
     </BrowserRouter>
   );

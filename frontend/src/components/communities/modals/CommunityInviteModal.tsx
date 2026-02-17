@@ -23,7 +23,7 @@ export default function CommunityInviteModal({
 }: CommunityInviteModalProps) {
   const [isVisible, setIsVisible] = useState(false);
   const [showFade, setShowFade] = useState(false);
-  const apiUrl = window.GLOBAL_ENV.API_ENDPOINT;
+  const domainUrl = window.GLOBAL_ENV.PRIMARY_DOMAIN;
   const location = useLocation();
   const { communityData } = location.state as LocationState;
   const { currentUser } = useCurrentUser();
@@ -42,7 +42,7 @@ export default function CommunityInviteModal({
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
-    await navigator.clipboard.writeText(`${apiUrl}/join/${communityData?.communityId}/${currentUser?.user_id}`);
+    await navigator.clipboard.writeText(`${domainUrl}/join/${communityData?.communityId}/${currentUser?.user_id}`);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -69,7 +69,7 @@ export default function CommunityInviteModal({
 
               <Input
                 readOnly
-                value={`${apiUrl}/join/${communityData?.communityId}/${currentUser?.user_id}`}
+                value={`${domainUrl}/join/${communityData?.communityId}/${currentUser?.user_id}`}
               />
           <Button text={copied ? "Copied" : "Copy Link"} isGreen onClick={handleCopy} />
         </div>

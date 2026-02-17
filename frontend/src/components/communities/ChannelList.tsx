@@ -1,6 +1,6 @@
 import CurrentUserCard from "../common/CurrentUserCard";
 import { useLocation, useParams } from "react-router-dom";
-import { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import ActionMenu from "../common/ActionMenu";
 import ChannelListModal from "./modals/ChannelListModal";
 import CommunitySettingsModal from "./modals/CommunitySettingsModal";

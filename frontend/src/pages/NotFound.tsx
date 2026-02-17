@@ -6,7 +6,7 @@ export default function NotFound() {
     };
 
     return (
-        <div className="bg-onyx h-screen w-full flex justify-center items-center">
+        <div className="h-screen w-full flex justify-center items-center">
             <div className="w-[420px] flex justify-center items-center flex-col gap-6 p-10 rounded-3xl">
                 
                 <div className="flex flex-col gap-4 justify-center items-center text-center">

@@ -62,14 +62,14 @@ export default function Auth() {
     };
 
     return (
-        <div className="bg-onyx h-screen w-full flex flex-col justify-center items-center">
+        <div className="h-screen w-full flex flex-col justify-center items-center">
             <div className="border border-outline w-[420px] flex justify-center items-center flex-col gap-4 p-10 rounded-3xl">
             <div className="text-white text-[30px]">Continue</div>
                 {error && <div className="text-red-400 text-sm text-center">{error}</div>}
                 {!completed ? (
                 <>
                 <Input placeholder="Enter your email" onChange={(e) => setEmail(e.target.value)} />
-                <Button text="Continue with email" onClick={handleLogin} isGreen />
+                <Button text="Continue with email" onClick={handleLogin} isGreen disabled={loading} />
                 <div className="text-[0.75rem] text-[#98968e] text-center">By continuing, you acknowledge Company’s <a href="/privacy-policy" className="underline underline-offset-3">Privacy Policy.</a></div>
                 </>
                 ) : (

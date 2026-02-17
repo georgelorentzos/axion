@@ -9,12 +9,10 @@ interface User {
 
 interface UseCurrentUserReturn {
     currentUser: User | null;
-    loading: boolean;
 }
 
 export function useCurrentUser(): UseCurrentUserReturn {
     const [currentUser, setCurrentUser] = useState<User | null>(null);
-    const [loading, setLoading] = useState(true);
     const apiUrl = window.GLOBAL_ENV.API_ENDPOINT;
 
     useEffect(() => {
@@ -22,7 +20,6 @@ export function useCurrentUser(): UseCurrentUserReturn {
             const token = localStorage.getItem('token');
             
             if (!token) {
-                setLoading(false);
                 return;
             }
 
@@ -43,13 +40,11 @@ export function useCurrentUser(): UseCurrentUserReturn {
                 }
             } catch (error) {
                 setCurrentUser(null);
-            } finally {
-                setLoading(false);
             }
         };
 
         fetchUser();
     }, []);
 
-    return { currentUser, loading };
+    return { currentUser };
 }

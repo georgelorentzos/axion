@@ -48,7 +48,7 @@ export default function MagicLink() {
     };
 
     return (
-        <div className="bg-onyx h-screen w-full flex justify-center items-center">
+        <div className="h-screen w-full flex justify-center items-center">
             {isExpired === null ? (
                 <></>
             ) : isExpired ? (

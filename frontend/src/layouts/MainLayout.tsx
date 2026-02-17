@@ -12,7 +12,7 @@ export const MainLayout = ({ children }: { children: React.ReactNode }) => {
     <div className="h-screen w-full flex items-center">
       <CommunitiesList />
 
-      {isCommunityPage ? <ChannelList /> : <ChatOverView />}
+      {isCommunityPage ? <ChannelList/> : <ChatOverView/>}
 
       {children}
     </div>

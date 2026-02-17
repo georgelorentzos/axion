@@ -1091,6 +1091,33 @@ def update_community(
                     pass
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.get("/api/community/{community_id}", response_model=Dict[str, Any])
+@limiter.limit("50/minute")
+def fetch_community(request: Request, community_id: str, db: Session = Depends(get_db)) -> Dict[str, Any]:
+    community = db.query(Community).filter(Community.id == community_id).first()
+    if not community:
+        raise HTTPException(status_code=404, detail="Community not found.")
+    
+    total_members = db.query(func.count(CommunityMember.id)).filter(
+        CommunityMember.community_id == community_id
+    ).scalar()
+
+    online_members = db.query(func.count(CommunityMember.id)).join(
+        User, User.id == CommunityMember.user_id
+    ).filter(
+        CommunityMember.community_id == community_id,
+        User.is_online.is_(True)
+    ).scalar()
+
+    return {
+        "community_id": community.id,
+        "community_name": community.community_name,
+        "community_image": community.community_image,
+        "community_online_members": online_members or 0,
+        "community_total_members": total_members or 0,
+        "community_created_at": community.created_at.year,
+    }
+
 # if os.path.exists("dist/assets"):
 #     app.mount("/assets", StaticFiles(directory="dist/assets"), name="assets")
 
