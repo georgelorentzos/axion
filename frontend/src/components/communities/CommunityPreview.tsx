@@ -46,6 +46,10 @@ export default function CommunityPreview({ joinBtn, communityId, communitySettin
                 method: "PATCH",
                 headers: { "Authorization": `Bearer ${token}` }
             });
+            if (!response.ok) {
+                navigate("/auth");
+                return;
+            }
             if (response.ok) {
                 const communityData = {
                     communityId: communityId,
@@ -55,7 +59,6 @@ export default function CommunityPreview({ joinBtn, communityId, communitySettin
                     communityTotalMembers: community?.communityTotalMembers || totalMembers,
                     communityCreatedAt: community?.communityCreatedAt || createdAt
                 }
-                
 
                 setCommunities(prev => {
                     const already = prev?.some(c => c.community_id === communityId);

@@ -14,6 +14,7 @@ import { ProtectedRoute, PublicRoute } from "./hooks/useRouteGuards";
 import { UserProvider } from "./contexts/useCurrentUser";
 import { MainLayout } from "./layouts/MainLayout";
 import { MainWithProviders } from "./layouts/Providers";
+import { CommunitiesProvider } from "./contexts/useCommunities";
 
 function App() {
   useEffect(() => {
@@ -96,7 +97,9 @@ function App() {
         <Route
         path="/join/:communityId/:userId?"
         element={
-          <JoinCommunity />
+          <CommunitiesProvider>
+            <JoinCommunity />
+          </CommunitiesProvider>
         }/>
       </Routes>
     </BrowserRouter>
