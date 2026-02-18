@@ -881,7 +881,7 @@ def create_community(
                 }
     except Exception as e:
         db.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Failed to create community due to an internal server error.")
 
 @app.get("/api/my/communities", response_model=Dict[str, Any])
 @limiter.limit("120/minute")
@@ -1090,7 +1090,7 @@ def update_community(
                     new_file.unlink()
                 except Exception:
                     pass
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Failed to update community due to an internal server error.")
 
 @app.get("/api/community/{community_id}", response_model=Dict[str, Any])
 @limiter.limit("120/minute")
@@ -1118,6 +1118,86 @@ def fetch_community(request: Request, community_id: str, db: Session = Depends(g
         "community_total_members": total_members or 0,
         "community_created_at": community.created_at.year,
     }
+
+@app.patch("/api/community/{community_id}/join", response_model=Dict[str, Any])
+@limiter.limit("120/minute")
+def join_community(request: Request, 
+                   community_id: str, 
+                   current_user_id: str = Depends(get_user_id_from_token),
+                   db: Session = Depends(get_db
+                   )) -> Dict[str, Any]:
+    user = db.query(User).filter(User.id == current_user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    community = db.query(Community).filter(Community.id == community_id).first()
+    if not community:
+        raise HTTPException(status_code=404, detail="Community not found")
+
+    existing_member = db.query(CommunityMember).filter(
+        CommunityMember.user_id == user.id,
+        CommunityMember.community_id == community.id
+    ).first()
+
+    if existing_member:
+        return {
+            "success": False, 
+            "message": "Already a member",
+            "status": "existing_member"
+        }
+    
+    try:
+        new_community_member = CommunityMember(
+            user_id=user.id,
+            community_id=community.id,
+        )
+        db.add(new_community_member)
+        db.commit()
+        return { 
+            "success": True,
+            "status": "joined"
+            }
+    
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Failed to join community due to an internal server error.")
+
+@app.delete("/api/community/{community_id}/leave", response_model=Dict[str, Any])
+@limiter.limit("120/minute")
+def leave_community(request: Request, 
+                    community_id: str, 
+                    current_user_id: str = Depends(get_user_id_from_token),
+                    db: Session = Depends(get_db
+                    )) -> Dict[str, Any]:
+    user = db.query(User).filter(User.id == current_user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    community = db.query(Community).filter(Community.id == community_id).first()
+    if not community:
+        raise HTTPException(status_code=404, detail="Community not found")
+
+    if user.id == community.owner_id:
+        raise HTTPException(status_code=403, detail="Community owners cannot leave their own community. Please delete the community instead.")
+    
+    community_member = db.query(CommunityMember).filter(
+        CommunityMember.user_id == current_user_id,
+        CommunityMember.community_id == community_id
+    ).first()
+
+    if not community_member:
+        raise HTTPException(status_code=409, detail="You are not a member of this community.")
+
+    try:
+        db.delete(community_member)
+        db.commit()
+        return {
+            "success": True,
+            "status": "left"
+        }
+    except Exception as e:
+        db.rollback()
+        detail="Failed to leave community due to an internal server error."
 
 # if os.path.exists("dist/assets"):
 #     app.mount("/assets", StaticFiles(directory="dist/assets"), name="assets")

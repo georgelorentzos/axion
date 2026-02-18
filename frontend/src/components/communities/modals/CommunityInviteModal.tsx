@@ -29,7 +29,7 @@ export default function CommunityInviteModal({
   const domainUrl = window.GLOBAL_ENV.PRIMARY_DOMAIN;
   const apiUrl = window.GLOBAL_ENV.API_ENDPOINT;
   const location = useLocation();
-  const { communityData } = location.state as LocationState;
+  const communityData = (location.state as LocationState)?.communityData;
   const { currentUser } = useCurrentUser();
   const { allFriends } = useAllFriends();
   const token = localStorage.getItem("token");

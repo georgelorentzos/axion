@@ -1,14 +1,14 @@
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import CommunityProfile from "./CommunityProfile";
 import Button from "../common/Button";
 import { useEffect, useState } from "react";
+import { useCommunities } from "../../contexts/useCommunities";
 
 type CommunityPreviewProps = {
     joinBtn?: boolean;
     communityId?: string;
     communitySettingsName?: string;
     communitySettingsImage?: string | null;
-    onJoin?: () => void;
 }
 
 interface LocationState {
@@ -30,11 +30,57 @@ interface Community {
     communityCreatedAt: string;
 }
 
-export default function CommunityPreview({ joinBtn, communityId, communitySettingsName, communitySettingsImage, onJoin }: CommunityPreviewProps) {
+export default function CommunityPreview({ joinBtn, communityId, communitySettingsName, communitySettingsImage }: CommunityPreviewProps) {
     const location = useLocation();
     const apiUrl = window.GLOBAL_ENV.API_ENDPOINT;
     const locationData = (location.state as LocationState)?.communityData;
     const [community, setCommunity] = useState<Community | null>(null);
+    const navigate = useNavigate();
+    const { setCommunities } = useCommunities();
+
+    const joinCommunity = async (communityId: string) => {
+        const token = localStorage.getItem("token");
+        if (!token) navigate("/auth");
+        try {
+            const response = await fetch(`${apiUrl}/api/community/${communityId}/join`, {
+                method: "PATCH",
+                headers: { "Authorization": `Bearer ${token}` }
+            });
+            if (response.ok) {
+                const communityData = {
+                    communityId: communityId,
+                    communityName: community?.communityName || name,
+                    communityImage: community?.communityImage || image,
+                    communityOnlineMembers: community?.communityOnlineMembers || onlineMembers,
+                    communityTotalMembers: community?.communityTotalMembers || totalMembers,
+                    communityCreatedAt: community?.communityCreatedAt || createdAt
+                }
+                
+
+                setCommunities(prev => {
+                    const already = prev?.some(c => c.community_id === communityId);
+                    if (already) return prev;
+                                
+                    return [
+                        ...(prev || []),
+                        {
+                            community_id: communityId,
+                            community_name: community?.communityName || name || "",
+                            community_image: community?.communityImage || image || "",
+                            community_online_members: community?.communityOnlineMembers || onlineMembers || "0",
+                            community_total_members: community?.communityTotalMembers || totalMembers || "0",
+                            community_created_at: community?.communityCreatedAt || createdAt || "",
+                        },
+                    ];
+                });
+
+
+                navigate(`/community/${communityId}`, { state: { communityData } });
+            }
+        } catch (error) {
+            console.error("Join community error:", error);
+        }
+    };
 
     useEffect(() => {
         if (!communityId) return;
@@ -57,6 +103,7 @@ export default function CommunityPreview({ joinBtn, communityId, communitySettin
         fetchCommunity();
     }, [communityId]);
 
+    const id = communityId || community?.communityId;
     const name = communitySettingsName || community?.communityName || locationData?.communityName;
     const image = communitySettingsImage !== undefined ? communitySettingsImage : community?.communityImage ?? locationData?.communityImage;
     const onlineMembers = community?.communityOnlineMembers || locationData?.communityOnlineMembers;
@@ -94,7 +141,7 @@ export default function CommunityPreview({ joinBtn, communityId, communitySettin
             </div>
 
             {joinBtn && (
-                <Button text="Join Community" isGreen onClick={onJoin} />
+                <Button text="Join Community" isGreen onClick={() => id && joinCommunity(id)} />
             )}
         </div>
     );

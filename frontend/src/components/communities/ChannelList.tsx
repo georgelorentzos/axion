@@ -5,6 +5,8 @@ import ActionMenu from "../common/ActionMenu";
 import ChannelListModal from "./modals/ChannelListModal";
 import CommunitySettingsModal from "./modals/CommunitySettingsModal";
 import CommunityInviteModal from "./modals/CommunityInviteModal";
+import { useCommunities } from "../../contexts/useCommunities";
+import { useNavigate } from "react-router-dom";
 
 type CommunityData = {
   communityId: string;
@@ -31,6 +33,18 @@ export default function ChannelList() {
   const location = useLocation();
   const { communityId } = useParams();
   const [communityData, setCommunityData] = useState<CommunityData | undefined>(undefined);
+  const { communities, setCommunities ,loading } = useCommunities();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (loading) return;
+    if (!communities) return;
+
+    const isMember = communities.some(c => c.community_id === communityId);
+    if (!isMember) {
+      navigate("/");
+    }
+  }, [communities, loading, communityId]);
 
   useEffect(() => {
     const state = location.state as LocationState;
@@ -49,6 +63,8 @@ export default function ChannelList() {
 
   const [isChannelListModalOpen, setIsChannelListModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<ModalMode>(null);
+
+  const apiUrl = window.GLOBAL_ENV.API_ENDPOINT;
 
   const handleContextMenu = (e: React.MouseEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -88,6 +104,23 @@ export default function ChannelList() {
   const handleCommunityUpdate = (updatedData: CommunityData) => {
     setCommunityData(updatedData); 
   };
+
+  const handleCommunityLeave = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+    try {
+      const response = await fetch(`${apiUrl}/api/community/${communityData?.communityId}/leave`, {
+        method: "DELETE",
+        headers: {"Authorization" : `Bearer ${token}`}
+      });
+      if (response.ok) {
+        navigate("/");
+        setCommunities(prev => prev?.filter(c => c.community_id !== communityData?.communityId) || null);
+      }
+    } catch (error) {
+      console.log("error leaving community: ", error)
+    }
+  }
 
   return (
     <div className="w-[370px] h-screen border-r border-outline flex flex-col">
@@ -137,6 +170,7 @@ export default function ChannelList() {
           onClose={() => setIsServerOptionsMenuOpen(false)}
           buttonRef={serverOptionsButtonRef}
           isServerOptions
+          onCommunityLeave={handleCommunityLeave}
           onCommunitySettings={() => {
             setIsCommunitySettingsModalOpen(true);
             setIsServerOptionsMenuOpen(false);

@@ -74,6 +74,7 @@ export default function CreateCommunityModal({ isOpen, onClose }: CreateCommunit
 
             console.log("Community created!");
             setCommunities(prev => [
+            ...(prev || []),
             {
             community_id: data.community_id,
             community_name: data.community_name,
@@ -82,7 +83,6 @@ export default function CreateCommunityModal({ isOpen, onClose }: CreateCommunit
             community_total_members: data.community_total_members,
             community_created_at: data.community_created_at,
             },
-            ...(prev || []),
             ]);
             onClose();
             setCommunityImage(null);
