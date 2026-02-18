@@ -7,9 +7,10 @@ type InputProps = {
     value?: string;
     maxLength?: number;
     readOnly?: boolean;
+    isLink?: boolean;
 }
 
-export default function Input({ onChange, placeholder, svgD, value, maxLength, readOnly } : InputProps) {
+export default function Input({ onChange, placeholder, svgD, value, maxLength, readOnly, isLink } : InputProps) {
     return (
         <div className='border border-outline flex items-center bg-basalt px-4 rounded-lg gap-2 w-full'>
 
@@ -25,7 +26,7 @@ export default function Input({ onChange, placeholder, svgD, value, maxLength, r
                 onChange={onChange}
                 type="text" 
                 maxLength={maxLength}
-                className="bg-basalt text-gray-100 focus:outline-none h-[40px] border-outline flex justify-between items-center w-full"
+                className={` ${isLink ? "text-blue-400" : "text-gray-100"} bg-basalt focus:outline-none h-[40px] border-outline flex justify-between items-center w-full`}
                 placeholder={placeholder} 
             />
         </div>

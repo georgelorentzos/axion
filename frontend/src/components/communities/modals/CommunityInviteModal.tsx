@@ -4,6 +4,8 @@ import Input from "../../common/Input";
 import ModalCloseButton from "../../common/modals/ModalCloseButton";
 import { useLocation } from "react-router-dom";
 import { useCurrentUser } from "../../../contexts/useCurrentUser";
+import { useAllFriends } from "../../../contexts/useAllFriends";
+import UserCard from "../../common/UserCard";
 
 type CommunityInviteModalProps = {
   isOpen: boolean;
@@ -23,10 +25,14 @@ export default function CommunityInviteModal({
 }: CommunityInviteModalProps) {
   const [isVisible, setIsVisible] = useState(false);
   const [showFade, setShowFade] = useState(false);
+  const [copied, setCopied] = useState(false);
   const domainUrl = window.GLOBAL_ENV.PRIMARY_DOMAIN;
+  const apiUrl = window.GLOBAL_ENV.API_ENDPOINT;
   const location = useLocation();
   const { communityData } = location.state as LocationState;
   const { currentUser } = useCurrentUser();
+  const { allFriends } = useAllFriends();
+  const token = localStorage.getItem("token");
 
   useEffect(() => {
     if (isOpen) {
@@ -39,12 +45,35 @@ export default function CommunityInviteModal({
     }
   }, [isOpen]);
 
-  const [copied, setCopied] = useState(false);
-
   const handleCopy = async () => {
     await navigator.clipboard.writeText(`${domainUrl}/join/${communityData?.communityId}/${currentUser?.user_id}`);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleInvite = async (friendId: string) => {
+    const inviteLink = `${domainUrl}/join/${communityData?.communityId}/${currentUser?.user_id}`;
+
+    try {
+      const response = await fetch(`${apiUrl}/api/send/message`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          sender_id: currentUser?.user_id,
+          recipient_id: friendId,
+          message: inviteLink,
+        }),
+      });
+
+      if (!response.ok) {
+        console.error("Failed to send invite");
+      }
+    } catch (error) {
+      console.error("Error sending invite:", error);
+    }
   };
 
   if (!isVisible) return null;
@@ -62,15 +91,31 @@ export default function CommunityInviteModal({
         <ModalCloseButton onClose={onClose} />
 
         <div className="p-6 flex gap-4 flex-col items-center bg-onyx w-[400px] rounded-3xl">
-              <div className="flex flex-col text-center">
-                <div className="font-bold text-[20px]">Invite Friends</div>
-                <div className="text-gray-500">Share this link with others.</div>
-              </div>
-
-              <Input
-                readOnly
-                value={`${domainUrl}/join/${communityData?.communityId}/${currentUser?.user_id}`}
-              />
+          <div className="flex flex-col text-center">
+            <div className="font-bold text-[20px]">Invite Friends</div>
+            <div className="text-gray-500">Share this link with others.</div>
+          </div>
+          {allFriends && (
+            <div className="w-full max-h-[200px] h-auto border border-outline rounded-xl overflow-y-auto flex justify-center p-2">
+              {allFriends.map(friend => (
+                <UserCard
+                  key={friend.user_id}
+                  id={friend.user_id}
+                  isOnline={friend.is_online}
+                  username={friend.username}
+                  image={friend.profile_image}
+                  createdAt={friend.created_at}
+                  inviteBtn
+                  onInvite={() => handleInvite(friend.user_id)}
+                />
+              ))}
+            </div>
+          )}
+          <Input
+            isLink
+            readOnly
+            value={`${domainUrl}/join/${communityData?.communityId}/${currentUser?.user_id}`}
+          />
           <Button text={copied ? "Copied" : "Copy Link"} isGreen onClick={handleCopy} />
         </div>
       </div>

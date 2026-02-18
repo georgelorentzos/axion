@@ -15,8 +15,11 @@ type UserCardProps = {
   addFriendBtn?: boolean;
   acceptPendingBtn?: boolean;
   rejectPendingBtn?: boolean;
+  inviteBtn?: boolean;
   onReject?: (id: string) => void;
   onAccept?: (id: string) => void;
+  onInvite?: () => Promise<void>;
+  inviteSent?: boolean;
   showLatestMessage?: boolean;
   latestMessage?: string;
 };
@@ -41,8 +44,11 @@ export default function UserCard({
   addFriendBtn,
   acceptPendingBtn,
   rejectPendingBtn,
+  inviteBtn,
   onReject,
   onAccept,
+  onInvite,
+  inviteSent,
   showLatestMessage,
   latestMessage
 }: UserCardProps) {
@@ -366,6 +372,25 @@ export default function UserCard({
           </button>
           </>
         )}
+
+
+        {inviteBtn && (
+          <button
+            onClick={async () => {
+              await onInvite?.();
+              setSent(true);
+              setTimeout(() => setSent(false), 2000);
+            }}
+            disabled={sent}
+            className={`text-sm transition duration-300 ${
+              sent
+                ? "text-gray-500 cursor-default"
+                : "text-gray-500 hover:text-gray-300"
+            }`}
+          >
+            {sent ? "Sent" : "Send"}
+          </button>
+      )}
 
         {addFriendBtn && !pendingLoading && (
           <>

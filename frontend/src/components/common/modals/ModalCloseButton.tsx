@@ -1,14 +1,21 @@
+import { useEffect } from "react";
+
 type ModalCloseButtonProps = {
     onClose: () => void;
 }
 
 export default function ModalCloseButton({ onClose }: ModalCloseButtonProps) {
     
-    document.addEventListener("keydown", (e) => {
-        if (e.key === "Escape") {
-            onClose();
-        }
-    })
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === "Escape") {
+                onClose();
+            }
+        };
+
+        document.addEventListener("keydown", handleKeyDown);
+        return () => document.removeEventListener("keydown", handleKeyDown);
+    }, [onClose])
 
     return (
         <div className="absolute -top-2 -right-2 z-10 flex justify-center items-center flex-col gap-1">

@@ -4,6 +4,7 @@ import MessageBubble from './MessageBubble'
 import { useParams, useLocation } from "react-router-dom";
 import { useEffect, useState, useRef } from 'react';
 import { useCurrentUser } from '../../contexts/useCurrentUser';
+import { useNavigate } from 'react-router-dom';
 
 interface User {
     success: boolean;
@@ -42,6 +43,13 @@ export default function Conversation() {
     const apiUrl = window.GLOBAL_ENV.API_ENDPOINT;
     const [messages, setMessages] = useState<Message[]>([]);
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        if (userId === currentUser?.user_id) {
+            navigate("/");
+        }
+    });
 
     useEffect(() => {
         const state = location.state as LocationState;
@@ -180,19 +188,6 @@ export default function Conversation() {
             return () => ws.removeEventListener('message', handleMessage);
         }
     }, []);
-
-    // useEffect(() => {
-    //     const messagesContainer = document.querySelector('.flex-1.w-full.overflow-y-auto');
-    //     const userCenteredInfo = document.querySelector('.pb-6');
-        
-    //     if (messagesContainer && messages.length > 0) {
-    //         messagesContainer.scrollTop = messagesContainer.scrollHeight;
-    //     }
-        
-    //     if (messages.length > 0) {
-    //         userCenteredInfo?.classList.remove('hidden');
-    //     }
-    // }, [messages]);
 
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
