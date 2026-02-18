@@ -11,7 +11,6 @@ type UserCardProps = {
   isOnline: boolean;
   createdAt?: string;
   optionsBtn?: boolean;
-  removeDmBtn?: boolean;
   addFriendBtn?: boolean;
   acceptPendingBtn?: boolean;
   rejectPendingBtn?: boolean;
@@ -19,7 +18,7 @@ type UserCardProps = {
   onReject?: (id: string) => void;
   onAccept?: (id: string) => void;
   onInvite?: () => Promise<void>;
-  inviteSent?: boolean;
+  deleteConversationBtn?: boolean;
   showLatestMessage?: boolean;
   latestMessage?: string;
 };
@@ -40,7 +39,6 @@ export default function UserCard({
   isOnline,
   createdAt,
   optionsBtn,
-  removeDmBtn,
   addFriendBtn,
   acceptPendingBtn,
   rejectPendingBtn,
@@ -48,7 +46,7 @@ export default function UserCard({
   onReject,
   onAccept,
   onInvite,
-  inviteSent,
+  deleteConversationBtn,
   showLatestMessage,
   latestMessage
 }: UserCardProps) {
@@ -340,7 +338,7 @@ export default function UserCard({
               viewBox="0 0 24 24"
               strokeWidth="1.5"
               stroke="currentColor"
-              className="size-6 text-gray-500 hover:text-gray-300 transition duration-300"
+              className="size-5 text-gray-500 hover:text-gray-300 transition duration-300"
             >
               <path
                 strokeLinecap="round"
@@ -349,14 +347,22 @@ export default function UserCard({
               />
             </svg>
           </button>
-          <ActionMenu isActionMenuOpen={isActionMenuOpen} removeFriendBtn removeDmBtn={removeDmBtn} onClose={() => setisActionMenuOpen(false)} onRemoveFriend={handleRemoveFriend} onDeleteConversation={handleDeleteConversation} buttonRef={buttonRef} />
+          <ActionMenu isActionMenuOpen={isActionMenuOpen} removeFriendBtn onClose={() => setisActionMenuOpen(false)} onRemoveFriend={handleRemoveFriend} buttonRef={buttonRef} />
           </div>
+        )}
+
+        {deleteConversationBtn && (
+          <button onClick={handleDeleteConversation}>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-5 text-gray-500 hover:text-gray-300 transition duration-300">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+            </svg>
+          </button>
         )}
 
         {acceptPendingBtn && (
           <>
           <button onClick={handlePendingAccept} disabled={loading}>
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-6 text-gray-500 hover:text-gray-300 transition duration-300">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-5 text-gray-500 hover:text-gray-300 transition duration-300">
             <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
             </svg>
           </button>
@@ -366,7 +372,7 @@ export default function UserCard({
         {rejectPendingBtn && (
           <>
           <button onClick={handlePendingReject} disabled={loading}>
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-6 text-gray-500 hover:text-gray-300 transition duration-300">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-5 text-gray-500 hover:text-gray-300 transition duration-300">
             <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
             </svg>
           </button>
@@ -402,7 +408,7 @@ export default function UserCard({
                   viewBox="0 0 24 24"
                   strokeWidth="1.5"
                   stroke="currentColor"
-                  className="size-6 text-gray-500 hover:text-gray-300 transition duration-300"
+                  className="size-5 text-gray-500 hover:text-gray-300 transition duration-300"
                 >
                   <path
                     strokeLinecap="round"
@@ -425,7 +431,7 @@ export default function UserCard({
                   viewBox="0 0 24 24"
                   strokeWidth="1.5"
                   stroke="currentColor"
-                  className="size-6 text-gray-500 hover:text-gray-300 transition duration-300"
+                  className="size-5 text-gray-500 hover:text-gray-300 transition duration-300"
                 >
                   <path
                     strokeLinecap="round"

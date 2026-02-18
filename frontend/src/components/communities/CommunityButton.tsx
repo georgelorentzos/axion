@@ -46,7 +46,7 @@ export default function CommunityButton({
                     viewBox="0 0 24 24"
                     strokeWidth="1.5"
                     stroke="currentColor"
-                    className="h-6 w-6"
+                    className="size-5"
                 >
                     <path
                         strokeLinecap="round"
@@ -71,7 +71,7 @@ export default function CommunityButton({
                         viewBox="0 0 24 24"
                         strokeWidth="1.5"
                         stroke="currentColor"
-                        className="h-6 w-6"
+                        className="size-5"
                     >
                         <path
                             strokeLinecap="round"

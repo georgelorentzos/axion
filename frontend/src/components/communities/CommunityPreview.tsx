@@ -82,7 +82,7 @@ export default function CommunityPreview({ joinBtn, communityId, communitySettin
             <div className="h-[40px] bg-basalt px-2 rounded-lg border border-outline flex justify-between items-center w-full">
                 <div className="text-[12px] text-gray-500 flex items-center gap-2">
                     <div className="w-3 h-3 bg-forestgreen rounded-full"></div>
-                    {onlineMembers} Online
+                    {onlineMembers || 0} Online
                     <div className="w-3 h-3 bg-red-500 border border-outline rounded-full"></div>
                     {totalMembers} {String(totalMembers).trim() === "1" ? "Member" : "Members"}
                 </div>

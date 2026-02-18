@@ -102,7 +102,7 @@ export default function ChannelList() {
             viewBox="0 0 24 24"
             strokeWidth="1.5"
             stroke="currentColor"
-            className="size-6 text-gray-500"
+            className="size-5 text-gray-500"
           >
             <path
               strokeLinecap="round"
@@ -120,7 +120,7 @@ export default function ChannelList() {
             viewBox="0 0 24 24"
             strokeWidth="1.5"
             stroke="currentColor"
-            className={`size-6 text-gray-500 hover:text-gray-300 transition-transform duration-200 ${
+            className={`size-5 text-gray-500 hover:text-gray-300 transition-transform duration-200 ${
             isServerOptionsMenuOpen ? "rotate-180 text-gray-300" : ""
             }`}
           >
