@@ -3,6 +3,7 @@ import SettingsSection from "../CommunitySettings/SettingsSection";
 import SettingsItem from "../CommunitySettings/SettingsItem";
 import ModalCloseButton from "../../common/modals/ModalCloseButton";
 import ProfileContent from "../CommunitySettings/Contents/ProfileContent";
+import RolesContent from "../CommunitySettings/Contents/RolesContent";
 
 type CommunityData = {
     communityId: string;
@@ -35,10 +36,16 @@ export default function CommunitySettingsModal(
         }
     }, [isOpen]);
 
+    useEffect(() => {
+        setTimeout(() => setSelectedTab("Profile"), 200);
+    }, [onClose]);
+
     const renderContent = () => {
         switch(selectedTab) {
             case "Profile":
                 return <ProfileContent communityData={communityData} onCommunityUpdate={onCommunityUpdate} />;
+            case "Roles":
+                return <RolesContent />;
         }
     }
 

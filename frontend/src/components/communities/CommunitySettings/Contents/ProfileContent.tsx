@@ -137,7 +137,7 @@ export default function ProfileContent({ communityData, onCommunityUpdate }: Pro
             <div className="px-6 flex flex-col gap-2">
                 <div>Community Profile</div>
                 <div className="text-[14px] w-[500px] text-gray-500">
-                    Customize how your server appears in invite links and, if enabled, in Server Discovery and Announcement Channel messages
+                    Customize how your server appears in invite links and, if enabled, in Server Discovery and Announcement Channel messages.
                 </div>
                 <br />
                 <div>Name</div>
