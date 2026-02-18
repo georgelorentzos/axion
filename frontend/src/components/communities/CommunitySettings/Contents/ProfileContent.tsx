@@ -24,10 +24,10 @@ export default function ProfileContent({ communityData, onCommunityUpdate }: Pro
 
     const [name, setName] = useState(communityData?.communityName || null);
     const [communityImage, setCommunityImage] = useState<string | null>(
-        communityData?.communityImage ? apiUrl + communityData.communityImage : null
+        communityData?.communityImage ? communityData.communityImage : null
     );
     const [communityImageFile, setCommunityImageFile] = useState<File | null>(null);
-
+    const [imageChanged, setImageChanged] = useState(false);
     const [unsavedChangesBarIsVisible, setUnsavedChangesBarIsVisible] = useState(false);
 
     const { updateCommunity } = useCommunities();
@@ -45,6 +45,7 @@ export default function ProfileContent({ communityData, onCommunityUpdate }: Pro
             if (file) {
                 setCommunityImageFile(file);
                 setCommunityImage(URL.createObjectURL(file));
+                setImageChanged(true);
                 setUnsavedChangesBarIsVisible(true);
             }
         });
@@ -52,18 +53,17 @@ export default function ProfileContent({ communityData, onCommunityUpdate }: Pro
 
     const handleNewName = (e: React.ChangeEvent<HTMLInputElement>) => {
         setName(e.target.value);
-        if (e.target.value !== communityData?.communityName) {
-            setUnsavedChangesBarIsVisible(true);
-        } else {
-            setUnsavedChangesBarIsVisible(false);
-        }
-    }
+        const nameChanged = e.target.value !== communityData?.communityName;
+        setUnsavedChangesBarIsVisible(nameChanged || imageChanged);
+    };
 
     const handleReset = () => {
         setUnsavedChangesBarIsVisible(false);
-        setCommunityImage(communityData?.communityImage ? apiUrl + communityData.communityImage : null);
+        setImageChanged(false);
+        setCommunityImageFile(null);
+        setCommunityImage(communityData?.communityImage ? communityData.communityImage : null);
         setName(communityData?.communityName || null);
-    }
+    };
 
     const handleSave = async () => {
         const token = localStorage.getItem("token");
@@ -91,6 +91,7 @@ export default function ProfileContent({ communityData, onCommunityUpdate }: Pro
                 const data = await response.json();
                 setUnsavedChangesBarIsVisible(false);
                 setCommunityImageFile(null);
+                setImageChanged(false);
 
                 const updatedData = {
                     communityId: data.community_id,
@@ -99,7 +100,7 @@ export default function ProfileContent({ communityData, onCommunityUpdate }: Pro
                 };
 
                 if (data.community_image) {
-                    setCommunityImage(apiUrl + data.community_image);
+                    setCommunityImage(data.community_image);
                 }
 
                 onCommunityUpdate(updatedData);
@@ -121,14 +122,15 @@ export default function ProfileContent({ communityData, onCommunityUpdate }: Pro
                 });
             }
         } catch (error) {
-            console.log("error update community: ", error)
+            console.log("error update community: ", error);
         }
-    }
+    };
 
     const handleRemoveIcon = () => {
         setCommunityImage(null);
+        setImageChanged(true);
         setUnsavedChangesBarIsVisible(true);
-    }
+    };
 
     return (
         <div className="flex gap-2 justify-start items-start">
@@ -150,16 +152,18 @@ export default function ProfileContent({ communityData, onCommunityUpdate }: Pro
                 <div className="text-[14px] w-[500px] text-gray-500">
                     We recommend an image of at least 512x512.
                 </div>
-
                 <div className="max-w-[350px] flex gap-2">
+                    <div className="max-w-[170.48px] w-full">
                     <Button text="Change Icon" isGreen onClick={handleFileUpload} />
-                    <Button text="Remove Icon" onClick={handleRemoveIcon} />
+                    </div>
+                    {communityData?.communityImage && (
+                        <Button text="Remove Icon" onClick={handleRemoveIcon} />
+                    )}
                 </div>
             </div>
             <div className="pr-6">
-                <CommunityPreview communityName={name || ""} communityImage={communityImage} />
+                <CommunityPreview communitySettingsName={name || ""} communitySettingsImage={communityImage} />
             </div>
-
             <UnsavedChangesBar isVisible={unsavedChangesBarIsVisible} onReset={handleReset} onSave={handleSave} />
         </div>
     );

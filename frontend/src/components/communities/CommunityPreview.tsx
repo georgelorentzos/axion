@@ -6,6 +6,8 @@ import { useEffect, useState } from "react";
 type CommunityPreviewProps = {
     joinBtn?: boolean;
     communityId?: string;
+    communitySettingsName?: string;
+    communitySettingsImage?: string | null;
     onJoin?: () => void;
 }
 
@@ -28,7 +30,7 @@ interface Community {
     communityCreatedAt: string;
 }
 
-export default function CommunityPreview({ joinBtn, communityId, onJoin }: CommunityPreviewProps) {
+export default function CommunityPreview({ joinBtn, communityId, communitySettingsName, communitySettingsImage, onJoin }: CommunityPreviewProps) {
     const location = useLocation();
     const apiUrl = window.GLOBAL_ENV.API_ENDPOINT;
     const locationData = (location.state as LocationState)?.communityData;
@@ -55,17 +57,22 @@ export default function CommunityPreview({ joinBtn, communityId, onJoin }: Commu
         fetchCommunity();
     }, [communityId]);
 
-    const name = community?.communityName || locationData?.communityName;
-    const image = community?.communityImage || locationData?.communityImage;
+    const name = communitySettingsName || community?.communityName || locationData?.communityName;
+    const image = communitySettingsImage !== undefined ? communitySettingsImage : community?.communityImage ?? locationData?.communityImage;
     const onlineMembers = community?.communityOnlineMembers || locationData?.communityOnlineMembers;
     const totalMembers = community?.communityTotalMembers || locationData?.communityTotalMembers;
     const createdAt = community?.communityCreatedAt || locationData?.communityCreatedAt;
+
+    const getImageSrc = (image: string) => {
+        if (image.startsWith("blob:") || image.startsWith("http")) return image;
+        return apiUrl + image;
+    };
 
     return (
         <div className="bg-onyx border border-outline flex gap-2 flex-col justify-center items-start rounded-lg w-[300px] p-4">
             <div className="flex gap-2 items-center">
                 {image ? (
-                    <CommunityProfile src={apiUrl + image} />
+                    <CommunityProfile src={getImageSrc(image)} />
                 ) : (
                     <CommunityProfile name={name?.charAt(0).toUpperCase()} isCommunityPreview />
                 )}
