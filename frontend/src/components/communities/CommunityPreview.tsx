@@ -69,7 +69,7 @@ export default function CommunityPreview({ joinBtn, communityId, communitySettin
     };
 
     return (
-        <div className="bg-onyx border border-outline flex gap-2 flex-col justify-center items-start rounded-lg w-[300px] p-4">
+        <div className="bg-onyx border border-outline flex gap-2 flex-col justify-center items-start rounded-2xl w-[300px] p-4">
             <div className="flex gap-2 items-center">
                 {image ? (
                     <CommunityProfile src={getImageSrc(image)} />
@@ -79,14 +79,18 @@ export default function CommunityPreview({ joinBtn, communityId, communitySettin
                 <div className="font-bold">{name}</div>
             </div>
 
-            <div className="h-[40px] bg-basalt px-2 rounded-lg border border-outline flex justify-between items-center w-full">
+            <div className="h-[40px] px-2 flex justify-between items-center w-full">
                 <div className="text-[12px] text-gray-500 flex items-center gap-2">
+                    <div className="flex items-center gap-0.5">
                     <div className="w-3 h-3 bg-forestgreen rounded-full"></div>
                     {onlineMembers || 0} Online
-                    <div className="w-3 h-3 bg-red-500 border border-outline rounded-full"></div>
+                    </div>
+                    <div className="flex items-center gap-0.5">
+                    <div className="w-3 h-3 bg-emerald border border-outline rounded-full"></div>
                     {totalMembers} {String(totalMembers).trim() === "1" ? "Member" : "Members"}
+                    </div>
                 </div>
-                <div className="text-[12px] text-gray-500">Est {createdAt}</div>
+                <div className="text-[12px] text-gray-500">Est. {createdAt}</div>
             </div>
 
             {joinBtn && (

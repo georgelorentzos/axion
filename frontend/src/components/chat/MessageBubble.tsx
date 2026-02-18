@@ -60,8 +60,8 @@ export default function MessageBubble({
         <div
           className={`relative max-w-[320px] min-w-[120px] px-3 py-2 rounded-2xl ${
             isCurrentUser
-              ? "bg-forestgreen rounded-br-sm"
-              : "bg-zinc-800 rounded-bl-sm"
+              ? "bg-forestgreen"
+              : "bg-zinc-800"
           }`}
         >
           {!isCurrentUser && (
