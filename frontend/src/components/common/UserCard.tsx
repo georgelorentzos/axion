@@ -21,6 +21,7 @@ type UserCardProps = {
   deleteConversationBtn?: boolean;
   showLatestMessage?: boolean;
   latestMessage?: string;
+  joinedAtText?: string;
 };
 
 type Pending = {
@@ -48,7 +49,8 @@ export default function UserCard({
   onInvite,
   deleteConversationBtn,
   showLatestMessage,
-  latestMessage
+  latestMessage,
+  joinedAtText
 }: UserCardProps) {
   const { currentUser } = useCurrentUser();
   const [loading, setLoading] = useState(false);
@@ -379,6 +381,9 @@ export default function UserCard({
           </>
         )}
 
+        {joinedAtText && (
+          <div className="text-gray-500 text-[12px]">{joinedAtText}</div>
+        )}
 
         {inviteBtn && (
           <button

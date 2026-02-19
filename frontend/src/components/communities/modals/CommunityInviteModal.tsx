@@ -96,7 +96,7 @@ export default function CommunityInviteModal({
             <div className="text-gray-500">Share this link with others.</div>
           </div>
           {allFriends && allFriends.length > 0 && (
-            <div className="w-full max-h-[200px] h-auto border border-outline rounded-xl overflow-y-auto flex justify-center p-2">
+            <div className="w-full max-h-[200px] h-auto border border-outline rounded-xl overflow-y-auto flex flex-col gap-2 justify-center p-2">
               {allFriends.map(friend => (
                 <UserCard
                   key={friend.user_id}

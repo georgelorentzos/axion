@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from schemas import *
 from utils.database import get_db, Session as SessionLocal
 from sqlalchemy import and_, or_, func
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from models import *
 from utils.mail import send_mail
 from passlib.context import CryptContext
@@ -1198,6 +1198,39 @@ def leave_community(request: Request,
     except Exception as e:
         db.rollback()
         detail="Failed to leave community due to an internal server error."
+
+@app.get("/api/community/{community_id}/members", response_model=Dict[str, Any])
+@limiter.limit("120/minute")
+def get_community_members(request: Request, 
+                          community_id: str,
+                          current_user_id: str = Depends(get_user_id_from_token),
+                          db: Session = Depends(get_db) 
+                          ) -> Dict[str, Any]:
+    
+    user = db.query(User).filter(User.id == current_user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found.")
+
+    community = db.query(Community).filter(Community.id == community_id).first()
+    if not community:
+        raise HTTPException(status_code=404, detail="Community not found.")
+
+    community_members = db.query(CommunityMember).filter(
+        CommunityMember.community_id == community.id
+    ).options(joinedload(CommunityMember.user)).all()
+
+    return {
+        "success": True,
+        "members": [
+            {
+                "member_id": community_member.id,
+                "member_name": community_member.user.username,
+                "member_image": community_member.user.profile_image,
+                "member_is_online": community_member.user.is_online,
+                "member_joined_at": community_member.joined_at.strftime("%d/%m/%Y"),
+            } for community_member in community_members
+        ]
+    }
 
 # if os.path.exists("dist/assets"):
 #     app.mount("/assets", StaticFiles(directory="dist/assets"), name="assets")

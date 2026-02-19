@@ -4,6 +4,7 @@ import SettingsItem from "../CommunitySettings/SettingsItem";
 import ModalCloseButton from "../../common/modals/ModalCloseButton";
 import ProfileContent from "../CommunitySettings/Contents/ProfileContent";
 import RolesContent from "../CommunitySettings/Contents/RolesContent";
+import MembersContent from "../CommunitySettings/Contents/MembersContent";
 
 type CommunityData = {
     communityId: string;
@@ -46,6 +47,8 @@ export default function CommunitySettingsModal(
                 return <ProfileContent communityData={communityData} onCommunityUpdate={onCommunityUpdate} />;
             case "Roles":
                 return <RolesContent />;
+            case "Members":
+                return <MembersContent />;
         }
     }
 
@@ -59,7 +62,7 @@ export default function CommunitySettingsModal(
         
         <div
           onClick={(e) => e.stopPropagation()}
-          className="py-16 border border-outline flex relative bg-onyx rounded-3xl"
+          className="h-[480px] flex py-16 border border-outline flex relative bg-onyx rounded-3xl"
         >
 
         <ModalCloseButton onClose={onClose} />
@@ -73,7 +76,6 @@ export default function CommunitySettingsModal(
                 <SettingsSection title="PEOPLE">
                     <SettingsItem text="Roles" onClick={() => setSelectedTab("Roles")} />
                     <SettingsItem text="Members" onClick={() => setSelectedTab("Members")} />
-                    <SettingsItem text="Invites" onClick={() => setSelectedTab("Invites")} />
                     <SettingsItem text="Access" onClick={() => setSelectedTab("Access")} />
                     <SettingsItem text="Bans" onClick={() => setSelectedTab("Bans")} />
                 </SettingsSection>

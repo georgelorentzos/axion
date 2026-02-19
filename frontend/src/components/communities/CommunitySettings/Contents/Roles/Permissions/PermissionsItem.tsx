@@ -1,4 +1,4 @@
-import CheckBox from "./CheckBox";
+import CheckBox from "../../../../../common/CheckBox";
 
 type PermissionsItemProps = {
     text: string;
