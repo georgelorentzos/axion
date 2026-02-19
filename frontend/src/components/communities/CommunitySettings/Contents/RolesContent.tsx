@@ -1,8 +1,8 @@
 import Button from "../../../common/Button";
 import Input from "../../../common/Input";
 import { useState } from "react";
-import PermissionsItem from "./Roles/PermissionsItem";
-import PermissionsSection from "./Roles/PermissionsSection";
+import PermissionsItem from "./Roles/Permissions/PermissionsItem";
+import PermissionsSection from "./Roles/Permissions/PermissionsSection";
 
 export default function RolesContent() {
     const [isCreateRole, setIsCreateRole] = useState(false);
@@ -24,24 +24,24 @@ export default function RolesContent() {
                 <Button text="Create Role" isGreen />
             </div>
             </div>
-            <div className="border border-outline rounded-xl p-2 flex flex-col max-h-[260px] overflow-y-auto">
+            <div className="flex flex-col max-h-[260px] overflow-y-auto">
             <PermissionsSection title="GENERAL">
-                <PermissionsItem text="Manage Channels" />
-                <PermissionsItem text="Manage Roles" />
-                <PermissionsItem text="Manage Community" />
+                <PermissionsItem text="Manage Channels" description="Allows members to create, edit, or delete channels." />
+                <PermissionsItem text="Manage Roles" description="Allows members to create, edit, or delete roles lower than their highest role." />
+                <PermissionsItem text="Manage Community" description="Allows members to edit community settings, such as the community name and description." />
             </PermissionsSection>
             <PermissionsSection title="MEMBERSHIP">
-                <PermissionsItem text="Kick" />
-                <PermissionsItem text="Ban" />
+                <PermissionsItem text="Kick" description="Allows members to remove other members from the community." />
+                <PermissionsItem text="Ban" description="Allows members to permanently ban other members from the community." />
             </PermissionsSection>
             <PermissionsSection title="TEXT CHANNEL">
-                <PermissionsItem text="Send Messages" />
-                <PermissionsItem text="Send Links" />
-                <PermissionsItem text="Attach Files" />
-                <PermissionsItem text="Manage Messages" />
+                <PermissionsItem text="Send Messages" description="Allows members to send messages in text channels." />
+                <PermissionsItem text="Send Links" description="Allows members to send links that display embedded content." />
+                <PermissionsItem text="Attach Files" description="Allows members to upload files and media in text channels." />
+                <PermissionsItem text="Manage Messages" description="Allows members to delete or pin messages from other members." />
             </PermissionsSection>
             <PermissionsSection title="ADVANCED">
-                <PermissionsItem text="Administrator" />
+                <PermissionsItem text="Administrator" description="Grants all permissions and bypasses all channel-specific restrictions. This is a dangerous permission to grant." />
             </PermissionsSection>
             </div>
         </div>
