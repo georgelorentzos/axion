@@ -13,6 +13,9 @@ type CommunityData = {
   communityId: string;
   communityName: string;
   communityImage: string;
+  communityOnlineMembers: string;
+  communityTotalMembers: string;
+  communityCreatedAt: string;
 };
 
 interface LocationState {
@@ -20,6 +23,9 @@ interface LocationState {
     communityId: string;
     communityName: string;
     communityImage: string;
+    communityOnlineMembers: string;
+    communityTotalMembers: string;
+    communityCreatedAt: string;
   };
 }
 
@@ -51,6 +57,16 @@ export default function ChannelList() {
         const data = await response.json();
         console.log("owner_id:", data.community_owner_id, "user_id:", currentUser?.user_id);
         setIsOwner(data.community_owner_id === currentUser?.user_id);
+        setCommunityData(
+          {
+            communityId: data.community_id,
+            communityName: data.community_name,
+            communityImage: data.community_image,
+            communityOnlineMembers: data.community_online_members,
+            communityTotalMembers: data.community_total_members,
+            communityCreatedAt: data.community_created_at,
+          }
+        );
       } catch (error) {
         console.log("failed fetching community data: ", error);
       }
@@ -166,7 +182,7 @@ export default function ChannelList() {
   return (
     <div className="w-[370px] h-screen border-r border-outline flex flex-col">
       <audio preload="auto" />
-      <CommunityInviteModal isOpen={isCommunityInviteModalOpen} onClose={() => setIsCommunityInviteModalOpen(false)} />
+      <CommunityInviteModal isOpen={isCommunityInviteModalOpen} onClose={() => setIsCommunityInviteModalOpen(false)} communityId={communityData?.communityId} />
       <CommunitySettingsModal communityData={communityData} onCommunityUpdate={handleCommunityUpdate} isOpen={isCommunitySettingsModalOpen} onClose={() => setIsCommunitySettingsModalOpen(false)} />
       <div className="w-full h-[60px] border-b border-outline flex items-center justify-between px-6 gap-2 flex-shrink-0">
         <div className="flex gap-2">

@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import Button from "../../common/Button";
 import Input from "../../common/Input";
 import ModalCloseButton from "../../common/modals/ModalCloseButton";
-import { useLocation } from "react-router-dom";
 import { useCurrentUser } from "../../../contexts/useCurrentUser";
 import { useAllFriends } from "../../../contexts/useAllFriends";
 import UserCard from "../../common/UserCard";
@@ -11,25 +10,20 @@ type CommunityInviteModalProps = {
   isOpen: boolean;
   onClose: () => void;
   onCreate?: (name: string) => void;
+  communityId?: string;
 };
 
-interface LocationState {
-    communityData?: {
-        communityId: string;
-    }
-}
 
 export default function CommunityInviteModal({
   isOpen,
   onClose,
+  communityId,
 }: CommunityInviteModalProps) {
   const [isVisible, setIsVisible] = useState(false);
   const [showFade, setShowFade] = useState(false);
   const [copied, setCopied] = useState(false);
   const domainUrl = window.GLOBAL_ENV.PRIMARY_DOMAIN;
   const apiUrl = window.GLOBAL_ENV.API_ENDPOINT;
-  const location = useLocation();
-  const communityData = (location.state as LocationState)?.communityData;
   const { currentUser } = useCurrentUser();
   const { allFriends } = useAllFriends();
   const token = localStorage.getItem("token");
@@ -47,13 +41,13 @@ export default function CommunityInviteModal({
   }, [isOpen]);
 
   const handleCopy = async () => {
-    await navigator.clipboard.writeText(`${domainUrl}/join/${communityData?.communityId}/${currentUser?.user_id}`);
+    await navigator.clipboard.writeText(`${domainUrl}/join/${communityId}/${currentUser?.user_id}`);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
   const handleInvite = async (friendId: string) => {
-    const inviteLink = `${domainUrl}/join/${communityData?.communityId}/${currentUser?.user_id}`;
+    const inviteLink = `${domainUrl}/join/${communityId}/${currentUser?.user_id}`;
 
     try {
       const response = await fetch(`${apiUrl}/api/send/message`, {
@@ -115,7 +109,7 @@ export default function CommunityInviteModal({
           <Input
             isLink
             readOnly
-            value={`${domainUrl}/join/${communityData?.communityId}/${currentUser?.user_id}`}
+            value={`${domainUrl}/join/${communityId}/${currentUser?.user_id}`}
           />
           <Button text={copied ? "Copied" : "Copy Link"} isGreen onClick={handleCopy} />
         </div>

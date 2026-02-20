@@ -1,24 +1,22 @@
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import CommunityProfile from "./CommunityProfile";
 import Button from "../common/Button";
 import { useEffect, useState } from "react";
 import { useCommunities } from "../../contexts/useCommunities";
+import { useParams } from "react-router-dom";
+
+type CommunityData = {
+    communityId: string;
+    communityName: string;
+    communityImage: string;
+    communityOnlineMembers: string;
+    communityTotalMembers: string;
+    communityCreatedAt: string;
+}
 
 type CommunityPreviewProps = {
     joinBtn?: boolean;
-    communityId?: string;
-    communitySettingsName?: string;
-    communitySettingsImage?: string | null;
-}
-
-interface LocationState {
-    communityData?: {
-        communityName: string;
-        communityImage: string;
-        communityOnlineMembers: string;
-        communityTotalMembers: string;
-        communityCreatedAt: string;
-    };
+    communityData?: CommunityData;
 }
 
 interface Community {
@@ -30,15 +28,14 @@ interface Community {
     communityCreatedAt: string;
 }
 
-export default function CommunityPreview({ joinBtn, communityId, communitySettingsName, communitySettingsImage }: CommunityPreviewProps) {
-    const location = useLocation();
+export default function CommunityPreview({ joinBtn, communityData }: CommunityPreviewProps) {
     const apiUrl = window.GLOBAL_ENV.API_ENDPOINT;
-    const locationData = (location.state as LocationState)?.communityData;
     const [community, setCommunity] = useState<Community | null>(null);
     const [doesNotExist, setDoesNotExist] = useState(false);
-    const [loading, setLoading] = useState(!!communityId);
+    const [loading, setLoading] = useState(!!communityData?.communityId);
     const navigate = useNavigate();
     const { setCommunities } = useCommunities();
+    const { communityId } = useParams();
 
     const joinCommunity = async (communityId: string) => {
         const token = localStorage.getItem("token");
@@ -87,7 +84,8 @@ export default function CommunityPreview({ joinBtn, communityId, communitySettin
     };
 
     useEffect(() => {
-        if (!communityId) return;
+        const id = communityData?.communityId || communityId;
+        if (!id) return;
         const fetchCommunity = async () => {
             try {
                 const response = await fetch(`${apiUrl}/api/community/${communityId}`);
@@ -116,7 +114,7 @@ export default function CommunityPreview({ joinBtn, communityId, communitySettin
             }
         }
         fetchCommunity();
-    }, [communityId]);
+    }, [communityData?.communityId, communityId]);
 
     if (loading) return null;
 
@@ -134,12 +132,12 @@ export default function CommunityPreview({ joinBtn, communityId, communitySettin
         );
     }
 
-    const id = communityId || community?.communityId;
-    const name = communitySettingsName || community?.communityName || locationData?.communityName;
-    const image = communitySettingsImage !== undefined ? communitySettingsImage : community?.communityImage ?? locationData?.communityImage;
-    const onlineMembers = community?.communityOnlineMembers || locationData?.communityOnlineMembers;
-    const totalMembers = community?.communityTotalMembers || locationData?.communityTotalMembers;
-    const createdAt = community?.communityCreatedAt || locationData?.communityCreatedAt;
+    const id = communityData?.communityId || community?.communityId;
+    const name = communityData?.communityName || community?.communityName;
+    const image = communityData?.communityImage !== undefined ? communityData?.communityImage : community?.communityImage;
+    const onlineMembers = communityData?.communityOnlineMembers || community?.communityOnlineMembers;
+    const totalMembers = communityData?.communityTotalMembers || community?.communityTotalMembers;
+    const createdAt = communityData?.communityCreatedAt || community?.communityCreatedAt;
 
     const getImageSrc = (image: string) => {
         if (image.startsWith("blob:") || image.startsWith("http")) return image;

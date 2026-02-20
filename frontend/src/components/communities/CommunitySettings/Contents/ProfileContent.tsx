@@ -10,6 +10,9 @@ type CommunityData = {
     communityId: string;
     communityName: string;
     communityImage: string;
+    communityOnlineMembers: string;
+    communityTotalMembers: string;
+    communityCreatedAt: string;
 }
 
 type ProfileContentProps = {
@@ -96,7 +99,10 @@ export default function ProfileContent({ communityData, onCommunityUpdate }: Pro
                 const updatedData = {
                     communityId: data.community_id,
                     communityName: data.community_name,
-                    communityImage: data.community_image
+                    communityImage: data.community_image,
+                    communityOnlineMembers: data.community_online_members,
+                    communityTotalMembers: data.community_total_members,
+                    communityCreatedAt: data.community_created_at,
                 };
 
                 if (data.community_image) {
@@ -162,7 +168,7 @@ export default function ProfileContent({ communityData, onCommunityUpdate }: Pro
                 </div>
             </div>
             <div className="pr-6">
-                <CommunityPreview communitySettingsName={name || ""} communitySettingsImage={communityImage} />
+                <CommunityPreview communityData={communityData} />
             </div>
             <UnsavedChangesBar isVisible={unsavedChangesBarIsVisible} onReset={handleReset} onSave={handleSave} />
         </div>
