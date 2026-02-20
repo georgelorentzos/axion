@@ -32,7 +32,7 @@ export default function CommunityPreview({ joinBtn, communityData }: CommunityPr
     const apiUrl = window.GLOBAL_ENV.API_ENDPOINT;
     const [community, setCommunity] = useState<Community | null>(null);
     const [doesNotExist, setDoesNotExist] = useState(false);
-    const [loading, setLoading] = useState(!!communityData?.communityId);
+    const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
     const { setCommunities } = useCommunities();
     const { communityId } = useParams();
@@ -85,10 +85,14 @@ export default function CommunityPreview({ joinBtn, communityData }: CommunityPr
 
     useEffect(() => {
         const id = communityData?.communityId || communityId;
-        if (!id) return;
+        if (!id) {
+            setDoesNotExist(true);
+            setLoading(false);
+            return;
+        }
         const fetchCommunity = async () => {
             try {
-                const response = await fetch(`${apiUrl}/api/community/${communityId}`);
+                const response = await fetch(`${apiUrl}/api/community/${id}`);
                 if (!response.ok) {
                     setDoesNotExist(true);
                     return;
