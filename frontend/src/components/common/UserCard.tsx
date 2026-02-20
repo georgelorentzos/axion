@@ -244,7 +244,7 @@ export default function UserCard({
 
     setLoading(true);
     try {
-      const response = await fetch(`${apiUrl}/api/conversation/${id}/delete`, {
+      const response = await fetch(`${apiUrl}/api/conversation/${id}`, {
         method: 'DELETE',
         headers: {
           "Authorization": `Bearer ${token}`

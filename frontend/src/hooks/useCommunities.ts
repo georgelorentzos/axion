@@ -57,8 +57,13 @@ export function useCommunities() {
     useEffect(() => {
         const handleMessage = async (event: MessageEvent) => {
             const data = JSON.parse(event.data);
-            if (data.type == "community_deleted") {
+            if (data.type === "community_deleted") {
                 setCommunities(communities => communities?.filter(c => c.community_id !== data.community_id) || null);
+            }
+            if (data.type === "community_updated") {
+                setCommunities(prev => prev?.map(c =>
+                    c.community_id === data.community_id ? { ...c, community_name: data.community_name, community_image: data.community_image } : c
+                ) || null);
             }
         }
         const ws = window._ws?.ws;

@@ -767,7 +767,7 @@ def my_conversations(request: Request, user_id: str = Depends(get_user_id_from_t
         "conversations": conversation_list
     }
 
-@app.delete('/api/conversation/{user_id}/delete', response_model=Dict[str, Any])
+@app.delete('/api/conversation/{user_id}', response_model=Dict[str, Any])
 @limiter.limit('120/minute')
 async def delete_conversation(request: Request, user_id: str, current_user_id: str = Depends(get_user_id_from_token), db: Session = Depends(get_db)) -> Dict[str, Any]:
     other_user = db.query(User).filter(User.id == user_id).first()
@@ -994,7 +994,7 @@ def create_category(request: Request, req: CategoryRequest, user_id: str = Depen
 
 @app.patch("/api/community/{community_id}", response_model=Dict[str, Any])
 @limiter.limit("120/minute")
-def update_community(
+async def update_community(
     request: Request,
     community_id: str,
     community_name: str = Form(...),
@@ -1068,12 +1068,28 @@ def update_community(
         elif image_url:
             community.community_image = image_url
         db.commit()
+        db.flush()
         
         if old_image_path and old_image_path.exists() and old_image_path.is_file():
             try:
                 old_image_path.unlink()
             except Exception:
                 pass
+        
+        members_to_notify = db.query(CommunityMember).filter(
+            CommunityMember.community_id == community_id,
+            CommunityMember.user_id != community.owner_id
+        ).all()
+
+        await asyncio.gather(*{
+            manager.broadcast_to_user(member.user_id, {
+                "type": "community_updated",
+                "community_id": community.id,
+                "community_name": community.community_name,
+                "community_image": community.community_image,
+            })
+            for member in members_to_notify
+        })
         
         return {
             "success": True,

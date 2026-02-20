@@ -142,6 +142,27 @@ export default function ChannelList() {
     }
   }
 
+  useEffect(() => {
+    const handleMessage = async (event: MessageEvent) => {
+      const data = JSON.parse(event.data);
+      if (data.type === "community_updated") {
+        
+        const communityData = {
+            communityId: data.community_id,
+            communityName: data.community_name,
+            communityImage: data.community_image,
+        }
+        navigate(`/community/${communityId}`, { state: {communityData}, replace: true });
+      }
+    }
+
+    const ws = window._ws?.ws;
+    if (ws) {
+      ws.addEventListener("message", handleMessage);
+      return () => ws.removeEventListener("message", handleMessage);
+    }
+  }, [])
+
   return (
     <div className="w-[370px] h-screen border-r border-outline flex flex-col">
       <audio preload="auto" />
