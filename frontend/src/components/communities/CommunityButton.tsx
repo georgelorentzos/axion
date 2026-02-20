@@ -32,29 +32,38 @@ export default function CommunityButton({
 
     if (isHome) {
         return (
-            <button
-                className={`transition duration-300 h-[50px] w-[50px] rounded-2xl flex justify-center items-center ${
-                    location.pathname === '/'
-                        ? "bg-forestgreen text-white"
-                        : "bg-basalt text-gray-500 hover:bg-basalt hover:text-gray-300"
-                }`}
-                onClick={onClick}
-            >
-                <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth="1.5"
-                    stroke="currentColor"
-                    className="size-5"
+            <div className='relative flex items-center group'>
+                <div className={`absolute left-[-20px] bg-forestgreen w-[8px] rounded-full transition-all duration-200
+                    ${location.pathname === '/' 
+                        ? "h-[40px] opacity-100" 
+                        : "h-[20px] opacity-0 group-hover:opacity-100"
+                    }`} 
+                />
+    
+                <button
+                    className={`transition duration-300 h-[50px] w-[50px] rounded-2xl flex justify-center items-center ${
+                        location.pathname === '/'
+                            ? "bg-forestgreen text-white"
+                            : "bg-basalt text-gray-500 hover:bg-basalt hover:text-gray-300"
+                    }`}
+                    onClick={onClick}
                 >
-                    <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"
-                    />
-                </svg>
-            </button>
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        strokeWidth="1.5"
+                        stroke="currentColor"
+                        className="size-5"
+                    >
+                        <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"
+                        />
+                    </svg>
+                </button>
+            </div>
         );
     }
 
@@ -93,20 +102,29 @@ export default function CommunityButton({
         const isSelected = location.pathname === `/community/${communityId}`;
 
         return (
-            <button
-                className={`rounded-2xl transition duration-300 flex justify-center items-center ${
-                  isSelected
-                    ? "bg-forestgreen text-white"
-                    : "bg-basalt text-gray-500 hover:bg-basalt hover:text-gray-300"
-                }`}
-                onClick={onClick}
-            >
-              {communityImage ? (
-                <CommunityProfile src={`${apiUrl}${communityImage}`} />
-              ) : (
-                <CommunityProfile name={communityName?.charAt(0).toUpperCase()} />
-              )}
-            </button>
+            <div className='relative flex items-center group'>
+                <div className={`absolute left-[-20px] bg-forestgreen w-[8px] rounded-full transition-all duration-200
+                    ${isSelected 
+                        ? "h-[40px] opacity-100" 
+                        : "h-[20px] opacity-0 group-hover:opacity-100"
+                    }`} 
+                />
+
+                <button
+                    className={`rounded-2xl transition duration-300 flex justify-center items-center ${
+                      isSelected
+                        ? "bg-forestgreen text-white"
+                        : "bg-basalt text-gray-500 hover:bg-basalt hover:text-gray-300"
+                    }`}
+                    onClick={onClick}
+                >
+                  {communityImage ? (
+                    <CommunityProfile src={`${apiUrl}${communityImage}`} />
+                  ) : (
+                    <CommunityProfile name={communityName?.charAt(0).toUpperCase()} />
+                  )}
+                </button>
+            </div>
         );
     }
 

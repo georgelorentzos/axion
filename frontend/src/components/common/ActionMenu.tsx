@@ -10,6 +10,8 @@ type ActionMenuProps = {
   onCommunitySettings?: () => void;
   onCommunityInvite?: () => void;
   onCommunityLeave?: () => void;
+  leaveBtn?: boolean;
+  communitySettingsBtn?: boolean;
   removeFriendBtn?: boolean;
   isChannelList?: boolean;
   isServerOptions?: boolean;
@@ -29,6 +31,8 @@ export default function ActionMenu({
   position,
   isChannelList,
   removeFriendBtn,
+  leaveBtn,
+  communitySettingsBtn,
   isServerOptions,
 }: ActionMenuProps) {
   const actionMenuRef = useRef<HTMLDivElement>(null);
@@ -142,6 +146,8 @@ export default function ActionMenu({
 
       {isServerOptions && (
         <>
+        {communitySettingsBtn && (
+          <>
           <button onClick={onCommunitySettings} className={baseButtonStyle}>
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -162,8 +168,9 @@ export default function ActionMenu({
             </svg>
             Settings
           </button>
-
           <div className="border-t border-outline" />
+          </>
+            )}
 
           <button onClick={onCommunityInvite} className={baseButtonStyle}>
             <svg
@@ -183,7 +190,9 @@ export default function ActionMenu({
             Invite Friends
           </button>
 
-
+          {leaveBtn && (
+          <>
+          <div className="border-t border-outline" />
           <button onClick={onCommunityLeave} className={baseButtonStyle}>
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -201,6 +210,8 @@ export default function ActionMenu({
             </svg>
             Leave
           </button>
+          </>
+          )}
         </>
       )}
 

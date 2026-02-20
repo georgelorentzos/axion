@@ -2,9 +2,11 @@ import { useEffect } from "react";
 
 type ModalCloseButtonProps = {
     onClose: () => void;
+    top?: string;
+    right?: string;
 }
 
-export default function ModalCloseButton({ onClose }: ModalCloseButtonProps) {
+export default function ModalCloseButton({ onClose, top = "-top-2", right = "-right-2" }: ModalCloseButtonProps) {
     
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
@@ -18,7 +20,7 @@ export default function ModalCloseButton({ onClose }: ModalCloseButtonProps) {
     }, [onClose])
 
     return (
-        <div className="absolute -top-2 -right-2 z-10 flex justify-center items-center flex-col gap-1">
+        <div className={`absolute ${top} ${right} z-10 flex justify-center items-center flex-col gap-1`}>
         <button
             onClick={onClose}
             className="flex items-center justify-center w-8 h-8 border border-outline bg-onyx hover:bg-basalt transition duration-200 rounded-full text-white"

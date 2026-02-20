@@ -1114,6 +1114,7 @@ def fetch_community(request: Request, community_id: str, db: Session = Depends(g
         "community_id": community.id,
         "community_name": community.community_name,
         "community_image": community.community_image,
+        "community_owner_id": community.owner_id,
         "community_online_members": online_members or 0,
         "community_total_members": total_members or 0,
         "community_created_at": community.created_at.year,

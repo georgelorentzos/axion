@@ -9,7 +9,7 @@ export default function SettingsSection({ children, title } : SettingsSectionPro
     return (
         <div className="flex flex-col gap-2 px-4">
         <div className="px-3 text-gray-500 text-[12px]">{title}</div>
-        <div>
+        <div className="flex flex-col gap-1">
             {children}
         </div>
         </div>

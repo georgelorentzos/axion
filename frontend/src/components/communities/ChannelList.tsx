@@ -3,10 +3,11 @@ import { useLocation, useParams } from "react-router-dom";
 import React, { useState, useRef, useEffect } from "react";
 import ActionMenu from "../common/ActionMenu";
 import ChannelListModal from "./modals/ChannelListModal";
-import CommunitySettingsModal from "./modals/CommunitySettingsModal";
+import CommunitySettingsModal from "./CommunitySettings/CommunitySettings";
 import CommunityInviteModal from "./modals/CommunityInviteModal";
 import { useCommunities } from "../../contexts/useCommunities";
 import { useNavigate } from "react-router-dom";
+import { useCurrentUser } from "../../contexts/useCurrentUser";
 
 type CommunityData = {
   communityId: string;
@@ -35,6 +36,27 @@ export default function ChannelList() {
   const [communityData, setCommunityData] = useState<CommunityData | undefined>(undefined);
   const { communities, setCommunities ,loading } = useCommunities();
   const navigate = useNavigate();
+  const { currentUser } = useCurrentUser();
+  const token = localStorage.getItem("token");
+  const apiUrl = window.GLOBAL_ENV.API_ENDPOINT;
+  const [isOwner, setIsOwner] = useState(false);
+
+  useEffect(() => {
+    if (!token) return;
+    const fetchCommunityData = async () => {
+      try {
+        const response = await fetch(`${apiUrl}/api/community/${communityId}`, {
+          headers: {"Authorization": `Bearer ${token}`}
+        });
+        const data = await response.json();
+        console.log("owner_id:", data.community_owner_id, "user_id:", currentUser?.user_id);
+        setIsOwner(data.community_owner_id === currentUser?.user_id);
+      } catch (error) {
+        console.log("failed fetching community data: ", error);
+      }
+    };
+    fetchCommunityData();
+  }, [communityId, currentUser])
 
   useEffect(() => {
     if (loading) return;
@@ -63,8 +85,6 @@ export default function ChannelList() {
 
   const [isChannelListModalOpen, setIsChannelListModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<ModalMode>(null);
-
-  const apiUrl = window.GLOBAL_ENV.API_ENDPOINT;
 
   const handleContextMenu = (e: React.MouseEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -170,7 +190,9 @@ export default function ChannelList() {
           onClose={() => setIsServerOptionsMenuOpen(false)}
           buttonRef={serverOptionsButtonRef}
           isServerOptions
+          leaveBtn={!isOwner}
           onCommunityLeave={handleCommunityLeave}
+          communitySettingsBtn={isOwner}
           onCommunitySettings={() => {
             setIsCommunitySettingsModalOpen(true);
             setIsServerOptionsMenuOpen(false);
@@ -194,7 +216,7 @@ export default function ChannelList() {
           isActionMenuOpen={isChannelListMenuOpen}
           onClose={() => setIsChannelListMenuOpen(false)}
           position={pos}
-          isChannelList
+          isChannelList={isOwner}
           onCreateChannel={openCreateChannelModal}
           onCreateCategory={openCreateCategoryModal}
         />
