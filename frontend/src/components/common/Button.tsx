@@ -3,12 +3,13 @@ type ButtonProps = {
     onClick?: () => void;
     isGreen?: boolean;
     isDanger?: boolean;
+    bold?: boolean;
     disabled?: boolean;
 }
 
-export default function Button({ text, onClick, isGreen, isDanger, disabled }: ButtonProps) {
+export default function Button({ text, onClick, isGreen, isDanger, bold, disabled }: ButtonProps) {
     return (
-        <button onClick={onClick} className={` ${isGreen ? "bg-forestgreen hover:bg-emerald" : "hover:bg-basalt border border-outline"} ${isDanger ? "bg-crimson hover:bg-garnet" : "hover:bg-basalt border border-outline"} transition duration-200 w-full h-[40px] rounded-lg`} disabled={disabled}>
+        <button onClick={onClick} className={` ${bold ? "font-bold" : ""} ${isGreen ? "bg-forestgreen hover:bg-emerald" : "hover:bg-basalt border border-outline"} ${isDanger ? "bg-crimson hover:bg-garnet" : "hover:bg-basalt border border-outline"} transition duration-200 w-full h-[40px] rounded-lg`} disabled={disabled}>
             {text}
         </button>
     );
