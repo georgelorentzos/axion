@@ -17,6 +17,7 @@ type CommunityData = {
 type CommunityPreviewProps = {
     joinBtn?: boolean;
     communityData?: CommunityData;
+    skipFetch?: boolean;
 }
 
 interface Community {
@@ -28,7 +29,7 @@ interface Community {
     communityCreatedAt: string;
 }
 
-export default function CommunityPreview({ joinBtn, communityData }: CommunityPreviewProps) {
+export default function CommunityPreview({ joinBtn, communityData, skipFetch }: CommunityPreviewProps) {
     const apiUrl = window.GLOBAL_ENV.API_ENDPOINT;
     const [community, setCommunity] = useState<Community | null>(null);
     const [doesNotExist, setDoesNotExist] = useState(false);
@@ -84,6 +85,10 @@ export default function CommunityPreview({ joinBtn, communityData }: CommunityPr
     };
 
     useEffect(() => {
+        if (skipFetch) {
+            setLoading(false);
+            return;
+        }
         const id = communityData?.communityId || communityId;
         if (!id) {
             setDoesNotExist(true);
@@ -138,7 +143,7 @@ export default function CommunityPreview({ joinBtn, communityData }: CommunityPr
 
     const id = communityData?.communityId || community?.communityId;
     const name = communityData?.communityName || community?.communityName;
-    const image = communityData?.communityImage !== undefined ? communityData?.communityImage : community?.communityImage;
+    const image = skipFetch ? communityData?.communityImage : (communityData?.communityImage || community?.communityImage);
     const onlineMembers = communityData?.communityOnlineMembers || community?.communityOnlineMembers;
     const totalMembers = communityData?.communityTotalMembers || community?.communityTotalMembers;
     const createdAt = communityData?.communityCreatedAt || community?.communityCreatedAt;

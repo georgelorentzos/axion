@@ -162,13 +162,20 @@ export default function ProfileContent({ communityData, onCommunityUpdate }: Pro
                     <div className="max-w-[170.48px] w-full">
                     <Button text="Change Icon" isGreen onClick={handleFileUpload} />
                     </div>
-                    {communityData?.communityImage && (
+                    {(communityData?.communityImage || communityImage) && (
                         <Button text="Remove Icon" onClick={handleRemoveIcon} />
                     )}
                 </div>
             </div>
             <div className="pr-6">
-                <CommunityPreview communityData={communityData} />
+                <CommunityPreview communityData={{
+                    communityId: communityData?.communityId || "",
+                    communityName: name || "",
+                    communityImage: communityImage ?? "",
+                    communityOnlineMembers: communityData?.communityOnlineMembers || "",
+                    communityTotalMembers: communityData?.communityTotalMembers || "",
+                    communityCreatedAt: communityData?.communityCreatedAt || "",
+                }} skipFetch />
             </div>
             <UnsavedChangesBar isVisible={unsavedChangesBarIsVisible} onReset={handleReset} onSave={handleSave} />
         </div>
