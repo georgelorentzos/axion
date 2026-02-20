@@ -24,7 +24,8 @@ export default function CreateCommunityModal({ isOpen, onClose }: CreateCommunit
     useEffect(() => {
         if (isOpen) {
             setIsVisible(true);
-            setTimeout(() => setShowFade(true), 10);
+            const timer = setTimeout(() => setShowFade(true), 30);
+            return () => clearTimeout(timer);
         } else {
             setShowFade(false);
             const timer = setTimeout(() => setIsVisible(false), 100);

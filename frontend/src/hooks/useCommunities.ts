@@ -54,5 +54,19 @@ export function useCommunities() {
         );
     };
 
+    useEffect(() => {
+        const handleMessage = async (event: MessageEvent) => {
+            const data = JSON.parse(event.data);
+            if (data.type == "community_deleted") {
+                setCommunities(communities => communities?.filter(c => c.community_id !== data.community_id) || null);
+            }
+        }
+        const ws = window._ws?.ws;
+        if (ws) {
+            ws.addEventListener("message", handleMessage);
+            return () => ws.removeEventListener("message", handleMessage);
+        }
+    }, []);
+
     return { communities, setCommunities, loading, updateCommunity };
 }

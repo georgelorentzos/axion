@@ -8,7 +8,6 @@ export default function Auth() {
     const [completed, setCompleted] = useState(false);
     const [loading, setLoading] = useState(false);
 
-
     useEffect(() => {
         const timer = setTimeout(() => {
             if (error) {
@@ -16,7 +15,7 @@ export default function Auth() {
             }
         }, 3000);
         return () => clearTimeout(timer);
-    }, [error, alert])
+    }, [error])
 
     const handleLogin = async () => {
 

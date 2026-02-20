@@ -5,6 +5,7 @@ import ProfileContent from "../CommunitySettings/Contents/ProfileContent";
 import RolesContent from "../CommunitySettings/Contents/RolesContent";
 import MembersContent from "../CommunitySettings/Contents/MembersContent";
 import ModalCloseButton from "../../common/modals/ModalCloseButton";
+import DeleteCommunityModal from "../modals/DeleteCommunityModal";
 
 type CommunityData = {
     communityId: string;
@@ -25,11 +26,13 @@ export default function CommunitySettingsModal(
     const [isVisible, setIsVisible] = useState(false);
     const [showFade, setShowFade] = useState(false);
     const [selectedTab, setSelectedTab] = useState("Profile");
+    const [isDeleteCommunityModal, setIsDeleteCommunityModal] = useState(false);
 
     useEffect(() => {
         if (isOpen) {
             setIsVisible(true);
-            setTimeout(() => setShowFade(true), 10);
+            const timer = setTimeout(() => setShowFade(true), 30);
+            return () => clearTimeout(timer);
         } else {
             setShowFade(false);
             const timer = setTimeout(() => setIsVisible(false), 200);
@@ -74,7 +77,7 @@ export default function CommunitySettingsModal(
                     </SettingsSection>
                         
                     <SettingsSection title="DANGER ZONE">
-                        <SettingsItem text="Delete Community" isDanger />
+                        <SettingsItem text="Delete Community" isDanger onClick={() => setIsDeleteCommunityModal(true)} />
                     </SettingsSection>
                 </div>
             </div>
@@ -82,8 +85,10 @@ export default function CommunitySettingsModal(
             <div className="pt-16 w-[920px]">
                 {renderContent()}
 
-                <ModalCloseButton onClose={onClose} top="top-4" right="right-4" />
+                <ModalCloseButton onClose={isDeleteCommunityModal ? () => {} : onClose} top="top-4" right="right-4" />
             </div>
+
+            <DeleteCommunityModal isOpen={isDeleteCommunityModal} onClose={() => setIsDeleteCommunityModal(false)} communityData={communityData} />
 
         </div>
     );

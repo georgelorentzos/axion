@@ -1198,7 +1198,7 @@ def leave_community(request: Request,
         }
     except Exception as e:
         db.rollback()
-        detail="Failed to leave community due to an internal server error."
+        raise HTTPException(status_code=500, detail="An unexpected error occurred while leaving the community.",)
 
 @app.get("/api/community/{community_id}/members", response_model=Dict[str, Any])
 @limiter.limit("120/minute")
@@ -1232,6 +1232,55 @@ def get_community_members(request: Request,
             } for community_member in community_members
         ]
     }
+
+@app.delete("/api/community/{community_id}", response_model=Dict[str, Any])
+@limiter.limit("120/minute")
+async def delete_community(request: Request,
+                    community_id: str,
+                    community_name: str,
+                    current_user_id: str = Depends(get_user_id_from_token),
+                    db: Session = Depends(get_db)
+                    ) -> Dict[str, Any]:
+    user = db.query(User).filter(User.id == current_user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found.")
+    
+    community = db.query(Community).filter(Community.id == community_id).first()
+    if not community:
+        raise HTTPException(status_code=404, detail="Community not found.")
+    
+    if community.community_name != community_name:
+        raise HTTPException(status_code=400, detail="Community name does not match.")
+    
+    if community.owner_id != user.id:
+        raise HTTPException(status_code=403, detail="Only the community owner is authorized to delete this community.")
+    
+    try:
+        members_to_notify = db.query(CommunityMember).filter(
+            CommunityMember.community_id == community_id,
+            CommunityMember.user_id != community.owner_id
+        ).all()
+        db.query(CommunityRole).filter(CommunityRole.community_id == community_id).delete()
+        db.query(CommunityMember).filter(CommunityMember.community_id == community_id).delete()
+        db.query(CommunityChannel).filter(CommunityChannel.community_id == community_id).delete()
+        db.query(CommunityCategory).filter(CommunityCategory.community_id == community_id).delete()
+        db.query(Community).filter(Community.id == community_id).delete()
+        await asyncio.gather(*(
+            manager.broadcast_to_user(member.user_id, {
+                "type": "community_deleted",
+                "community_id": community.id,
+            })
+            for member in members_to_notify
+        ))
+        db.commit()
+        return {
+            "success": True,
+            "community_id": community.id
+            }
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Failed to delete community due to an internal server error.")
+        
 
 # if os.path.exists("dist/assets"):
 #     app.mount("/assets", StaticFiles(directory="dist/assets"), name="assets")
