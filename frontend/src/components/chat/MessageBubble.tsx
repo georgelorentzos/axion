@@ -2,6 +2,7 @@ import { useState } from "react";
 import ImageProfile from "../common/ImageProfile";
 import CommunityPreview from "../communities/CommunityPreview";
 import LinkAlertModal from "../common/modals/LinkAlertModal";
+
 type MessageBubbleProps = {
   isCurrentUser: boolean;
   message: string;
@@ -20,16 +21,23 @@ export default function MessageBubble({
   const domainUrl = window.GLOBAL_ENV.PRIMARY_DOMAIN;
   const isInviteLink = message?.startsWith(`${domainUrl}/join/`);
   const isLink = message?.startsWith("http://") || message?.startsWith("https://");
-
   const parts = message.split("/join/")[1]?.split("/");
   const communityId = parts?.[0];
-
   const [linkModal, setLinkModal] = useState({ isOpen: false, link: "" });
-
+  
   const handleLinkClick = (e: React.MouseEvent<HTMLAnchorElement>, url: string) => {
     e.preventDefault();
     setLinkModal({ isOpen: true, link: url });
   };
+
+  const communityData = {
+    communityId: communityId,
+    communityName: "",
+    communityImage: "",
+    communityOnlineMembers: "",
+    communityTotalMembers: "",
+    communityCreatedAt: "",
+  }
 
   if (isInviteLink) {
     return (
@@ -41,7 +49,7 @@ export default function MessageBubble({
         <div className="flex-shrink-0">
           <ImageProfile src={sender_profile_image} showStatus={false} />
         </div>
-        <CommunityPreview joinBtn communityId={communityId} />
+        <CommunityPreview joinBtn communityData={communityData} />
       </div>
     );
   }

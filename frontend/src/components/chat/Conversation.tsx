@@ -5,6 +5,7 @@ import { useParams, useLocation } from "react-router-dom";
 import { useEffect, useState, useRef } from 'react';
 import { useCurrentUser } from '../../contexts/useCurrentUser';
 import { useNavigate } from 'react-router-dom';
+import { MessageSkeleton } from './MessageSkeleton';
 
 interface User {
     success: boolean;
@@ -43,7 +44,9 @@ export default function Conversation() {
     const apiUrl = window.GLOBAL_ENV.API_ENDPOINT;
     const [messages, setMessages] = useState<Message[]>([]);
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const scrollContainerRef = useRef<HTMLDivElement>(null);
     const navigate = useNavigate();
+    const [loadingMessages, setLoadingMessages] = useState(true);
 
     useEffect(() => {
         if (userId === currentUser?.user_id) {
@@ -94,7 +97,7 @@ export default function Conversation() {
         } catch (error) {
             console.error('Error fetching created_at:', error);
         } finally {
-            setLoadingJoinedAt(false);
+            setLoadingJoinedAt(false); 
         }
     };
 
@@ -108,7 +111,6 @@ export default function Conversation() {
                 }
             });
             const data = await response.json();
-            console.log('User data:', data); 
             setUser(data);
             load20Messages(userId);
         } catch (error) {
@@ -118,7 +120,7 @@ export default function Conversation() {
 
     const load20Messages = async (recipientId: string | undefined): Promise<void> => {
         if (!recipientId) return;
-
+        setLoadingMessages(true);
         try {
             const response = await fetch(`${apiUrl}/api/messages/${recipientId}`, {
                 method: 'GET',
@@ -131,17 +133,19 @@ export default function Conversation() {
             setMessages(data.messages || []);
         } catch (error) {
             console.error('Error loading messages:', error);
+        } finally {
+            setTimeout(() => {
+                setLoadingMessages(false);
+            }, 500);
         }
     };
 
     const formatCreatedAt = (date: string | undefined): string => {
         if (!date) return 'Unknown';
-        
         try {
             if (!isNaN(Number(date))) {
                 return date;
             }
-            
             const dateObj = new Date(date);
             return dateObj.getFullYear().toString();
         } catch (error) {
@@ -166,7 +170,6 @@ export default function Conversation() {
                             },
                         ];
                     });
-
                 }
 
                 if (data.type === 'user_online') {
@@ -190,16 +193,41 @@ export default function Conversation() {
     }, []);
 
     useEffect(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        if (messages.length > 0) {
+            setTimeout(() => {
+                requestAnimationFrame(() => {
+                    messagesEndRef.current?.scrollIntoView({ behavior: 'instant' });
+                });
+            }, 50);
+        }
     }, [messages]);
 
+    const conversationRef = useRef<HTMLDivElement>(null);
+    const [skeletonStyle, setSkeletonStyle] = useState<React.CSSProperties>({});
+
+    useEffect(() => {
+        if (loadingMessages && conversationRef.current) {
+            const rect = conversationRef.current.getBoundingClientRect();
+            const headerHeight = 60;
+            const inputHeight = 80;
+            setSkeletonStyle({
+                position: 'fixed',
+                top: rect.top + headerHeight + 1,
+                left: rect.left,
+                width: rect.width,
+                height: rect.height - headerHeight - inputHeight - 1,
+                zIndex: 50,
+            });
+        }
+    }, [loadingMessages]);
+
     return (
-        <div className="flex-1 h-screen border-r border-outline flex flex-col">
+        <div ref={conversationRef} className="flex-1 h-screen border-r border-outline flex flex-col">
             <div className="h-[60px] border-b border-outline flex items-center px-6 gap-2 flex-shrink-0">
                 <div className="flex justify-between items-center w-full">
                     <div className="flex items-center gap-2">
                         <ImageProfile 
-                            src={user?.profile_image || "https://static.vecteezy.com/system/resources/thumbnails/009/292/244/small/default-avatar-icon-of-social-media-user-vector.jpg"} 
+                            src={user?.profile_image} 
                             online={user?.is_online} 
                         />
                         <div className="flex flex-col leading-none gap-1">
@@ -212,11 +240,20 @@ export default function Conversation() {
                 </div>
             </div>
 
-            <div className="flex-1 w-full overflow-y-auto min-h-0 p-6 pb-3 space-y-3">
-                <div className="pb-6">
+            {loadingMessages && (
+                <div 
+                    className="bg-onyx p-6 pointer-events-none overflow-hidden"
+                    style={skeletonStyle}
+                >
+                    <MessageSkeleton />
+                </div>
+            )}
+
+            <div ref={scrollContainerRef} className={`flex-1 w-full min-h-0 p-6 pb-3 space-y-3 ${loadingMessages ? "overflow-hidden" : "overflow-y-auto"}`}>
+                <div className={`${loadingMessages ? "opacity-0" : "pb-6"}`}>
                     <div className="flex flex-col items-center gap-2">
                         <ImageProfile 
-                            src={user?.profile_image || "https://static.vecteezy.com/system/resources/thumbnails/009/292/244/small/default-avatar-icon-of-social-media-user-vector.jpg"} 
+                            src={user?.profile_image} 
                             width="80" 
                             height="80" 
                             showStatus={false} 
@@ -230,25 +267,37 @@ export default function Conversation() {
                     </div>
                 </div>
 
-                <div className="flex flex-col gap-2">
+                <div className={`${loadingMessages ? "opacity-0" : ""}`}>
                     {messages.map((message) => (
                         <div
                             key={message.id}
-                            className={`flex ${message.sender_id === currentUser?.user_id ? 'justify-end' : 'justify-start'}`}
+                            className={`flex ${
+                                message.sender_id === currentUser?.user_id
+                                    ? "justify-end"
+                                    : "justify-start"
+                            }`}
                         >
-                            <MessageBubble 
+                            <MessageBubble
                                 isCurrentUser={message.sender_id === currentUser?.user_id}
                                 message={message.message}
-                                sender_username={message.sender_id === currentUser?.user_id ? currentUser?.username || '' : user?.username || ''}
+                                sender_username={
+                                    message.sender_id === currentUser?.user_id
+                                        ? currentUser?.username || ""
+                                        : user?.username || ""
+                                }
                                 created_at={message.created_at}
-                                sender_profile_image={message.sender_id === currentUser?.user_id ? currentUser?.profile_image || '' : user?.profile_image || ''}
+                                sender_profile_image={
+                                    message.sender_id === currentUser?.user_id
+                                        ? currentUser?.profile_image || ""
+                                        : user?.profile_image || ""
+                                }
                             />
                         </div>
                     ))}
-                    <div ref={messagesEndRef} />
                 </div>
+                <div ref={messagesEndRef} />
             </div>
-
+            
             <div className="px-2 h-[80px] flex items-center flex-shrink-0 justify-center">
                 <MessageInput 
                     recipient_id={user?.user_id || ''} 
