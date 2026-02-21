@@ -30,6 +30,7 @@ export default function CommunitySettingsModal(
     const [showFade, setShowFade] = useState(false);
     const [selectedTab, setSelectedTab] = useState("Profile");
     const [isDeleteCommunityModal, setIsDeleteCommunityModal] = useState(false);
+    const [isDeleteRoleModal, setIsDeleteRoleModal] = useState(false);
 
     useEffect(() => {
         if (isOpen) {
@@ -52,7 +53,7 @@ export default function CommunitySettingsModal(
             case "Profile":
                 return <ProfileContent communityData={communityData} onCommunityUpdate={onCommunityUpdate} />;
             case "Roles":
-                return <RolesContent />;
+                return <RolesContent onDeleteModalChange={setIsDeleteRoleModal} />;
             case "Members":
                 return <MembersContent />;
         }
@@ -87,7 +88,7 @@ export default function CommunitySettingsModal(
             <div className="pt-16 w-[920px]">
                 {renderContent()}
 
-                <ModalCloseButton onClose={isDeleteCommunityModal ? () => {} : onClose} top="top-4" right="right-4" />
+                <ModalCloseButton onClose={isDeleteCommunityModal || isDeleteRoleModal ? () => {} : onClose} top="top-4" right="right-4" />
             </div>
 
             <DeleteCommunityModal isOpen={isDeleteCommunityModal} onClose={() => setIsDeleteCommunityModal(false)} communityData={communityData} />

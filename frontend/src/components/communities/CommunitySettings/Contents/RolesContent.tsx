@@ -16,7 +16,11 @@ interface Role {
     permissions: string[];
 }
 
-export default function RolesContent() {
+interface RolesContentProps {
+    onDeleteModalChange?: (isOpen: boolean) => void;
+}
+
+export default function RolesContent({ onDeleteModalChange }: RolesContentProps) {
     const [isCreateRole, setIsCreateRole] = useState(false);
     const [editingRole, setEditingRole] = useState<Role | null>(null);
     const [selectedPermissions, setSelectedPermissions] = useState<string[]>([]);
@@ -29,6 +33,10 @@ export default function RolesContent() {
     const [deletingRole, setDeletingRole] = useState<Role | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
     const filteredRoles = roles.filter(role => role.name.startsWith(searchQuery.toLowerCase()))
+
+    useEffect(() => {
+        onDeleteModalChange?.(!!deletingRole);
+    }, [deletingRole]);
 
     useEffect(() => {
         const timer = setTimeout(() => {

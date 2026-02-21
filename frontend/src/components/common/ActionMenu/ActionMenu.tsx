@@ -59,7 +59,7 @@ export default function ActionMenu({
       ref={actionMenuRef}
       className={`z-[2] bg-basalt border border-outline w-auto min-w-max rounded-xl shadow-lg overflow-hidden transition-opacity duration-200 ${
         isActionMenuOpen ? "opacity-100" : "opacity-0"
-      } ${hasPos ? "fixed" : "absolute right-[-20px] top-7"}`}
+      } ${hasPos ? "fixed" : "absolute right-[-15px] top-7"}`}
       style={hasPos ? { left: position!.x, top: position!.y } : undefined}
     >
       {children}

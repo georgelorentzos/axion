@@ -79,7 +79,6 @@ export default function DeleteCommunityModal({ isOpen, onClose, communityData }:
         
         <div onClick={(e) => e.stopPropagation()} className="border border-outline relative bg-onyx w-[400px] rounded-3xl ">
                 <ModalCloseButton onClose={onClose} />
-
                 <div className="p-6 flex gap-4 flex-col items-center bg-onyx w-[400px] rounded-3xl">
                     <div className="flex flex-col text-center">
                         <div className="font-bold text-[20px]">Delete {communityData?.communityName}</div>
@@ -89,7 +88,7 @@ export default function DeleteCommunityModal({ isOpen, onClose, communityData }:
                     <Input placeholder="Enter community name" onChange={(e) => setConfirmInput(e.target.value)} />
                     <Button text="Delete" isDanger onClick={handleDeleteCommunity} />
                 </div>
+            </div>
         </div>
-    </div>
     );
 }
