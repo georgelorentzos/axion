@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import UserCard from "../../../common/UserCard";
+import SearchBar from "../../../common/SearchBar";
 
 interface Member {
     id: string;
@@ -15,6 +16,8 @@ export default function MembersContent() {
     const [members, setMembers] = useState<Member[]>([]);
     const apiUrl = window.GLOBAL_ENV.API_ENDPOINT;
     const { communityId } = useParams();
+    const [searchQuery, setSearchQuery] = useState('');
+    const filteredMembers = members.filter(member => member.name.startsWith(searchQuery.toLowerCase()));
 
     useEffect(() => {
         const token = localStorage.getItem("token");
@@ -39,12 +42,20 @@ export default function MembersContent() {
                 <div className="text-[14px] w-[500px] text-gray-500">
                     See who's recently joined your server.
                 </div>
-             
-                <div className="text-gray-500 text-[12px] border-b border-outline pb-2">Members</div>
-
-         
-                {members.map(member => (
-                        <UserCard key={member.id} id={member.id} joinedAtText={`Joined ${member.joined_at}`} isOnline={member.is_online} username={member.name} image={member.image} createdAt={member.created_at} />
+                <SearchBar onSearch={(q) => setSearchQuery(q)} />
+                <br />
+                <div className="text-gray-500 text-[12px] border-b border-outline pb-2">{members.length && members.length > 1 ? `${members.length} Members` : `${members.length} Member`}</div>
+                {filteredMembers.map(member => (
+                        <UserCard 
+                        key={member.id} 
+                        id={member.id} 
+                        joinedAtText={`Joined ${member.joined_at}`} 
+                        isOnline={member.is_online} 
+                        username={member.name} 
+                        image={member.image} 
+                        createdAt={member.created_at} 
+                        actions={{ options:true, admin:true }}
+                        />
                 ))}
             </div>
         </div>

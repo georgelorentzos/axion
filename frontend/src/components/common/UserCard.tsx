@@ -1,6 +1,7 @@
 import ImageProfile from "../common/ImageProfile";
 import { useCurrentUser } from '../../contexts/useCurrentUser';
-import ActionMenu from './ActionMenu';
+import ActionMenu from "./ActionMenu/ActionMenu";
+import ActionMenuButton from "./ActionMenu/ActionMenuButton";
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 
@@ -10,15 +11,22 @@ type UserCardProps = {
   image?: string;
   isOnline: boolean;
   createdAt?: string;
-  optionsBtn?: boolean;
-  addFriendBtn?: boolean;
-  acceptPendingBtn?: boolean;
-  rejectPendingBtn?: boolean;
-  inviteBtn?: boolean;
+
+  actions?: {
+    options?: boolean;
+    unfriend?: boolean;
+    admin?: boolean;
+    addFriend?: boolean;
+    acceptPending?: boolean;
+    rejectPending?: boolean;
+    invite?: boolean;
+    deleteConversation?: boolean;
+  };
+
   onReject?: (id: string) => void;
   onAccept?: (id: string) => void;
   onInvite?: () => Promise<void>;
-  deleteConversationBtn?: boolean;
+
   showLatestMessage?: boolean;
   latestMessage?: string;
   joinedAtText?: string;
@@ -39,15 +47,10 @@ export default function UserCard({
   image,
   isOnline,
   createdAt,
-  optionsBtn,
-  addFriendBtn,
-  acceptPendingBtn,
-  rejectPendingBtn,
-  inviteBtn,
+  actions,
   onReject,
   onAccept,
   onInvite,
-  deleteConversationBtn,
   showLatestMessage,
   latestMessage,
   joinedAtText
@@ -86,10 +89,10 @@ export default function UserCard({
       }
     };
 
-    if (addFriendBtn) {
+    if (actions?.addFriend) {
       fetchPendingRequests();
     }
-  }, [addFriendBtn]);
+  }, [actions?.addFriend]);
 
   const handleAlly = async () => {
     if (!id || !currentUser?.user_id) return;
@@ -326,7 +329,39 @@ export default function UserCard({
       </div>
 
       <div className="flex items-center gap-1">
-        {optionsBtn && (
+        {actions?.deleteConversation && (
+          <button onClick={handleDeleteConversation}>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-5 text-gray-500 hover:text-gray-300 transition duration-300">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+            </svg>
+          </button>
+        )}
+
+        {actions?.acceptPending && (
+          <>
+          <button onClick={handlePendingAccept} disabled={loading}>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-5 text-gray-500 hover:text-gray-300 transition duration-300">
+            <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+            </svg>
+          </button>
+          </>
+        )}
+
+        {actions?.rejectPending && (
+          <>
+          <button onClick={handlePendingReject} disabled={loading}>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-5 text-gray-500 hover:text-gray-300 transition duration-300">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+            </svg>
+          </button>
+          </>
+        )}
+
+        {joinedAtText && (
+          <div className="text-gray-500 text-[12px]">{joinedAtText}</div>
+        )}
+
+        {actions?.options && (
           <div className="relative">
           <button 
           ref={buttonRef}
@@ -349,43 +384,34 @@ export default function UserCard({
               />
             </svg>
           </button>
-          <ActionMenu isActionMenuOpen={isActionMenuOpen} removeFriendBtn onClose={() => setisActionMenuOpen(false)} onRemoveFriend={handleRemoveFriend} buttonRef={buttonRef} />
+          <ActionMenu
+            isActionMenuOpen={isActionMenuOpen}
+            onClose={() => setisActionMenuOpen(false)}
+            buttonRef={buttonRef}
+          >
+            <ActionMenuButton
+              text="Unfriend"
+              svgPaths={["M22 10.5h-6m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM4 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 10.374 21c-2.331 0-4.512-.645-6.374-1.766Z"]}
+              onClick={handleRemoveFriend}
+              isVisible={!!actions.unfriend}
+            />
+            <ActionMenuButton
+              text={`Kick ${username}`}
+              svgPaths={["M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l-3 3m0 0 3 3m-3-3h12.75"]}
+              isDanger
+              isVisible={!!actions.admin}
+            />
+            <ActionMenuButton
+              text={`Ban ${username}`}
+              svgPaths={["M18.364 18.364A9 9 0 0 0 5.636 5.636m12.728 12.728A9 9 0 0 1 5.636 5.636m12.728 12.728L5.636 5.636"]}
+              isDanger
+              isVisible={!!actions.admin}
+            />
+          </ActionMenu>
           </div>
         )}
 
-        {deleteConversationBtn && (
-          <button onClick={handleDeleteConversation}>
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-5 text-gray-500 hover:text-gray-300 transition duration-300">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
-            </svg>
-          </button>
-        )}
-
-        {acceptPendingBtn && (
-          <>
-          <button onClick={handlePendingAccept} disabled={loading}>
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-5 text-gray-500 hover:text-gray-300 transition duration-300">
-            <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-            </svg>
-          </button>
-          </>
-        )}
-
-        {rejectPendingBtn && (
-          <>
-          <button onClick={handlePendingReject} disabled={loading}>
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-5 text-gray-500 hover:text-gray-300 transition duration-300">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
-            </svg>
-          </button>
-          </>
-        )}
-
-        {joinedAtText && (
-          <div className="text-gray-500 text-[12px]">{joinedAtText}</div>
-        )}
-
-        {inviteBtn && (
+        {actions?.invite && (
           <button
             onClick={async () => {
               await onInvite?.();
@@ -403,7 +429,7 @@ export default function UserCard({
           </button>
       )}
 
-        {addFriendBtn && !pendingLoading && (
+        {actions?.addFriend && !pendingLoading && (
           <>
             {!isThisPending && !sent && (
               <button onClick={handleAlly} disabled={loading}>

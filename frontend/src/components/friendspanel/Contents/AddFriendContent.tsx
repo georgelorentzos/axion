@@ -79,8 +79,7 @@ export default function AddFriendContent() {
             id={user.user_id}
             username={user.username}
             image={user.profile_image}
-            addFriendBtn={!allFriends.some(f => f.user_id === user.user_id)}
-            optionsBtn={allFriends.some(f => f.user_id === user.user_id)}
+            actions={{ options: allFriends.some(f => f.user_id === user.user_id), addFriend: !allFriends.some(f => f.user_id === user.user_id), unfriend: true }}
             isOnline={user.is_online}
             createdAt={user.created_at}
           />

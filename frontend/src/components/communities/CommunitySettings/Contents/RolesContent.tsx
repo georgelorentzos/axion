@@ -8,6 +8,7 @@ import { useParams } from "react-router-dom";
 import RoleCard from "./Roles/RoleCard";
 import UnsavedChangesBar from "../../../common/UnsavedChangesBar";
 import DeleteRoleModal from "../../modals/DeleteRoleModal";
+import SearchBar from "../../../common/SearchBar";
 
 interface Role {
     id: string;
@@ -26,6 +27,8 @@ export default function RolesContent() {
     const { communityId } = useParams();
     const [roles, setRoles] = useState<Role[]>([]);
     const [deletingRole, setDeletingRole] = useState<Role | null>(null);
+    const [searchQuery, setSearchQuery] = useState('');
+    const filteredRoles = roles.filter(role => role.name.startsWith(searchQuery.toLowerCase()))
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -302,16 +305,18 @@ export default function RolesContent() {
             <div className="text-[14px] w-[500px] text-gray-500">
                 Use roles to group your server members and assign permissions.
             </div>
-            <div className="max-w-[170.48px]">
-                <Button text="Create Role" isGreen onClick={handleOpenCreateRole} />
+            <div className="w-full flex gap-2 items-center">
+                <SearchBar onSearch={(q) => setSearchQuery(q)} />
+                <div className="w-[170.48px]">
+                    <Button text="Create Role" isGreen onClick={handleOpenCreateRole} />
+                </div>
             </div>
+            <br />
             {roles && roles.length > 0 && (
                 <>
-                    <div className="text-gray-500 text-[12px] border-b border-outline pb-2">
-                        Roles
-                    </div>
+                    <div className="text-gray-500 text-[12px] border-b border-outline pb-2">{roles.length && roles.length > 1 ? `${roles.length} Roles` : `${roles.length} Role`}</div>
                     <div className="rounded-lg flex flex-col overflow-y-auto max-h-[calc(100vh-200px)]">
-                        {roles.map((role) => (
+                        {filteredRoles.map((role) => (
                             <RoleCard
                                 key={role.id}
                                 id={role.id}

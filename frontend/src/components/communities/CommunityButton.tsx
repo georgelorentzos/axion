@@ -99,7 +99,7 @@ export default function CommunityButton({
     }
 
     if (isCommunity) {
-        const isSelected = location.pathname === `/community/${communityId}`;
+        const isSelected = location.pathname.startsWith(`/community/${communityId}`);
 
         return (
             <div className='relative flex items-center group'>

@@ -75,7 +75,6 @@ export default function CommunitySettingsModal(
                     <SettingsSection title="PEOPLE">
                         <SettingsItem text="Roles" onClick={() => setSelectedTab("Roles")} isSelected={selectedTab === "Roles"} />
                         <SettingsItem text="Members" onClick={() => setSelectedTab("Members")} isSelected={selectedTab === "Members"} />
-                        <SettingsItem text="Access" onClick={() => setSelectedTab("Access")} isSelected={selectedTab === "Access"} />
                         <SettingsItem text="Bans" onClick={() => setSelectedTab("Bans")} isSelected={selectedTab === "Bans"} />
                     </SettingsSection>
                         

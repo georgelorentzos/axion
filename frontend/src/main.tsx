@@ -95,7 +95,7 @@ function App() {
         />
         <Route path="*" element={<NotFound />} />
         <Route
-        path="/join/:communityId/:userId?"
+        path="/join/:communityId"
         element={
           <CommunitiesProvider>
             <JoinCommunity />

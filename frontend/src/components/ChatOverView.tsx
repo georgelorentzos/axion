@@ -110,7 +110,7 @@ export default function ChatOverView() {
                     id={directmessage.user_id}
                     username={directmessage.username}
                     image={directmessage.profile_image}
-                    deleteConversationBtn
+                    actions={{ deleteConversation: true }}
                     isOnline={directmessage.is_online}
                     showLatestMessage
                     latestMessage={directmessage.latest_message}

@@ -29,7 +29,7 @@ export default function AllFriendsContent() {
                         id={friend.user_id}
                         username={friend.username}
                         image={friend.profile_image}
-                        optionsBtn
+                        actions={{ options: true, unfriend: true}}
                         isOnline={friend.is_online}
                         createdAt={friend.created_at}
                     />

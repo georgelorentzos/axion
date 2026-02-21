@@ -41,13 +41,13 @@ export default function CommunityInviteModal({
   }, [isOpen]);
 
   const handleCopy = async () => {
-    await navigator.clipboard.writeText(`${domainUrl}/join/${communityId}/${currentUser?.user_id}`);
+    await navigator.clipboard.writeText(`${domainUrl}/join/${communityId}`);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
   const handleInvite = async (friendId: string) => {
-    const inviteLink = `${domainUrl}/join/${communityId}/${currentUser?.user_id}`;
+    const inviteLink = `${domainUrl}/join/${communityId}`;
 
     try {
       const response = await fetch(`${apiUrl}/api/send/message`, {
@@ -100,7 +100,7 @@ export default function CommunityInviteModal({
                   username={friend.username}
                   image={friend.profile_image}
                   createdAt={friend.created_at}
-                  inviteBtn
+                  actions={{ invite: true }}
                   onInvite={() => handleInvite(friend.user_id)}
                 />
               ))}
@@ -109,7 +109,7 @@ export default function CommunityInviteModal({
           <Input
             isLink
             readOnly
-            value={`${domainUrl}/join/${communityId}/${currentUser?.user_id}`}
+            value={`${domainUrl}/join/${communityId}`}
           />
           <Button text={copied ? "Copied" : "Copy Link"} isGreen onClick={handleCopy} />
         </div>

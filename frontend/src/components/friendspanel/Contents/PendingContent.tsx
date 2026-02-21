@@ -34,8 +34,7 @@ export default function PendingContent() {
                       username={pending.username}
                       image={pending.profile_image}
                       isOnline={pending.is_online}
-                      rejectPendingBtn
-                      acceptPendingBtn
+                      actions={{ acceptPending: true, rejectPending: true}}
                       onReject={handleUserCardDeletion}
                       onAccept={handleUserCardDeletion}
                       createdAt={pending.created_at}
