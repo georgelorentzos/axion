@@ -48,11 +48,14 @@ export default function Conversation() {
     const navigate = useNavigate();
     const [loadingMessages, setLoadingMessages] = useState(true);
 
-    useEffect(() => {
-        if (userId === currentUser?.user_id) {
-            navigate("/");
-        }
-    });
+   useEffect(() => {
+    console.log("userId:", userId);
+    console.log("currentUser:", currentUser);
+    console.log("match:", userId === currentUser?.user_id);
+    if (userId === currentUser?.user_id) {
+        navigate("/");
+    }
+}, [userId, currentUser]);
 
     useEffect(() => {
         const state = location.state as LocationState;
@@ -111,6 +114,10 @@ export default function Conversation() {
                 }
             });
             const data = await response.json();
+            if (!data.success) {
+                navigate("/");
+                return;
+            }
             setUser(data);
             load20Messages(userId);
         } catch (error) {

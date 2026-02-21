@@ -3,11 +3,12 @@ import { useParams } from "react-router-dom";
 import UserCard from "../../../common/UserCard";
 
 interface Member {
-    member_id: string;
-    member_name: string;
-    member_image: string;
-    member_is_online: boolean;
-    member_joined_at: string;
+    id: string;
+    name: string;
+    image: string;
+    is_online: boolean;
+    joined_at: string;
+    created_at: string;
 }
 
 export default function MembersContent() {
@@ -43,7 +44,7 @@ export default function MembersContent() {
 
          
                 {members.map(member => (
-                        <UserCard key={member.member_id} id={member.member_id} joinedAtText={`Joined ${member.member_joined_at}`} isOnline={member.member_is_online} username={member.member_name} image={member.member_image} />
+                        <UserCard key={member.id} id={member.id} joinedAtText={`Joined ${member.joined_at}`} isOnline={member.is_online} username={member.name} image={member.image} createdAt={member.created_at} />
                 ))}
             </div>
         </div>

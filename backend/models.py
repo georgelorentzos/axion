@@ -116,7 +116,7 @@ class CommunityMember(Base):
 
     user = relationship("User")
     community = relationship("Community")
-    roles = relationship("CommunityRole", back_populates="member")
+    member_roles = relationship("MemberRole", backref="member")
 
 class CommunityRole(Base):
     __tablename__ = "community_roles"
@@ -124,7 +124,11 @@ class CommunityRole(Base):
     role_name = Column(String, nullable=False)
     permissions = Column(JSON, nullable=False, default=lambda: [])
     community_id = Column(String, ForeignKey("communities.id"), nullable=False)
-    member_id = Column(String, ForeignKey("community_members.id"), nullable=False)
-    
     community = relationship("Community", back_populates="roles")
-    member = relationship("CommunityMember", back_populates="roles")
+
+class MemberRole(Base):
+    __tablename__ = "member_roles"
+    id = Column(String, primary_key=True, default=lambda: generate(NUMERIC_ALPHABET, 20))
+    member_id = Column(String, ForeignKey("community_members.id"), nullable=False)
+    role_id = Column(String, ForeignKey("community_roles.id"), nullable=False)
+    role = relationship("CommunityRole")

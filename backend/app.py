@@ -27,6 +27,9 @@ from fastapi.responses import HTMLResponse, FileResponse
 import asyncio
 import uuid
 import shutil
+from constants.permissions import PERMISSIONS
+
+
 
 load_dotenv()
 
@@ -66,16 +69,16 @@ app.add_middleware(
 def get_user_id_from_token(request: Request) -> str:
     token = request.headers.get("Authorization", "").split(" ")[-1]
     if not token:
-        raise HTTPException(status_code=401, detail="Not authenticated")
+        raise HTTPException(status_code=401, detail="Not authenticated.")
     
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
         user_id = payload.get('user_id')
         if not user_id:
-            raise HTTPException(status_code=401, detail="Invalid token")
+            raise HTTPException(status_code=401, detail="Invalid token.")
         return user_id
     except jwt.InvalidTokenError:
-        raise HTTPException(status_code=401, detail="Invalid token")
+        raise HTTPException(status_code=401, detail="Invalid token.")
     
 @app.on_event('startup')
 def startup():
@@ -139,21 +142,21 @@ def verify_token(request: Request, req: CreateToken, db: Session = Depends(get_d
     token_record: Token | None = db.query(Token).filter(Token.token == req.token).first()
 
     if not token_record:
-        raise HTTPException(status_code=400, detail="Invalid or expired token")
+        raise HTTPException(status_code=400, detail="Invalid or expired token.")
 
     if token_record.type != 'Auth':
-        raise HTTPException(status_code=400, detail="Invalid or expired token")
+        raise HTTPException(status_code=400, detail="Invalid or expired token.")
     
     token_age: timedelta = datetime.utcnow() - token_record.created_at
     if token_age > timedelta(minutes=15):
         db.delete(token_record)
         db.commit()
-        raise HTTPException(status_code=400, detail="Token has expired")
+        raise HTTPException(status_code=400, detail="Token has expired.")
     
     user: User | None = db.query(User).filter(User.id == token_record.user_id).first()
 
     if not user:
-        raise HTTPException(status_code=400, detail="User not found")
+        raise HTTPException(status_code=400, detail="User not found.")
     
     user.is_verified = True
     db.add(user)
@@ -181,7 +184,7 @@ def validate_token(request: Request, req: ValidateToken, db: Session = Depends(g
         user = db.query(User).filter(User.id == user_id).first()
 
         if not user:
-            raise HTTPException(status_code=401, detail="User not found")
+            raise HTTPException(status_code=401, detail="User not found.")
         
         return {
             "success": True,
@@ -192,20 +195,20 @@ def validate_token(request: Request, req: ValidateToken, db: Session = Depends(g
         }
 
     except jwt.ExpiredSignatureError:
-        raise HTTPException(status_code=401, detail="Token has expired")
+        raise HTTPException(status_code=401, detail="Token has expired.")
     
     except jwt.InvalidTokenError:
-        raise HTTPException(status_code=401, detail="Invalid token")
+        raise HTTPException(status_code=401, detail="Invalid token.")
     
     except Exception as e:
-        raise HTTPException(status_code=401, detail="Token validation failed")
+        raise HTTPException(status_code=401, detail="Token validation failed.")
     
 @app.get('/api/me', response_model=Dict[str, Any])
 @limiter.limit("120/minute")
 async def get_current_user(request: Request, user_id: str = Depends(get_user_id_from_token), db: Session = Depends(get_db)) -> Dict[str, Any]:
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
-        raise HTTPException(status_code=401, detail="User not found")
+        raise HTTPException(status_code=401, detail="User not found.")
 
     return {
         "success": True,
@@ -237,7 +240,7 @@ def search_user(request: Request, search: str = Query(..., alias="search"), user
 def get_user_profile(request: Request, user_id: str, db: Session = Depends(get_db)) -> Dict[str, Any]:
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(status_code=404, detail="User not found.")
     
     return {
         "success": True,
@@ -252,16 +255,16 @@ def get_user_profile(request: Request, user_id: str, db: Session = Depends(get_d
 @limiter.limit('120/minute')
 async def ally(request: Request, req: AllyRequest, user_id: str = Depends(get_user_id_from_token) ,db: Session = Depends(get_db)) -> Dict[str, Any]:
     if req.requester_id != user_id:
-        raise HTTPException(status_code=403, detail="Cannot send as another user")
+        raise HTTPException(status_code=403, detail="Cannot send as another user.")
     
     if req.requester_id == req.addressee_id:
-        raise HTTPException(status_code=400, detail="Cannot friend yourself")
+        raise HTTPException(status_code=400, detail="Cannot friend yourself.")
     
     requester = db.query(User).filter(User.id == req.requester_id).first()
     addressee = db.query(User).filter(User.id == req.addressee_id).first()
     
     if not addressee:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(status_code=404, detail="User not found.")
     
     existing = db.query(Friend).filter(
         ((Friend.requester_id == req.requester_id) & (Friend.addressee_id == req.addressee_id)) |
@@ -270,14 +273,17 @@ async def ally(request: Request, req: AllyRequest, user_id: str = Depends(get_us
     
     if existing:
         if existing.status == "friends":
-            raise HTTPException(status_code=400, detail="Request already exists")
+            raise HTTPException(status_code=400, detail="Request already exists.")
     
         if existing.requester_id == req.addressee_id and existing.status == "pending":
             existing.status = "friends"
             db.commit()
-            return {"success": True, "message": "Friend request accepted"}
+            return {
+                "success": True, 
+                "message": "Friend request accepted"
+                }
         else:
-            raise HTTPException(status_code=400, detail="Request already exists")
+            raise HTTPException(status_code=400, detail="Request already exists.")
     
     try:
         new_friend = Friend(requester_id=req.requester_id, addressee_id=req.addressee_id)
@@ -292,10 +298,13 @@ async def ally(request: Request, req: AllyRequest, user_id: str = Depends(get_us
             "created_at": requester.created_at.year
         })
 
-        return {"success": True, "message": "Friend request sent"}
+        return {
+            "success": True, 
+            "message": "Friend request sent"
+            }
     except Exception as e:
         db.rollback()
-        raise HTTPException(status_code=500, detail="Failed to send request")
+        raise HTTPException(status_code=500, detail="Failed to send request.")
     
 @app.delete('/api/ally/cancel', response_model=Dict[str, Any])
 @limiter.limit('120/minute')
@@ -304,11 +313,11 @@ async def cancel_ally(request: Request, req: AllyRequest, user_id: str = Depends
         raise HTTPException(status_code=403, )
     
     if req.requester_id == req.addressee_id:
-        raise HTTPException(status_code=400, detail="Cannot cancel yourself")
+        raise HTTPException(status_code=400, detail="Cannot cancel yourself.")
     
     requester = db.query(User).filter(User.id == req.requester_id).first()
     if not db.query(User).filter(User.id == req.addressee_id).first():
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(status_code=404, detail="User not found.")
 
     existing = db.query(Friend).filter(
         ((Friend.requester_id == req.requester_id) & (Friend.addressee_id == req.addressee_id)) |
@@ -328,12 +337,18 @@ async def cancel_ally(request: Request, req: AllyRequest, user_id: str = Depends
                 "requester_profile_image": requester.profile_image
             })
             
-            return {"success": True, "message": "Friend request canceled"}
+            return {
+                "success": True, 
+                "message": "Friend request canceled"
+                }
         except Exception as e:
             db.rollback()
-            raise HTTPException(status_code=500, detail="Failed to cancel request")
+            raise HTTPException(status_code=500, detail="Failed to cancel request.")
     else:
-        return {"success": True, "message": "Request already canceled"}
+        return {
+            "success": True, 
+            "message": "Request already canceled"
+            }
 
 @app.delete("/api/ally/reject", response_model=Dict[str, Any])
 @limiter.limit('120/minute')
@@ -345,7 +360,7 @@ async def ally_reject(request: Request, req: AllyRequest, user_id: str = Depends
     ).first()
 
     if not existing:
-        raise HTTPException(status_code=404, detail="Friend request not found")
+        raise HTTPException(status_code=404, detail="Friend request not found.")
 
     try:
         db.delete(existing)
@@ -356,10 +371,13 @@ async def ally_reject(request: Request, req: AllyRequest, user_id: str = Depends
             "addressee_id": user_id
         })
 
-        return {"success": True, "message": "Friend request rejected"}
+        return {
+            "success": True,
+            "message": "Friend request rejected"
+            }
     except Exception as e:
         db.rollback()
-        raise HTTPException(status_code=500, detail="Failed to reject ally")
+        raise HTTPException(status_code=500, detail="Failed to reject ally.")
 
 @app.post('/api/ally/accept', response_model=Dict[str, Any])
 @limiter.limit('120/minute')
@@ -371,7 +389,7 @@ async def ally_accept(request: Request, req: AllyRequest, user_id: str = Depends
     ).first()
 
     if not existing:
-        raise HTTPException(status_code=404, detail="Friend request not found")
+        raise HTTPException(status_code=404, detail="Friend request not found.")
     
     requester = db.query(User).filter(User.id == req.requester_id).first()
     addressee = db.query(User).filter(User.id == user_id).first()
@@ -398,17 +416,20 @@ async def ally_accept(request: Request, req: AllyRequest, user_id: str = Depends
             "created_at": addressee.created_at.year
         })
 
-        return {"success": True, "message": "Friend request accepted"}
+        return {
+            "success": True, 
+            "message": "Friend request accepted."
+            }
     except Exception as e:
         db.rollback()
-        raise HTTPException(status_code=500, detail="Failed to accept friend request")
+        raise HTTPException(status_code=500, detail="Failed to accept friend request.")
 
 @app.get('/api/my/ally/requests', response_model=Dict[str, Any])
 @limiter.limit('120/minute')
 def my_ally_requests(request: Request, user_id: str = Depends(get_user_id_from_token), db: Session = Depends(get_db)) -> Dict[str, Any]:
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(status_code=404, detail="User not found.")
     
     pending = db.query(Friend).filter(
         and_(Friend.requester_id == user.id, Friend.status == "pending")
@@ -430,7 +451,7 @@ def my_ally_requests(request: Request, user_id: str = Depends(get_user_id_from_t
 def get_pending(request: Request, user_id: str = Depends(get_user_id_from_token), db: Session = Depends(get_db)) -> Dict[str, Any]:
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(status_code=404, detail="User not found.")
     
     pendigs = db.query(Friend).filter(
         and_(Friend.addressee_id == user.id, Friend.status == "pending")
@@ -454,7 +475,7 @@ def get_pending(request: Request, user_id: str = Depends(get_user_id_from_token)
 def my_friends_all(request: Request, user_id: str = Depends(get_user_id_from_token), db: Session = Depends(get_db)) -> Dict[str, Any]:
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(status_code=404, detail="User not found.")
     
     friends = db.query(Friend, User).join(
         User, 
@@ -488,7 +509,7 @@ def my_friends_all(request: Request, user_id: str = Depends(get_user_id_from_tok
 def my_friends_online(request: Request, user_id: str = Depends(get_user_id_from_token), db: Session = Depends(get_db)) -> Dict[str, Any]:
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(status_code=404, detail="User not found.")
     
     friends = db.query(Friend, User).join(
         User, 
@@ -521,10 +542,10 @@ def my_friends_online(request: Request, user_id: str = Depends(get_user_id_from_
 @limiter.limit('120/minute')
 async def ally_remove(request: Request, req: AllyRequest, user_id: str = Depends(get_user_id_from_token), db: Session = Depends(get_db)) -> Dict[str, Any]:
     if req.requester_id != user_id:
-        raise HTTPException(status_code=403, detail="Cannot remove as another user")
+        raise HTTPException(status_code=403, detail="Cannot remove as another user.")
     
     if req.requester_id == req.addressee_id:
-        raise HTTPException(status_code=400, detail="Cannot remove yourself")
+        raise HTTPException(status_code=400, detail="Cannot remove yourself.")
 
     requester = db.query(User).filter(
         User.id == req.requester_id
@@ -533,7 +554,7 @@ async def ally_remove(request: Request, req: AllyRequest, user_id: str = Depends
     addressee = db.query(User).filter(User.id == user_id).first()
     
     if not db.query(User).filter(User.id == req.addressee_id).first():
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(status_code=404, detail="User not found.")
     
     existing = db.query(Friend).filter(
         ((Friend.requester_id == req.requester_id) & (Friend.addressee_id == req.addressee_id)) |
@@ -560,24 +581,27 @@ async def ally_remove(request: Request, req: AllyRequest, user_id: str = Depends
                 "requester_profile_image": addressee.profile_image
             })
 
-            return {"success": True, "message": "Friend request removed"}
+            return {
+                "success": True, 
+                "message": "Friend request removed."
+                }
         except Exception as e:
             db.rollback()
-            raise HTTPException(status_code=500, detail="Failed to cancel request")
+            raise HTTPException(status_code=500, detail="Failed to cancel request.")
 
 @app.post('/api/send/message', response_model=Dict[str, Any])
 @limiter.limit("120/minute")
 async def send_message(request: Request, req: MessageRequest, user_id: str = Depends(get_user_id_from_token), db: Session = Depends(get_db)) -> Dict[str, Any]:
     
     if req.sender_id != user_id:
-        raise HTTPException(status_code=403, detail="Cannot send as another user")
+        raise HTTPException(status_code=403, detail="Cannot send as another user.")
 
     recipient = db.query(User).filter(User.id == req.recipient_id).first()
     if not recipient:
-        raise HTTPException(status_code=404, detail="Recipient Not Found")
+        raise HTTPException(status_code=404, detail="Recipient Not Found.")
     
     if req.sender_id == req.recipient_id:
-        raise HTTPException(status_code=400, detail="Cannot send yourself")
+        raise HTTPException(status_code=400, detail="Cannot send yourself.")
     
     sender = db.query(User).filter(User.id == user_id).first()
     
@@ -649,10 +673,13 @@ async def send_message(request: Request, req: MessageRequest, user_id: str = Dep
             "created_at": recipient.created_at.year,
         })
 
-        return {"success": True, "message": "Message send successfuly!"}
+        return {
+            "success": True, 
+            "message": "Message send successfuly!"
+            }
     except Exception as e:
         db.rollback()
-        raise HTTPException(status_code=500, detail="Failed to send message")
+        raise HTTPException(status_code=500, detail="Failed to send message.")
 
 @app.get('/api/messages/{user_id}', response_model=Dict[str, Any])
 @limiter.limit("120/minute")
@@ -666,7 +693,7 @@ def get_messages(
 ) -> Dict[str, Any]:
     other_user = db.query(User).filter(User.id == user_id).first()
     if not other_user:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(status_code=404, detail="User not found.")
     
     total_count = db.query(DirectMessage).filter(
         or_(
@@ -726,7 +753,7 @@ def get_messages(
 def my_conversations(request: Request, user_id: str = Depends(get_user_id_from_token), db: Session = Depends(get_db)) -> Dict[str, Any]:
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(status_code=404, detail="User not found.")
     
     messages = db.query(ConversationHistory).filter(
         or_(
@@ -772,7 +799,7 @@ def my_conversations(request: Request, user_id: str = Depends(get_user_id_from_t
 async def delete_conversation(request: Request, user_id: str, current_user_id: str = Depends(get_user_id_from_token), db: Session = Depends(get_db)) -> Dict[str, Any]:
     other_user = db.query(User).filter(User.id == user_id).first()
     if not other_user:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(status_code=404, detail="User not found.")
     
     conversation = db.query(ConversationHistory).filter(
         (
@@ -797,10 +824,10 @@ async def delete_conversation(request: Request, user_id: str, current_user_id: s
     ).all()
 
     if not conversation:
-        raise HTTPException(status_code=404, detail="Conversation not found")
+        raise HTTPException(status_code=404, detail="Conversation not found.")
     
     if not messages:
-        raise HTTPException(status_code=404, detail="Messages not found")
+        raise HTTPException(status_code=404, detail="Messages not found.")
     
     try:
         if conversation.sender_id == current_user_id:
@@ -824,10 +851,10 @@ async def delete_conversation(request: Request, user_id: str, current_user_id: s
             "conversation_id": user_id
         })
 
-        return {"success": True}
+        return {"success": True, "message": "Conversation deleted."}
     except Exception as e:
         db.rollback()
-        raise HTTPException(status_code=500, detail="Failed to delete conversation")
+        raise HTTPException(status_code=500, detail="Failed to delete conversation.")
 
 @app.post("/api/community/create", response_model=Dict[str, Any])
 @limiter.limit("50/minute")
@@ -888,7 +915,7 @@ def create_community(
 def my_communities(request: Request, current_user_id: str = Depends(get_user_id_from_token) ,db: Session = Depends(get_db)) -> Dict[str, Any]:
     user = db.query(User).filter(User.id == current_user_id).first()
     if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(status_code=404, detail="User not found.")
     communities = (
         db.query(CommunityMember, Community).join(
             Community,
@@ -946,7 +973,7 @@ def serve_image(image_name: str):
     file_path = UPLOADS_FOLDER / image_name
 
     if not file_path.exists() or not file_path.is_file():
-        raise HTTPException(status_code=404, detail="Image not found")
+        raise HTTPException(status_code=404, detail="Image not found.")
 
     return FileResponse(path=str(file_path))
 
@@ -1145,11 +1172,11 @@ def join_community(request: Request,
                    )) -> Dict[str, Any]:
     user = db.query(User).filter(User.id == current_user_id).first()
     if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(status_code=404, detail="User not found.")
     
     community = db.query(Community).filter(Community.id == community_id).first()
     if not community:
-        raise HTTPException(status_code=404, detail="Community not found")
+        raise HTTPException(status_code=404, detail="Community not found.")
 
     existing_member = db.query(CommunityMember).filter(
         CommunityMember.user_id == user.id,
@@ -1188,11 +1215,11 @@ def leave_community(request: Request,
                     )) -> Dict[str, Any]:
     user = db.query(User).filter(User.id == current_user_id).first()
     if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(status_code=404, detail="User not found.")
     
     community = db.query(Community).filter(Community.id == community_id).first()
     if not community:
-        raise HTTPException(status_code=404, detail="Community not found")
+        raise HTTPException(status_code=404, detail="Community not found.")
 
     if user.id == community.owner_id:
         raise HTTPException(status_code=403, detail="Community owners cannot leave their own community. Please delete the community instead.")
@@ -1240,11 +1267,12 @@ def get_community_members(request: Request,
         "success": True,
         "members": [
             {
-                "member_id": community_member.id,
-                "member_name": community_member.user.username,
-                "member_image": community_member.user.profile_image,
-                "member_is_online": community_member.user.is_online,
-                "member_joined_at": community_member.joined_at.strftime("%d/%m/%Y"),
+                "id": community_member.user_id,
+                "name": community_member.user.username,
+                "image": community_member.user.profile_image,
+                "is_online": community_member.user.is_online,
+                "joined_at": community_member.joined_at.strftime("%d/%m/%Y"),
+                "created_at": user.created_at.year,
             } for community_member in community_members
         ]
     }
@@ -1297,6 +1325,226 @@ async def delete_community(request: Request,
         db.rollback()
         raise HTTPException(status_code=500, detail="Failed to delete community due to an internal server error.")
         
+@app.post("/api/community/{community_id}/roles", response_model=Dict[str, Any])
+@limiter.limit("120/minute")
+async def create_role(request: Request,
+                community_id: str,
+                req: RoleRequest,
+                current_user_id: str = Depends(get_user_id_from_token),
+                db: Session = Depends(get_db)) -> Dict[str, Any]:
+    user = db.query(User).filter(User.id == current_user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found.")
+    
+    community = db.query(Community).filter(Community.id == community_id).first()
+    if not community:
+        raise HTTPException(status_code=404, detail="Community not found.")
+
+    community_member = db.query(CommunityMember).filter(CommunityMember.community_id == community_id, CommunityMember.user_id == user.id).first()
+    if not community_member:
+        raise HTTPException(status_code=404, detail="Community member not found.")
+
+    role_name = req.name.strip()
+    if len(role_name) < 1:
+        raise HTTPException(status_code=400, detail="Role name must be at least 1 characters.")
+    if len(role_name) > 20:
+        raise HTTPException(status_code=400, detail="Role name can't be longer than 20 characters.")
+
+    if community.owner_id != user.id:
+        community_member_roles = db.query(CommunityRole).join(
+            MemberRole, MemberRole.role_id == CommunityRole.id
+        ).filter(
+            CommunityRole.community_id == community_id,
+            MemberRole.member_id == community_member.id
+        ).all()
+
+        all_permissions = []
+        for role in community_member_roles:
+            all_permissions.extend(role.permissions)
+
+        if PERMISSIONS.MANAGE_ROLES not in all_permissions and PERMISSIONS.ADMINISTRATOR not in all_permissions:
+            raise HTTPException(status_code=403, detail="You don't have permissions.")
+    
+    try:
+        new_role = CommunityRole(
+            role_name=role_name,
+            permissions=req.permissions.split("|") if req.permissions else [],
+            community_id=community.id,
+        )
+        db.add(new_role)
+        db.commit()
+        return {
+            "success": True,
+            "role": {
+                "id": new_role.id,
+                "name": new_role.role_name,
+                "permissions": new_role.permissions
+            }
+        }
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Failed to create role due to an internal server error.")
+
+@app.patch("/api/community/{community_id}/roles/{role_id}", response_model=Dict[str, Any])
+@limiter.limit("120/minute")
+async def update_role(request: Request,
+                community_id: str,
+                role_id: str,
+                req: RoleRequest,
+                current_user_id: str = Depends(get_user_id_from_token),
+                db: Session = Depends(get_db)) -> Dict[str, Any]:
+    user = db.query(User).filter(User.id == current_user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found.")
+    
+    community = db.query(Community).filter(Community.id == community_id).first()
+    if not community:
+        raise HTTPException(status_code=404, detail="Community not found.")
+
+    community_member = db.query(CommunityMember).filter(CommunityMember.community_id == community_id, CommunityMember.user_id == user.id).first()
+    if not community_member:
+        raise HTTPException(status_code=404, detail="Community member not found.")
+
+    role = db.query(CommunityRole).filter(CommunityRole.id == role_id, CommunityRole.community_id == community_id).first()
+    if not role:
+        raise HTTPException(status_code=404, detail="Role not found.")
+
+    role_name = req.name.strip()
+    if len(role_name) < 1:
+        raise HTTPException(status_code=400, detail="Role name must be at least 1 characters.")
+    if len(role_name) > 20:
+        raise HTTPException(status_code=400, detail="Role name can't be longer than 20 characters.")
+
+    if community.owner_id != user.id:
+        community_member_roles = db.query(CommunityRole).join(
+            MemberRole, MemberRole.role_id == CommunityRole.id
+        ).filter(
+            CommunityRole.community_id == community_id,
+            MemberRole.member_id == community_member.id
+        ).all()
+
+        all_permissions = []
+        for r in community_member_roles:
+            all_permissions.extend(r.permissions)
+
+        if PERMISSIONS.MANAGE_ROLES not in all_permissions and PERMISSIONS.ADMINISTRATOR not in all_permissions:
+            raise HTTPException(status_code=403, detail="You don't have permissions.")
+
+    try:
+        role.role_name = role_name
+        role.permissions = req.permissions.split("|") if req.permissions else []
+        db.commit()
+        return {
+            "success": True,
+            "role": {
+                "id": role.id,
+                "name": role.role_name,
+                "permissions": role.permissions
+            }
+        }
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Failed to update role due to an internal server error.")
+
+@app.get("/api/community/{community_id}/roles", response_model=Dict[str, Any])
+@limiter.limit("120/minute")
+def fetch_roles(request: Request,
+                community_id: str,
+                current_user_id: str = Depends(get_user_id_from_token),
+                db: Session = Depends(get_db),
+                ) -> Dict[str, Any]:
+    
+    user = db.query(User).filter(User.id == current_user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found.")
+    
+    community = db.query(Community).filter(Community.id == community_id).first()
+    if not community:
+        raise HTTPException(status_code=404, detail="Community not found.")
+
+    community_member = db.query(CommunityMember).filter(CommunityMember.community_id == community_id, CommunityMember.user_id == user.id).first()
+    if not community_member:
+        raise HTTPException(status_code=404, detail="Community member not found.")
+    
+    if community.owner_id != user.id:
+        community_member_roles = db.query(CommunityRole).join(
+            MemberRole, MemberRole.role_id == CommunityRole.id
+        ).filter(
+            CommunityRole.community_id == community_id,
+            MemberRole.member_id == community_member.id
+        ).all()
+
+        all_permissions = []
+        for role in community_member_roles:
+            all_permissions.extend(role.permissions)
+
+        if PERMISSIONS.MANAGE_ROLES not in all_permissions and PERMISSIONS.ADMINISTRATOR not in all_permissions:
+            raise HTTPException(status_code=403, detail="You don't have permissions.")
+
+    community_roles = db.query(CommunityRole).filter(
+        CommunityRole.community_id == community.id
+    ).all()
+
+    return {
+        "success": True,
+        "roles": [
+            {
+                "id": role.id,
+                "name": role.role_name,
+                "permissions": role.permissions,
+            } for role in community_roles
+        ]
+    }
+
+@app.delete("/api/community/{community_id}/roles/{role_id}", response_model=Dict[str, Any])
+@limiter.limit("120/minute")
+async def delete_role(request: Request,
+                community_id: str,
+                role_id: str,
+                current_user_id: str = Depends(get_user_id_from_token),
+                db: Session = Depends(get_db)) -> Dict[str, Any]:
+    user = db.query(User).filter(User.id == current_user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found.")
+
+    community = db.query(Community).filter(Community.id == community_id).first()
+    if not community:
+        raise HTTPException(status_code=404, detail="Community not found.")
+
+    community_member = db.query(CommunityMember).filter(CommunityMember.community_id == community_id, CommunityMember.user_id == user.id).first()
+    if not community_member:
+        raise HTTPException(status_code=404, detail="Community member not found.")
+
+    role = db.query(CommunityRole).filter(CommunityRole.id == role_id, CommunityRole.community_id == community_id).first()
+    if not role:
+        raise HTTPException(status_code=404, detail="Role not found.")
+
+    if community.owner_id != user.id:
+        community_member_roles = db.query(CommunityRole).join(
+            MemberRole, MemberRole.role_id == CommunityRole.id
+        ).filter(
+            CommunityRole.community_id == community_id,
+            MemberRole.member_id == community_member.id
+        ).all()
+
+        all_permissions = []
+        for r in community_member_roles:
+            all_permissions.extend(r.permissions)
+
+        if PERMISSIONS.MANAGE_ROLES not in all_permissions and PERMISSIONS.ADMINISTRATOR not in all_permissions:
+            raise HTTPException(status_code=403, detail="You don't have permissions.")
+
+    try:
+        db.query(MemberRole).filter(MemberRole.role_id == role.id).delete()
+        db.delete(role)
+        db.commit()
+        return {
+            "success": True,
+            "role_id": role.id
+        }
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Failed to delete role due to an internal server error.")
 
 # if os.path.exists("dist/assets"):
 #     app.mount("/assets", StaticFiles(directory="dist/assets"), name="assets")
