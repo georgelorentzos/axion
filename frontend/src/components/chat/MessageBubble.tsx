@@ -1,7 +1,7 @@
 import { useState } from "react";
 import ImageProfile from "../common/ImageProfile";
 import CommunityPreview from "../communities/CommunityPreview";
-import LinkAlertModal from "../common/modals/LinkAlertModal";
+import Modal from "../common/modal/Modal";
 
 type MessageBubbleProps = {
   isCurrentUser: boolean;
@@ -31,12 +31,13 @@ export default function MessageBubble({
   };
 
   const communityData = {
-    communityId: communityId,
-    communityName: "",
-    communityImage: "",
-    communityOnlineMembers: "",
-    communityTotalMembers: "",
-    communityCreatedAt: "",
+    id: communityId,
+    name: "",
+    image: "",
+    onlineMembers: "",
+    totalMembers: "",
+    createdAt: "",
+    ownerId: "",
   }
 
   if (isInviteLink) {
@@ -49,7 +50,7 @@ export default function MessageBubble({
         <div className="flex-shrink-0">
           <ImageProfile src={sender_profile_image} showStatus={false} />
         </div>
-        <CommunityPreview joinBtn communityData={communityData} />
+        <CommunityPreview joinBtn community={communityData} />
       </div>
     );
   }
@@ -100,11 +101,7 @@ export default function MessageBubble({
         </div>
       </div>
 
-      <LinkAlertModal
-        isOpen={linkModal.isOpen}
-        link={linkModal.link}
-        onClose={() => setLinkModal({ isOpen: false, link: "" })}
-      />
+      <Modal isOpen={linkModal.isOpen} onClose={() => setLinkModal({ isOpen: false, link: "" })} type="linkAlert" link={linkModal.link} />
     </>
   );
 }

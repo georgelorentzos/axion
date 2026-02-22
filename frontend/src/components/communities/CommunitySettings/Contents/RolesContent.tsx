@@ -7,14 +7,10 @@ import { PERMISSIONS } from "../../../../constants/permissions";
 import { useParams } from "react-router-dom";
 import RoleCard from "./Roles/RoleCard";
 import UnsavedChangesBar from "../../../common/UnsavedChangesBar";
-import DeleteRoleModal from "../../modals/DeleteRoleModal";
+import Modal from "../../../common/modal/Modal";
 import SearchBar from "../../../common/SearchBar";
-
-interface Role {
-    id: string;
-    name: string;
-    permissions: string[];
-}
+import { useCommunityRoles } from "../../../../contexts/communities/useCommunityRoles";
+import { type Role } from "../../../../types/role";
 
 interface RolesContentProps {
     onDeleteModalChange?: (isOpen: boolean) => void;
@@ -29,7 +25,7 @@ export default function RolesContent({ onDeleteModalChange }: RolesContentProps)
     const [error, setError] = useState('');
     const apiUrl = window.GLOBAL_ENV.API_ENDPOINT;
     const { communityId } = useParams();
-    const [roles, setRoles] = useState<Role[]>([]);
+    const { roles, setRoles } = useCommunityRoles();
     const [deletingRole, setDeletingRole] = useState<Role | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
     const filteredRoles = roles.filter(role => role.name.startsWith(searchQuery.toLowerCase()))
@@ -177,28 +173,6 @@ export default function RolesContent({ onDeleteModalChange }: RolesContentProps)
         checkForChanges(newName, selectedPermissions);
     };
 
-    useEffect(() => {
-        const handleFetchRoles = async () => {
-            const token = localStorage.getItem("token");
-            if (!token) return;
-            try {
-                const response = await fetch(
-                    `${apiUrl}/api/community/${communityId}/roles`,
-                    {
-                        headers: { Authorization: `Bearer ${token}` },
-                    }
-                );
-                if (response.ok) {
-                    const data = await response.json();
-                    setRoles(data.roles);
-                }
-            } catch (error) {
-                console.log("failed to fetch roles: ", error);
-            }
-        };
-        handleFetchRoles();
-    }, [communityId]);
-
     const createRoleContent = (
         <div className="px-6 flex flex-col gap-2 w-full">
             <div className="flex gap-2">
@@ -342,16 +316,7 @@ export default function RolesContent({ onDeleteModalChange }: RolesContentProps)
     return (
         <div className="flex gap-2 justify-start items-start">
             {isCreateRole ? createRoleContent : defaultContent}
-            <DeleteRoleModal
-                isOpen={!!deletingRole}
-                onClose={() => setDeletingRole(null)}
-                roleId={deletingRole?.id}
-                roleName={deletingRole?.name}
-                onDeleted={(id) => {
-                    setRoles(prev => prev.filter(r => r.id !== id));
-                    setDeletingRole(null);
-                }}
-            />
+            <Modal isOpen={!!deletingRole} onClose={() => setDeletingRole(null)} type="deleteRole" role={deletingRole ?? undefined} />
         </div>
     );
 }

@@ -1,5 +1,5 @@
 import { useLocation } from 'react-router-dom';
-import CreateCommunityModal from "./modals/CreateCommunityModal";
+import Modal from '../common/modal/Modal';
 import { useState } from 'react';
 import CommunityProfile from './CommunityProfile';
 
@@ -90,10 +90,7 @@ export default function CommunityButton({
                     </svg>
                 </button>
 
-                <CreateCommunityModal
-                    isOpen={createModalIsOpen}
-                    onClose={() => setCreateModalIsOpen(false)}
-                />
+                <Modal isOpen={createModalIsOpen} onClose={() => setCreateModalIsOpen(false)} type="addCommunity" />
             </>
         );
     }

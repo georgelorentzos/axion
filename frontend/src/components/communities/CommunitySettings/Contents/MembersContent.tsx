@@ -1,8 +1,8 @@
 import UserCard from "../../../common/UserCard";
 import SearchBar from "../../../common/SearchBar";
-import { useCommunityMembers } from "../../../../contexts/useCommunityMembers";
+import { useCommunityMembers } from "../../../../contexts/communities/useCommunityMembers";
 import { useState } from "react";
-import { useCommunity } from "../../../../hooks/useCommunity";
+import { useCommunity } from "../../../../hooks/communities/useCommunity";
 import { useCurrentUser } from "../../../../contexts/useCurrentUser";
 
 export default function MembersContent() {

@@ -3,47 +3,36 @@ import Input from "../../../common/Input";
 import CommunityPreview from "../../CommunityPreview";
 import Button from "../../../common/Button";
 import UnsavedChangesBar from "../../../common/UnsavedChangesBar";
-import { useCommunities } from "../../../../contexts/useCommunities";
+import { useCommunities } from "../../../../contexts/communities/useCommunities";
 import { useNavigate, useLocation } from "react-router-dom";
-
-type CommunityData = {
-    communityId: string;
-    communityName: string;
-    communityImage: string;
-    communityOnlineMembers: string;
-    communityTotalMembers: string;
-    communityCreatedAt: string;
-    communityOwnerId: string;
-}
+import { useCommunityMembers } from "../../../../contexts/communities/useCommunityMembers";
+import { type Community } from "../../../../types/community";
 
 type ProfileContentProps = {
-    communityData?: CommunityData;
-    onCommunityUpdate: (data: CommunityData) => void;
+    community?: Community;
+    onCommunityUpdate: (data: Community) => void;
 }
 
-export default function ProfileContent({ communityData, onCommunityUpdate }: ProfileContentProps) {
+export default function ProfileContent({ community, onCommunityUpdate }: ProfileContentProps) {
     const apiUrl = window.GLOBAL_ENV.API_ENDPOINT;
     const navigate = useNavigate();
     const location = useLocation();
-
-    const [name, setName] = useState(communityData?.communityName || null);
+    const [name, setName] = useState(community?.name || null);
     const [communityImage, setCommunityImage] = useState<string | null>(
-        communityData?.communityImage ? communityData.communityImage : null
+        community?.image ? community.image : null
     );
     const [communityImageFile, setCommunityImageFile] = useState<File | null>(null);
     const [imageChanged, setImageChanged] = useState(false);
     const [unsavedChangesBarIsVisible, setUnsavedChangesBarIsVisible] = useState(false);
-
     const { updateCommunity } = useCommunities();
+    const { communityMembers, onlineMembers } = useCommunityMembers();
 
     const handleFileUpload = () => {
         const input = document.createElement("input");
         input.type = "file";
         input.accept = "image/*";
         input.className = "hidden";
-
         input.click();
-
         input.addEventListener("change", () => {
             const file = input.files?.[0] || null;
             if (file) {
@@ -57,7 +46,7 @@ export default function ProfileContent({ communityData, onCommunityUpdate }: Pro
 
     const handleNewName = (e: React.ChangeEvent<HTMLInputElement>) => {
         setName(e.target.value);
-        const nameChanged = e.target.value !== communityData?.communityName;
+        const nameChanged = e.target.value !== community?.name;
         setUnsavedChangesBarIsVisible(nameChanged || imageChanged);
     };
 
@@ -65,8 +54,8 @@ export default function ProfileContent({ communityData, onCommunityUpdate }: Pro
         setUnsavedChangesBarIsVisible(false);
         setImageChanged(false);
         setCommunityImageFile(null);
-        setCommunityImage(communityData?.communityImage ? communityData.communityImage : null);
-        setName(communityData?.communityName || null);
+        setCommunityImage(community?.image ? community.image : null);
+        setName(community?.name || null);
     };
 
     const handleSave = async () => {
@@ -79,11 +68,11 @@ export default function ProfileContent({ communityData, onCommunityUpdate }: Pro
 
             if (communityImageFile) {
                 formData.append("community_image", communityImageFile);
-            } else if (communityImage === null && communityData?.communityImage) {
+            } else if (communityImage === null && community?.image) {
                 formData.append("remove_image", "true");
             }
 
-            const response = await fetch(`${apiUrl}/api/community/${communityData?.communityId}`, {
+            const response = await fetch(`${apiUrl}/api/community/${community?.id}`, {
                 method: "PATCH",
                 headers: {
                     "Authorization": `Bearer ${token}`
@@ -97,14 +86,14 @@ export default function ProfileContent({ communityData, onCommunityUpdate }: Pro
                 setCommunityImageFile(null);
                 setImageChanged(false);
 
-                const updatedData = {
-                    communityId: data.community_id,
-                    communityName: data.community_name,
-                    communityImage: data.community_image,
-                    communityOnlineMembers: data.community_online_members,
-                    communityTotalMembers: data.community_total_members,
-                    communityCreatedAt: data.community_created_at,
-                    communityOwnerId: data.community_owner_id,
+                const updatedData: Community = {
+                    id: data.community_id,
+                    name: data.community_name,
+                    image: data.community_image,
+                    onlineMembers: data.community_online_members,
+                    totalMembers: data.community_total_members,
+                    createdAt: data.community_created_at,
+                    ownerId: data.community_owner_id,
                 };
 
                 if (data.community_image) {
@@ -117,14 +106,14 @@ export default function ProfileContent({ communityData, onCommunityUpdate }: Pro
                 navigate(location.pathname, {
                     replace: true,
                     state: {
-                        communityData: {
-                            ...location.state?.communityData,
-                            communityId: data.community_id,
-                            communityName: data.community_name,
-                            communityImage: data.community_image,
-                            community_online_members: data.community_online_members,
-                            community_total_members: data.community_total_members,
-                            community_created_at: data.community_created_at,
+                        community: {
+                            ...location.state?.community,
+                            id: data.community_id,
+                            name: data.community_name,
+                            image: data.community_image,
+                            onlineMembers: data.community_online_members,
+                            totalMembers: data.community_total_members,
+                            createdAt: data.community_created_at,
                         }
                     }
                 });
@@ -162,21 +151,22 @@ export default function ProfileContent({ communityData, onCommunityUpdate }: Pro
                 </div>
                 <div className="max-w-[350px] flex gap-2">
                     <div className="max-w-[170.48px] w-full">
-                    <Button text="Change Icon" isGreen onClick={handleFileUpload} />
+                        <Button text="Change Icon" isGreen onClick={handleFileUpload} />
                     </div>
-                    {(communityData?.communityImage || communityImage) && (
+                    {(community?.image || communityImage) && (
                         <Button text="Remove Icon" onClick={handleRemoveIcon} />
                     )}
                 </div>
             </div>
             <div className="pr-6">
-                <CommunityPreview communityData={{
-                    communityId: communityData?.communityId || "",
-                    communityName: name || "",
-                    communityImage: communityImage ?? "",
-                    communityOnlineMembers: communityData?.communityOnlineMembers || "",
-                    communityTotalMembers: communityData?.communityTotalMembers || "",
-                    communityCreatedAt: communityData?.communityCreatedAt || "",
+                <CommunityPreview community={{
+                    id: community?.id || "",
+                    name: name || "",
+                    image: communityImage ?? "",
+                    onlineMembers: String(onlineMembers.length),
+                    totalMembers: String(communityMembers.length),
+                    createdAt: community?.createdAt || "",
+                    ownerId: community?.ownerId || "",
                 }} skipFetch />
             </div>
             <UnsavedChangesBar isVisible={unsavedChangesBarIsVisible} onReset={handleReset} onSave={handleSave} />

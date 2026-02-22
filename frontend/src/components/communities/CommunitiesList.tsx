@@ -1,6 +1,6 @@
 import CommunityButton from "./CommunityButton";
 import { useNavigate } from "react-router-dom";
-import { useCommunities } from "../../contexts/useCommunities";
+import { useCommunities } from "../../contexts/communities/useCommunities";
 
 export default function CommunitiesList() {
     const navigate = useNavigate();
@@ -12,28 +12,28 @@ export default function CommunitiesList() {
                 <CommunityButton onClick={() => navigate('/')} isHome /> 
             </div>
 
-            {communities?.map(community => (
+            {communities?.map(c => (
                 <CommunityButton
                     onClick={() => {
-                        const communityData = {
-                            communityId: community.community_id,
-                            communityName: community.community_name,
-                            communityImage: community.community_image,
-                            communityOnlineMembers: community.community_online_members,
-                            communityTotalMembers: community.community_total_members,
-                            communityCreatedAt: community.community_created_at,
-                            communityOwnerId: community.community_owner_id,
+                        const community = {
+                            id: c.community_id,
+                            name: c.community_name,
+                            image: c.community_image,
+                            onlineMembers: c.community_online_members,
+                            totalMembers: c.community_total_members,
+                            createdAt: c.community_created_at,
+                            ownerId: c.community_owner_id,
                         }
-                        navigate(`/community/${community.community_id}`, { 
-                            state: { communityData },
+                        navigate(`/community/${c.community_id}`, { 
+                            state: { community },
                             replace: true 
                         })
                     }} 
-                    key={community.community_id}
+                    key={c.community_id}
                     isCommunity
-                    communityId={community.community_id}
-                    communityImage={community.community_image}
-                    communityName={community.community_name}
+                    communityId={c.community_id}
+                    communityImage={c.community_image}
+                    communityName={c.community_name}
                 />
             ))}
   

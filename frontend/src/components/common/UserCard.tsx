@@ -4,7 +4,7 @@ import ActionMenu from "./ActionMenu/ActionMenu";
 import ActionMenuButton from "./ActionMenu/ActionMenuButton";
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
-import { useCommunityMembers } from "../../contexts/useCommunityMembers";
+import { useCommunityMembers } from "../../contexts/communities/useCommunityMembers";
 
 type UserCardProps = {
   id?: string;
@@ -26,7 +26,7 @@ type UserCardProps = {
 
   onReject?: (id: string) => void;
   onAccept?: (id: string) => void;
-  onInvite?: () => Promise<void>;
+  onInvite?: () => void;
 
   showLatestMessage?: boolean;
   latestMessage?: string;

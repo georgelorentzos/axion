@@ -1,4 +1,4 @@
-import { useCommunityMembers as CommunityMembers } from "../hooks/useCommunityMembers";
+import { useCommunityMembers as CommunityMembers } from "../../hooks/communities/useCommunityMembers";
 import React, { createContext, useContext } from "react";
 
 type CommunitiesMembersProviderProps = {

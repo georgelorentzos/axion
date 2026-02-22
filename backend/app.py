@@ -1168,7 +1168,7 @@ def fetch_community(request: Request, community_id: str, db: Session = Depends(g
 
 @app.patch("/api/community/{community_id}/join", response_model=Dict[str, Any])
 @limiter.limit("120/minute")
-def join_community(request: Request, 
+async def join_community(request: Request, 
                    community_id: str, 
                    current_user_id: str = Depends(get_user_id_from_token),
                    db: Session = Depends(get_db
@@ -1194,12 +1194,28 @@ def join_community(request: Request,
         }
     
     try:
+        members_to_notify = db.query(CommunityMember).filter(
+            CommunityMember.community_id == community.id,
+            CommunityMember.user_id != user.id,
+        ).all()
         new_community_member = CommunityMember(
             user_id=user.id,
             community_id=community.id,
         )
         db.add(new_community_member)
         db.commit()
+        await asyncio.gather(*{
+            manager.broadcast_to_user(member.user_id, {
+                "type": "user_joined",
+                "member_id": user.id,
+                "member_name": user.username,
+                "member_profile_image": user.profile_image,
+                "member_is_online": user.is_online,
+                "member_joined_at": new_community_member.joined_at.strftime("%d/%m/%Y"),
+                "member_created_at": user.created_at.year,
+            })
+            for member in members_to_notify
+        })
         return { 
             "success": True,
             "status": "joined"
@@ -1211,7 +1227,7 @@ def join_community(request: Request,
 
 @app.delete("/api/community/{community_id}/leave", response_model=Dict[str, Any])
 @limiter.limit("120/minute")
-def leave_community(request: Request, 
+async def leave_community(request: Request, 
                     community_id: str, 
                     current_user_id: str = Depends(get_user_id_from_token),
                     db: Session = Depends(get_db
@@ -1238,6 +1254,17 @@ def leave_community(request: Request,
     try:
         db.delete(community_member)
         db.commit()
+        members_to_notify = db.query(CommunityMember).filter(
+            CommunityMember.community_id == community.id,
+            CommunityMember.user_id != user.id,
+        ).all()
+        await asyncio.gather(*{
+            manager.broadcast_to_user(member.user_id, {
+                "type": "user_left",
+                "member_id": user.id,
+            })
+            for member in members_to_notify
+        })
         return {
             "success": True,
             "status": "left"

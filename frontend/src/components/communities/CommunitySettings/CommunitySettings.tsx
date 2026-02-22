@@ -4,28 +4,19 @@ import SettingsItem from "../CommunitySettings/SettingsItem";
 import ProfileContent from "../CommunitySettings/Contents/ProfileContent";
 import RolesContent from "../CommunitySettings/Contents/RolesContent";
 import MembersContent from "../CommunitySettings/Contents/MembersContent";
-import ModalCloseButton from "../../common/modals/ModalCloseButton";
-import DeleteCommunityModal from "../modals/DeleteCommunityModal";
-
-type CommunityData = {
-    communityId: string;
-    communityName: string;
-    communityImage: string;
-    communityOnlineMembers: string;
-    communityTotalMembers: string;
-    communityCreatedAt: string;
-    communityOwnerId: string;
-}
+import ModalCloseButton from "../../common/modal/ModalCloseButton";
+import Modal from "../../common/modal/Modal";
+import { type Community } from "../../../types/community";
 
 type CommunitySettingsModalProps = {
     isOpen: boolean;
     onClose: () => void;
-    communityData?: CommunityData;
-    onCommunityUpdate: (data: CommunityData) => void;
+    community?: Community;
+    onCommunityUpdate: (data: Community) => void;
 }
 
 export default function CommunitySettingsModal(
-    { isOpen, onClose, communityData, onCommunityUpdate }: CommunitySettingsModalProps
+    { isOpen, onClose, community, onCommunityUpdate }: CommunitySettingsModalProps
 ) {
     const [isVisible, setIsVisible] = useState(false);
     const [showFade, setShowFade] = useState(false);
@@ -52,7 +43,7 @@ export default function CommunitySettingsModal(
     const renderContent = () => {
         switch (selectedTab) {
             case "Profile":
-                return <ProfileContent communityData={communityData} onCommunityUpdate={onCommunityUpdate} />;
+                return <ProfileContent community={community} onCommunityUpdate={onCommunityUpdate} />;
             case "Roles":
                 return <RolesContent onDeleteModalChange={setIsDeleteRoleModal} />;
             case "Members":
@@ -77,6 +68,10 @@ export default function CommunitySettingsModal(
                     <SettingsSection title="PEOPLE">
                         <SettingsItem text="Roles" onClick={() => setSelectedTab("Roles")} isSelected={selectedTab === "Roles"} />
                         <SettingsItem text="Members" onClick={() => setSelectedTab("Members")} isSelected={selectedTab === "Members"} />
+                    </SettingsSection>
+
+                    <SettingsSection title="MODERATION">
+                        <SettingsItem text="Logs" onClick={() => setSelectedTab("Logs")} isSelected={selectedTab === "Logs"} />
                         <SettingsItem text="Bans" onClick={() => setSelectedTab("Bans")} isSelected={selectedTab === "Bans"} />
                     </SettingsSection>
                         
@@ -92,7 +87,7 @@ export default function CommunitySettingsModal(
                 <ModalCloseButton onClose={isDeleteCommunityModal || isDeleteRoleModal ? () => {} : onClose} top="top-4" right="right-4" />
             </div>
 
-            <DeleteCommunityModal isOpen={isDeleteCommunityModal} onClose={() => setIsDeleteCommunityModal(false)} communityData={communityData} />
+            <Modal isOpen={isDeleteCommunityModal} onClose={() => setIsDeleteCommunityModal(false)} type="deleteCommunity" community={community} />
 
         </div>
     );

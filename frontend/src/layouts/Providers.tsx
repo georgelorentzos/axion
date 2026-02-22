@@ -3,9 +3,10 @@ import { OnlineFriendsProvider } from "../contexts/useOnlineFriends";
 import { AllFriendsProvider } from '../contexts/useAllFriends';
 import { PendingProvider } from '../contexts/usePending';
 import { DirectMessagesProvider } from '../contexts/useDirectMessages';
-import { CommunitiesProvider } from '../contexts/useCommunities';
-import { CommunitiesMembersProvider } from '../contexts/useCommunityMembers';
-import { CommunityProvider } from '../contexts/useCommunity';
+import { CommunitiesProvider } from '../contexts/communities/useCommunities';
+import { CommunitiesMembersProvider } from '../contexts/communities/useCommunityMembers';
+import { CommunityProvider } from '../contexts/communities/useCommunity';
+import { CommunityRolesProvider } from '../contexts/communities/useCommunityRoles';
 
 export const MainWithProviders = ({ children }: { children: React.ReactNode }) => (
   <UserProvider>
@@ -16,7 +17,9 @@ export const MainWithProviders = ({ children }: { children: React.ReactNode }) =
             <CommunitiesProvider>
               <CommunitiesMembersProvider>
                 <CommunityProvider>
-                  {children}
+                  <CommunityRolesProvider>
+                    { children }
+                  </CommunityRolesProvider>
                 </CommunityProvider>
               </CommunitiesMembersProvider>
             </CommunitiesProvider>

@@ -6,12 +6,9 @@ type ImageProfileProps = {
     width?: string;
     height?: string;
     showStatus?: boolean;
-    noLoadingAnimation?: boolean;
 };
 
-export default function ImageProfile({ src, online, width , height, showStatus=true, noLoadingAnimation }: ImageProfileProps) {
-    const [loaded, setLoaded] = useState(noLoadingAnimation ? noLoadingAnimation : false);
-
+export default function ImageProfile({ src, online, width , height, showStatus=true }: ImageProfileProps) {
     return (
         <div className={`relative ${width ? `w-[${width}px]` : "w-[40px]"} ${height ? `h-[${height}px]` : "h-[40px]"} `}>
             <img
@@ -20,9 +17,8 @@ export default function ImageProfile({ src, online, width , height, showStatus=t
                 fetchPriority="high"
                 src={src}
                 alt=""
-                className={`w-full h-full object-contain border border-outline rounded-full transition-opacity duration-300 ${loaded ? "blur-0 opacity-100" : "blur-sm opacity-0"} `}
+                className={`w-full h-full object-contain border border-outline rounded-full transition-opacity duration-300 opacity-100`}
                 draggable="false"
-                onLoad={() => setLoaded(true)}
             />
 
             {showStatus && (
