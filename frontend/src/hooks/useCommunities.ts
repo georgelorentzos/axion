@@ -7,6 +7,7 @@ interface Community {
     community_online_members: string;
     community_total_members: string;
     community_created_at: string;
+    community_owner_id: string;
 }
 
 export function useCommunities() {
@@ -64,6 +65,9 @@ export function useCommunities() {
                 setCommunities(prev => prev?.map(c =>
                     c.community_id === data.community_id ? { ...c, community_name: data.community_name, community_image: data.community_image } : c
                 ) || null);
+            }
+            if (data.type === "member_kicked") {
+                setCommunities(prev => prev?.filter(c => c.community_id !== data.community_id) || null);
             }
         }
         const ws = window._ws?.ws;

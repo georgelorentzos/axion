@@ -13,6 +13,7 @@ type CommunityData = {
     communityOnlineMembers: string;
     communityTotalMembers: string;
     communityCreatedAt: string;
+    communityOwnerId: string;
 }
 
 type ProfileContentProps = {
@@ -103,6 +104,7 @@ export default function ProfileContent({ communityData, onCommunityUpdate }: Pro
                     communityOnlineMembers: data.community_online_members,
                     communityTotalMembers: data.community_total_members,
                     communityCreatedAt: data.community_created_at,
+                    communityOwnerId: data.community_owner_id,
                 };
 
                 if (data.community_image) {

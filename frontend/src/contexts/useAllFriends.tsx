@@ -3,7 +3,7 @@ import { useAllFriends as AllFriends } from "../hooks/useAllFriends";
 
 type AllFriendsProviderProps = {
     children: React.ReactNode;
-}
+};
 
 const AllFriendsContext = createContext<ReturnType<typeof AllFriends> | null>(null);
 

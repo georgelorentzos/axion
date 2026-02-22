@@ -3,7 +3,8 @@ import { useCurrentUser } from '../../contexts/useCurrentUser';
 import ActionMenu from "./ActionMenu/ActionMenu";
 import ActionMenuButton from "./ActionMenu/ActionMenuButton";
 import React, { useState, useEffect, useRef } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, useParams } from "react-router-dom";
+import { useCommunityMembers } from "../../contexts/useCommunityMembers";
 
 type UserCardProps = {
   id?: string;
@@ -67,9 +68,10 @@ export default function UserCard({
   const buttonRef = useRef<HTMLButtonElement | null>(null);
   const location = useLocation();
   const isSelected = location.pathname === `/chat/${id}`;
-
+  const { communityId } = useParams();
   const isThisPending =
     id !== undefined && pendingIds.includes(id);
+  const { setCommunityMembers } = useCommunityMembers();
 
   useEffect(() => {
     const fetchPendingRequests = async () => {
@@ -283,6 +285,23 @@ export default function UserCard({
     }
   }
 
+  const handleKick = async () => {
+    if (!id) return;
+    if (!token) return;
+    if (!communityId) return;
+    try{
+      const response = await fetch(`${apiUrl}/api/community/${communityId}/members/${id}/kick`, {
+        method: "DELETE",
+        headers: {"Authorization": `Bearer ${token}`}
+      });
+      if (response.ok) {
+        setCommunityMembers(prev => prev.filter(m => m.id !== id));
+      }
+    } catch (error) {
+      console.log(`error kicking ${username}: `, error)
+    }
+  };
+
   useEffect(() => {
     const handleMessage = (e: MessageEvent) => {
       try{
@@ -400,6 +419,7 @@ export default function UserCard({
               svgPaths={["M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l-3 3m0 0 3 3m-3-3h12.75"]}
               isDanger
               isVisible={!!actions.admin}
+              onClick={handleKick}
             />
             <ActionMenuButton
               text={`Ban ${username}`}

@@ -3,7 +3,7 @@ import { useCurrentUser as CurrentUser } from '../hooks/useCurrentUser';
 
 type UserProviderProps = {
     children: React.ReactNode;
-}
+};
 
 const UserContext = createContext<ReturnType<typeof CurrentUser> | null>(null);
 

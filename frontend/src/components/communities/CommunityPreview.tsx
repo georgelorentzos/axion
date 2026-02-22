@@ -27,6 +27,7 @@ interface Community {
     communityOnlineMembers: string;
     communityTotalMembers: string;
     communityCreatedAt: string;
+    communityOwnerId: string;
 }
 
 export default function CommunityPreview({ joinBtn, communityData, skipFetch }: CommunityPreviewProps) {
@@ -37,6 +38,18 @@ export default function CommunityPreview({ joinBtn, communityData, skipFetch }: 
     const navigate = useNavigate();
     const { setCommunities } = useCommunities();
     const { communityId } = useParams();
+
+    const id = communityData?.communityId || community?.communityId;
+    const name = communityData?.communityName || community?.communityName;
+    const image = skipFetch ? communityData?.communityImage : (communityData?.communityImage || community?.communityImage);
+    const onlineMembers = communityData?.communityOnlineMembers || community?.communityOnlineMembers;
+    const totalMembers = communityData?.communityTotalMembers || community?.communityTotalMembers;
+    const createdAt = communityData?.communityCreatedAt || community?.communityCreatedAt;
+
+    const getImageSrc = (image: string) => {
+        if (image.startsWith("blob:") || image.startsWith("http")) return image;
+        return apiUrl + image;
+    };
 
     const joinCommunity = async (communityId: string) => {
         const token = localStorage.getItem("token");
@@ -51,13 +64,13 @@ export default function CommunityPreview({ joinBtn, communityData, skipFetch }: 
                 return;
             }
             if (response.ok) {
-                const communityData = {
+                const navData = {
                     communityId: communityId,
-                    communityName: community?.communityName || name,
-                    communityImage: community?.communityImage || image,
-                    communityOnlineMembers: community?.communityOnlineMembers || onlineMembers,
-                    communityTotalMembers: community?.communityTotalMembers || totalMembers,
-                    communityCreatedAt: community?.communityCreatedAt || createdAt
+                    communityName: name || "",
+                    communityImage: image || "",
+                    communityOnlineMembers: onlineMembers || "0",
+                    communityTotalMembers: totalMembers || "0",
+                    communityCreatedAt: createdAt || ""
                 }
 
                 setCommunities(prev => {
@@ -67,17 +80,18 @@ export default function CommunityPreview({ joinBtn, communityData, skipFetch }: 
                     return [
                         ...(prev || []),
                         {
-                            community_id: communityId,
-                            community_name: community?.communityName || name || "",
-                            community_image: community?.communityImage || image || "",
-                            community_online_members: community?.communityOnlineMembers || onlineMembers || "0",
-                            community_total_members: community?.communityTotalMembers || totalMembers || "0",
-                            community_created_at: community?.communityCreatedAt || createdAt || "",
+                            community_id: communityId || "",
+                            community_name: name || "",
+                            community_image: image || "",
+                            community_online_members: onlineMembers || "0",
+                            community_total_members: totalMembers || "0",
+                            community_created_at: createdAt || "",
+                            community_owner_id: community?.communityOwnerId || "",
                         },
                     ];
                 });
 
-                navigate(`/community/${communityId}`, { state: { communityData } });
+                navigate(`/community/${communityId}`, { state: { communityData: navData } });
             }
         } catch (error) {
             console.error("Join community error:", error);
@@ -89,15 +103,15 @@ export default function CommunityPreview({ joinBtn, communityData, skipFetch }: 
             setLoading(false);
             return;
         }
-        const id = communityData?.communityId || communityId;
-        if (!id) {
+        const fetchId = communityData?.communityId || communityId;
+        if (!fetchId) {
             setDoesNotExist(true);
             setLoading(false);
             return;
         }
         const fetchCommunity = async () => {
             try {
-                const response = await fetch(`${apiUrl}/api/community/${id}`);
+                const response = await fetch(`${apiUrl}/api/community/${fetchId}`);
                 if (!response.ok) {
                     setDoesNotExist(true);
                     return;
@@ -114,6 +128,7 @@ export default function CommunityPreview({ joinBtn, communityData, skipFetch }: 
                     communityOnlineMembers: data.community_online_members,
                     communityTotalMembers: data.community_total_members,
                     communityCreatedAt: data.community_created_at,
+                    communityOwnerId: data.community_owner_id,
                 });
             } catch (error) {
                 setDoesNotExist(true);
@@ -140,18 +155,6 @@ export default function CommunityPreview({ joinBtn, communityData, skipFetch }: 
             </div>
         );
     }
-
-    const id = communityData?.communityId || community?.communityId;
-    const name = communityData?.communityName || community?.communityName;
-    const image = skipFetch ? communityData?.communityImage : (communityData?.communityImage || community?.communityImage);
-    const onlineMembers = communityData?.communityOnlineMembers || community?.communityOnlineMembers;
-    const totalMembers = communityData?.communityTotalMembers || community?.communityTotalMembers;
-    const createdAt = communityData?.communityCreatedAt || community?.communityCreatedAt;
-
-    const getImageSrc = (image: string) => {
-        if (image.startsWith("blob:") || image.startsWith("http")) return image;
-        return apiUrl + image;
-    };
 
     return (
         <div className="bg-onyx border border-outline flex gap-2 flex-col justify-center items-start rounded-2xl w-[300px] p-4">

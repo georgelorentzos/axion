@@ -4,19 +4,21 @@ import React, { useState, useRef, useEffect } from "react";
 import ChannelListModal from "./modals/ChannelListModal";
 import CommunitySettingsModal from "./CommunitySettings/CommunitySettings";
 import CommunityInviteModal from "./modals/CommunityInviteModal";
-import { useCommunities } from "../../contexts/useCommunities";
 import { useNavigate } from "react-router-dom";
 import { useCurrentUser } from "../../contexts/useCurrentUser";
 import ActionMenu from "../common/ActionMenu/ActionMenu";
 import ActionMenuButton from "../common/ActionMenu/ActionMenuButton";
+import { useCommunities } from "../../contexts/useCommunities";
+import { useCommunity } from "../../contexts/useCommunity";
 
-type CommunityData = {
+type Community = {
   communityId: string;
   communityName: string;
   communityImage: string;
   communityOnlineMembers: string;
   communityTotalMembers: string;
   communityCreatedAt: string;
+  communityOwnerId: string;
 };
 
 interface LocationState {
@@ -27,6 +29,7 @@ interface LocationState {
     communityOnlineMembers: string;
     communityTotalMembers: string;
     communityCreatedAt: string;
+    communityOwnerId: string;
   };
 }
 
@@ -40,40 +43,16 @@ type ModalMode = "channel" | "category" | null;
 export default function ChannelList() {
   const location = useLocation();
   const { communityId } = useParams();
-  const [communityData, setCommunityData] = useState<CommunityData | undefined>(undefined);
   const { communities, setCommunities ,loading } = useCommunities();
+  const { community, setCommunity } = useCommunity();
   const navigate = useNavigate();
   const { currentUser } = useCurrentUser();
-  const token = localStorage.getItem("token");
   const apiUrl = window.GLOBAL_ENV.API_ENDPOINT;
   const [isOwner, setIsOwner] = useState(false);
 
   useEffect(() => {
-    if (!token) return;
-    const fetchCommunityData = async () => {
-      try {
-        const response = await fetch(`${apiUrl}/api/community/${communityId}`, {
-          headers: {"Authorization": `Bearer ${token}`}
-        });
-        const data = await response.json();
-        console.log("owner_id:", data.community_owner_id, "user_id:", currentUser?.user_id);
-        setIsOwner(data.community_owner_id === currentUser?.user_id);
-        setCommunityData(
-          {
-            communityId: data.community_id,
-            communityName: data.community_name,
-            communityImage: data.community_image,
-            communityOnlineMembers: data.community_online_members,
-            communityTotalMembers: data.community_total_members,
-            communityCreatedAt: data.community_created_at,
-          }
-        );
-      } catch (error) {
-        console.log("failed fetching community data: ", error);
-      }
-    };
-    fetchCommunityData();
-  }, [communityId, currentUser])
+      setIsOwner(community?.communityOwnerId === currentUser?.user_id);
+  }, [community, currentUser]);
 
   useEffect(() => {
     if (loading) return;
@@ -88,7 +67,7 @@ export default function ChannelList() {
   useEffect(() => {
     const state = location.state as LocationState;
     if (state?.communityData) {
-      setCommunityData(state.communityData);
+      setCommunity(state.communityData);
     }
   }, [location.state, communityId]);
 
@@ -138,21 +117,21 @@ export default function ChannelList() {
     }
   };
 
-  const handleCommunityUpdate = (updatedData: CommunityData) => {
-    setCommunityData(updatedData); 
+  const handleCommunityUpdate = (updatedData: Community) => {
+    setCommunity(updatedData);
   };
 
   const handleCommunityLeave = async () => {
     const token = localStorage.getItem("token");
     if (!token) return;
     try {
-      const response = await fetch(`${apiUrl}/api/community/${communityData?.communityId}/leave`, {
+      const response = await fetch(`${apiUrl}/api/community/${community?.communityId}/leave`, {
         method: "DELETE",
         headers: {"Authorization" : `Bearer ${token}`}
       });
       if (response.ok) {
         navigate("/");
-        setCommunities(prev => prev?.filter(c => c.community_id !== communityData?.communityId) || null);
+        setCommunities(prev => prev?.filter(c => c.community_id !== community?.communityId) || null);
       }
     } catch (error) {
       console.log("error leaving community: ", error)
@@ -161,30 +140,36 @@ export default function ChannelList() {
 
   useEffect(() => {
     const handleMessage = async (event: MessageEvent) => {
-      const data = JSON.parse(event.data);
+      let data;
+      try {
+        data = JSON.parse(event.data);
+      } catch {
+        return;
+      }
       if (data.type === "community_updated") {
-        
-        const communityData = {
+        setCommunity(prev => {
+          if (!prev) return prev;
+          return {
+            ...prev,
             communityId: data.community_id,
             communityName: data.community_name,
             communityImage: data.community_image,
-        }
-        navigate(`/community/${communityId}`, { state: {communityData}, replace: true });
+          };
+        });
       }
     }
-
     const ws = window._ws?.ws;
     if (ws) {
       ws.addEventListener("message", handleMessage);
       return () => ws.removeEventListener("message", handleMessage);
     }
-  }, [])
+  }, [communityId, navigate, setCommunity])
 
   return (
     <div className="w-[370px] h-screen border-r border-outline flex flex-col">
       <audio preload="auto" />
-      <CommunityInviteModal isOpen={isCommunityInviteModalOpen} onClose={() => setIsCommunityInviteModalOpen(false)} communityId={communityData?.communityId} />
-      <CommunitySettingsModal communityData={communityData} onCommunityUpdate={handleCommunityUpdate} isOpen={isCommunitySettingsModalOpen} onClose={() => setIsCommunitySettingsModalOpen(false)} />
+      <CommunityInviteModal isOpen={isCommunityInviteModalOpen} onClose={() => setIsCommunityInviteModalOpen(false)} communityId={community?.communityId} />
+      <CommunitySettingsModal communityData={community} onCommunityUpdate={handleCommunityUpdate} isOpen={isCommunitySettingsModalOpen} onClose={() => setIsCommunitySettingsModalOpen(false)} />
       <div className="w-full h-[60px] border-b border-outline flex items-center justify-between px-6 gap-2 flex-shrink-0">
         <div className="flex gap-2">
           <svg
@@ -201,7 +186,7 @@ export default function ChannelList() {
               d="M5.25 14.25h13.5m-13.5 0a3 3 0 0 1-3-3m3 3a3 3 0 1 0 0 6h13.5a3 3 0 1 0 0-6m-16.5-3a3 3 0 0 1 3-3h13.5a3 3 0 0 1 3 3m-19.5 0a4.5 4.5 0 0 1 .9-2.7L5.737 5.1a3.375 3.375 0 0 1 2.7-1.35h7.126c1.062 0 2.062.5 2.7 1.35l2.587 3.45a4.5 4.5 0 0 1 .9 2.7m0 0a3 3 0 0 1-3 3m0 3h.008v.008h-.008v-.008Zm0-6h.008v.008h-.008v-.008Zm-3 6h.008v.008h-.008v-.008Zm0-6h.008v.008h-.008v-.008Z"
             />
           </svg>
-          <div className="text-gray-100">{communityData?.communityName}</div>
+          <div className="text-gray-100">{community?.communityName}</div>
         </div>
         <div className="flex flex-col relative">
         <button onClick={() => setIsServerOptionsMenuOpen(prev => !prev)} ref={serverOptionsButtonRef}>

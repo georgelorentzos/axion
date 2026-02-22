@@ -3,7 +3,7 @@ import React, { useContext, createContext } from 'react';
 
 type DirectMessagesProviderProps = {
     children: React.ReactNode;
-}
+};
 
 const directMessagesContext = createContext<ReturnType<typeof DirectMessages> | null>(null);
 

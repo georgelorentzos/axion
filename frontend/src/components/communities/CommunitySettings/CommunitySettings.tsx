@@ -14,6 +14,7 @@ type CommunityData = {
     communityOnlineMembers: string;
     communityTotalMembers: string;
     communityCreatedAt: string;
+    communityOwnerId: string;
 }
 
 type CommunitySettingsModalProps = {

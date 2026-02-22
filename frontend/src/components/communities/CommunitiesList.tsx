@@ -22,6 +22,7 @@ export default function CommunitiesList() {
                             communityOnlineMembers: community.community_online_members,
                             communityTotalMembers: community.community_total_members,
                             communityCreatedAt: community.community_created_at,
+                            communityOwnerId: community.community_owner_id,
                         }
                         navigate(`/community/${community.community_id}`, { 
                             state: { communityData },

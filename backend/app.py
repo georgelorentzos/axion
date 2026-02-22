@@ -996,8 +996,11 @@ def create_category(request: Request, req: CategoryRequest, user_id: str = Depen
     if not member:
         raise HTTPException(status_code=403, detail="You are not a member of this community.")
 
-    roles = db.query(CommunityRole).filter(
-        CommunityRole.member_id == member.id
+    roles = db.query(CommunityRole).join(
+        MemberRole, MemberRole.role_id == CommunityRole.id
+    ).filter(
+        CommunityRole.community_id == req.community_id,
+        MemberRole.member_id == member.id
     ).all()
 
     has_permission = any("CREATE_CATEGORY" in role.permissions for role in roles)
@@ -1047,13 +1050,12 @@ async def update_community(
     ).first()
     
     if member:
-        roles = db.query(CommunityRole).filter(
-            CommunityRole.member_id == member.id
+        roles = db.query(CommunityRole).join(
+            MemberRole, MemberRole.role_id == CommunityRole.id
+        ).filter(
+            CommunityRole.community_id == community_id,
+            MemberRole.member_id == member.id
         ).all()
-        has_permissions = any(
-            "MANAGE_COMMUNITY" in role.permissions 
-            for role in roles
-        )
 
     if not is_owner and not has_permissions:
         raise HTTPException(status_code=403, detail="You don't have permission to make changes")
@@ -1122,7 +1124,8 @@ async def update_community(
             "success": True,
             "community_id": community.id,
             "community_name": community.community_name,
-            "community_image": community.community_image
+            "community_image": community.community_image,
+            "community_owner_id": community.owner_id,
         }
     except Exception as e:
         db.rollback()
@@ -1541,6 +1544,67 @@ async def delete_role(request: Request,
         return {
             "success": True,
             "role_id": role.id
+        }
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Failed to delete role due to an internal server error.")
+
+@app.delete("/api/community/{community_id}/members/{member_id}/kick", response_model=Dict[str, Any])
+@limiter.limit("120/minute")
+async def kick_member_from_community(request: Request,
+                               community_id: str,
+                               member_id: str,
+                               current_user_id: str = Depends(get_user_id_from_token),
+                               db: Session = Depends(get_db)
+                               ) -> Dict[str, Any]:
+    user = db.query(User).filter(User.id == current_user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found.")
+    
+    user_to_kick = db.query(User).filter(User.id == member_id).first()
+    if not user_to_kick:
+        raise HTTPException(status_code=404, detail="User to kick not found.")
+
+    community = db.query(Community).filter(Community.id == community_id).first()
+    if not community:
+        raise HTTPException(status_code=404, detail="Community not found.")
+
+    community_member = db.query(CommunityMember).filter(CommunityMember.community_id == community_id, CommunityMember.user_id == user.id).first()
+    if not community_member:
+        raise HTTPException(status_code=404, detail="Community member not found.")
+
+    community_member_to_kick = db.query(CommunityMember).filter(CommunityMember.community_id == community_id, CommunityMember.user_id == user_to_kick.id).first()
+    if not community_member_to_kick:
+        raise HTTPException(status_code=404, detail="community member to kick not found.")
+
+    if community.owner_id == user_to_kick.id:
+        raise HTTPException(status_code=404, detail="you cant kick the owner")
+
+    if community.owner_id != user.id:
+        community_member_roles = db.query(CommunityRole).join(
+            MemberRole, MemberRole.role_id == CommunityRole.id
+        ).filter(
+            CommunityRole.community_id == community.id,
+            MemberRole.member_id == community_member.id
+        ).all()
+
+        all_permissions = []
+        for r in community_member_roles:
+            all_permissions.extend(r.permissions)
+        
+        if PERMISSIONS.KICK not in all_permissions and PERMISSIONS.ADMINISTRATOR not in all_permissions:
+            raise HTTPException(status_code=403, detail="You don't have permissions.")
+
+    try:
+        db.query(CommunityMember).filter(CommunityMember.id == community_member_to_kick.id).delete()
+        db.commit()
+        await manager.broadcast_to_user(community_member_to_kick.user_id, {
+            "type": "member_kicked",
+            "community_id": community.id,
+        })
+        return {
+            "success": True,
+            "message": "user kicked successfully"
         }
     except Exception as e:
         db.rollback()

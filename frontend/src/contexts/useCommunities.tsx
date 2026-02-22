@@ -3,7 +3,7 @@ import React, { createContext, useContext } from "react";
 
 type CommunitiesProviderProps = {
     children: React.ReactNode;
-}
+};
 
 const useCommunitiesContext = createContext<ReturnType<typeof Communities> | null>(null);
 
