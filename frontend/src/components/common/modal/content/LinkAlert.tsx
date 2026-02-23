@@ -28,7 +28,7 @@ export default function LinkAlert({ onClose, link }: LinkAlertProps){
                 </div>
             </div>
             
-            <Input value={cachedLink} isLink />
+            <Input value={cachedLink} isLink readOnly />
 
             <div className="flex w-full gap-4">
                 <Button text="Open Link" isGreen onClick={handleConfirm} />
