@@ -291,8 +291,8 @@ export default function UserCard({
 
   return (
     <div
-      onClick={currentUser ? () => {} : handleNavigateToChat}
-      className={` ${currentUser ? "cursor-default" : "cursor-pointer"} transition duration-300 h-[60px] px-4 flex justify-between items-center w-full rounded-lg ${
+      onClick={currentUser?.id === user?.id ? () => {} : handleNavigateToChat}
+      className={` ${currentUser?.id === user?.id ? "cursor-default" : "cursor-pointer"} transition duration-300 h-[60px] px-4 flex justify-between items-center w-full rounded-lg ${
     isSelected
       ? "bg-basalt"
       : "hover:bg-basalt"
