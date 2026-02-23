@@ -5,6 +5,7 @@ import UserCard from "../../UserCard";
 import Input from "../../Input";
 import Button from "../../Button";
 import { useCurrentUser } from "../../../../contexts/useCurrentUser";
+import SearchBar from "../../SearchBar";
 
 export default function InviteFriend() {
   const { allFriends } = useAllFriends();
@@ -14,6 +15,8 @@ export default function InviteFriend() {
   const { currentUser } = useCurrentUser();
   const domainUrl =
     typeof window !== "undefined" ? window.location.origin : "";
+  const [searchQuery, setSearchQuery] = useState("");
+  const filtered = allFriends.filter(friend => friend.username.startsWith(searchQuery.toLowerCase()));
 
   const handleCopy = () => {
     navigator.clipboard.writeText(`${domainUrl}/join/${communityId}`);
@@ -50,16 +53,23 @@ export default function InviteFriend() {
         <div className="text-gray-500">Share this link with others.</div>
       </div>
       {allFriends && allFriends.length > 0 && (
-        <div className="w-full max-h-[200px] h-auto border border-outline rounded-xl overflow-y-auto flex flex-col gap-2 justify-center p-2">
-          {allFriends.map((friend) => (
-            <UserCard
-              user={friend}
-              key={friend.id}
-              actions={{ invite: true }}
-              onInvite={() => handleInvite(friend.id)}
-            />
+        <>
+        <SearchBar onSearch={(value: string) => setSearchQuery(value)} />
+        <div className="w-full max-h-[200px] h-auto border border-outline rounded-xl overflow-y-auto flex flex-col gap-2 p-2">
+          {searchQuery && filtered.length === 0 && (
+            <div className="text-gray-400 text-sm text-center py-5">No results found</div>
+          )}
+          {filtered.map((friend) => (
+            <div key={friend.id} className="min-h-[50px] shrink-0">
+              <UserCard
+                user={friend}
+                actions={{ invite: true }}
+                onInvite={() => handleInvite(friend.id)}
+              />
+            </div>
           ))}
         </div>
+        </>
       )}
       <Input
         isLink
