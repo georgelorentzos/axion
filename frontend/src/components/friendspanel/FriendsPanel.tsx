@@ -3,7 +3,7 @@ import { useState } from 'react'
 import AddFriendContent from './content/AddFriendContent'
 import PendingContent from './content/PendingContent'
 import AllFriendsContent from './content/AllFriendsContent'
-import OnlineFriendsContent from './content/OnlineFriendsConten'
+import OnlineFriendsContent from './content/OnlineFriendsContent'
 export default function FriendsPanel() {
     const [selectedTab, setSelectedTab] = useState('Online');
     const renderContent = () => {

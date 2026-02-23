@@ -8,6 +8,7 @@ export function useCommunityRoles(){
     const apiUrl = window.GLOBAL_ENV.API_ENDPOINT;
 
     useEffect(() => {
+        if (!communityId) return;
         const handleFetchRoles = async () => {
             const token = localStorage.getItem("token");
             if (!token) return;

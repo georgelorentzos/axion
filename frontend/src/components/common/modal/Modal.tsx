@@ -7,8 +7,10 @@ import CreateCategory from "./content/CreateCategory";
 import CreateChannel from "./content/CreateChannel";
 import DeleteRole from "./content/DeleteRole";
 import LinkAlert from "./content/LinkAlert";
+import KickUser from "./content/KickUser";
 import { type Community } from "../../../types/community";
 import { type Role } from "../../../types/role";
+import { type User } from "../../../types/user";
 
 type ModalType =
   | "inviteFriend"
@@ -17,18 +19,20 @@ type ModalType =
   | "createCategory"
   | "createChannel"
   | "deleteRole"
-  | "linkAlert";
+  | "linkAlert"
+  | "kickUser";
 
 type ModalProps = {
     isOpen: boolean;
     onClose: () => void;
     type: ModalType;
     community?: Community;
+    user?: User;
     role?: Role;
     link?: string;
 }
 
-export default function Modal({ isOpen, onClose, type, community, role, link }: ModalProps){
+export default function Modal({ isOpen, onClose, type, community, user, role, link }: ModalProps){
     const [showFade, setShowFade] = useState(false);
     const [isVisible, setIsVisible] = useState(false);
 
@@ -43,6 +47,7 @@ export default function Modal({ isOpen, onClose, type, community, role, link }: 
                 return () => clearTimeout(timer);
             }
     }, [isOpen])
+    
 
     const renderContent = () => {
         switch(type) {
@@ -60,6 +65,8 @@ export default function Modal({ isOpen, onClose, type, community, role, link }: 
                 return <DeleteRole onClose={onClose} role={role} />;
             case "linkAlert":
                 return <LinkAlert onClose={onClose} link={link} />;
+            case "kickUser":
+                return <KickUser user={user} onClose={onClose} />;
             default:
                 return null;
         }

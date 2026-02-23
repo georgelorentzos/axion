@@ -6,25 +6,25 @@ import Modal from "../common/modal/Modal";
 type MessageBubbleProps = {
   isCurrentUser: boolean;
   message: string;
-  sender_username: string;
-  created_at: string;
-  sender_profile_image: string;
+  senderUsername: string;
+  createdAt: string;
+  senderProfileImage: string;
 };
 
 export default function MessageBubble({
   isCurrentUser,
   message,
-  sender_username,
-  created_at,
-  sender_profile_image,
+  senderUsername,
+  createdAt,
+  senderProfileImage,
 }: MessageBubbleProps) {
-  const domainUrl = window.GLOBAL_ENV.PRIMARY_DOMAIN;
-  const isInviteLink = message?.startsWith(`${domainUrl}/join/`);
+  const joinPattern = /\/join\/[\w-]+/;
+  const isInviteLink = joinPattern.test(message);
   const isLink = message?.startsWith("http://") || message?.startsWith("https://");
   const parts = message.split("/join/")[1]?.split("/");
   const communityId = parts?.[0];
   const [linkModal, setLinkModal] = useState({ isOpen: false, link: "" });
-  
+
   const handleLinkClick = (e: React.MouseEvent<HTMLAnchorElement>, url: string) => {
     e.preventDefault();
     setLinkModal({ isOpen: true, link: url });
@@ -38,7 +38,7 @@ export default function MessageBubble({
     totalMembers: "",
     createdAt: "",
     ownerId: "",
-  }
+  };
 
   if (isInviteLink) {
     return (
@@ -48,7 +48,7 @@ export default function MessageBubble({
         }`}
       >
         <div className="flex-shrink-0">
-          <ImageProfile src={sender_profile_image} showStatus={false} />
+          <ImageProfile src={senderProfileImage} showStatus={false} />
         </div>
         <CommunityPreview joinBtn community={communityData} />
       </div>
@@ -63,19 +63,17 @@ export default function MessageBubble({
         }`}
       >
         <div className="flex-shrink-0">
-          <ImageProfile src={sender_profile_image} showStatus={false} />
+          <ImageProfile src={senderProfileImage} showStatus={false} />
         </div>
 
         <div
           className={`relative max-w-[320px] min-w-[120px] px-3 py-2 rounded-2xl ${
-            isCurrentUser
-              ? "bg-forestgreen"
-              : "bg-zinc-800"
+            isCurrentUser ? "bg-forestgreen" : "bg-zinc-800"
           }`}
         >
           {!isCurrentUser && (
             <p className="text-[11px] font-semibold text-emerald-400 mb-0.5">
-              {sender_username}
+              {senderUsername}
             </p>
           )}
           {isLink ? (
@@ -96,12 +94,17 @@ export default function MessageBubble({
               isCurrentUser ? "text-green-300" : "text-zinc-500"
             } text-right`}
           >
-            {created_at}
+            {createdAt}
           </p>
         </div>
       </div>
 
-      <Modal isOpen={linkModal.isOpen} onClose={() => setLinkModal({ isOpen: false, link: "" })} type="linkAlert" link={linkModal.link} />
+      <Modal
+        isOpen={linkModal.isOpen}
+        onClose={() => setLinkModal({ isOpen: false, link: "" })}
+        type="linkAlert"
+        link={linkModal.link}
+      />
     </>
   );
 }

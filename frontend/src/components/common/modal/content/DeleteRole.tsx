@@ -29,7 +29,7 @@ export default function DeleteRole({ onClose, role }: DeleteRoleProps) {
                 headers: { "Authorization": `Bearer ${token}` }
             });
             const data = await response.json();
-            setRoles(prev => prev.filter(r => r.id !== data.role_id));
+            setRoles(prev => prev.filter(r => r.id !== data.id));
             onClose();
         } catch (error) {
             console.log("Error deleting role: ", error)

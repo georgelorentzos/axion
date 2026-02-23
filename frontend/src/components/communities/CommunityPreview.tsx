@@ -59,18 +59,18 @@ export default function CommunityPreview({ joinBtn, community: communityProp, sk
         communityOwnerId: community?.ownerId || "",
       };
       setCommunities((prev) => {
-        const already = prev?.some((c) => c.community_id === id);
+        const already = prev?.some((c) => c.id === id);
         if (already) return prev;
         return [
           ...(prev || []),
           {
-            community_id: id || "",
-            community_name: name || "",
-            community_image: image || "",
-            community_online_members: onlineMembers || "0",
-            community_total_members: totalMembers || "0",
-            community_created_at: createdAt || "",
-            community_owner_id: community?.ownerId || "",
+            id: id || "",
+            name: name || "",
+            image: image || "",
+            onlineMembers: onlineMembers || "0",
+            totalMembers: totalMembers || "0",
+            createdAt: createdAt || "",
+            ownerId: community?.ownerId || "",
           },
         ];
       });
@@ -99,18 +99,18 @@ export default function CommunityPreview({ joinBtn, community: communityProp, sk
           return;
         }
         const data = await response.json();
-        if (!data || !data.community_id) {
+        if (!data || !data.id) {
           setDoesNotExist(true);
           return;
         }
         setFetchedCommunity({
-          id: data.community_id,
-          name: data.community_name,
-          image: data.community_image,
-          onlineMembers: data.community_online_members,
-          totalMembers: data.community_total_members,
-          createdAt: data.community_created_at,
-          ownerId: data.community_owner_id,
+          id: data.id,
+          name: data.name,
+          image: data.image,
+          onlineMembers: data.onlineMembers,
+          totalMembers: data.totalMembers,
+          createdAt: data.createdAt,
+          ownerId: data.ownerId,
         });
       } catch (error) {
         setDoesNotExist(true);

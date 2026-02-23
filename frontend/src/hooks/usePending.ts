@@ -1,15 +1,8 @@
 import { useEffect, useState } from "react";
-
-interface Pending {
-  user_id: string;
-  username: string;
-  profile_image: string;
-  is_online: boolean;
-  created_at: string;
-}
+import { type User } from "../types/user";
 
 export function usePending() {
-  const [pending, setPending] = useState<Pending[]>([]);
+  const [pending, setPending] = useState<User[]>([]);
   const [loading, setIsLoading] = useState(false);
   const apiUrl = window.GLOBAL_ENV.API_ENDPOINT;
   const token = localStorage.getItem('token');
@@ -40,30 +33,30 @@ export function usePending() {
 
         setPending(prev =>
           prev.map(p => {
-            if (p.user_id === (data.user_id || data.requester_id)) {
-              if (data.type === 'pending_online') return { ...p, is_online: true };
-              if (data.type === 'pending_offline') return { ...p, is_online: false };
+            if (p.id === (data.id)) {
+              if (data.type === 'pendingOnline') return { ...p, isOnline: true };
+              if (data.type === 'pendingOffline') return { ...p, isOnline: false };
             }
             return p;
           })
         );
 
-        if (data.type === 'ally_request') {
+        if (data.type === 'allyRequest') {
           setPending(prev => {
-            if (prev.find(p => p.user_id === data.requester_id)) return prev;
+            if (prev.find(p => p.id === data.id)) return prev;
             return [
               {
-                user_id: data.requester_id,
-                username: data.requester_username,
-                profile_image: data.requester_profile_image,
-                is_online: true,
-                created_at: data.created_at
+                id: data.id,
+                username: data.username,
+                image: data.image,
+                isOnline: true,
+                createdAt: data.createdAt
               },
               ...prev
             ];
           });
-        } else if (data.type === 'ally_cancel_request') {
-          setPending(prev => prev.filter(p => p.user_id !== data.requester_id));
+        } else if (data.type === 'allyCancelRequest') {
+          setPending(prev => prev.filter(p => p.id !== data.id));
         }
       } catch (error) {
         console.error('Parse error:', error);

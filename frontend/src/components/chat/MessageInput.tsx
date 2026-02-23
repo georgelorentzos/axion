@@ -23,7 +23,7 @@ export default function MessageInput({ value: propValue, recipient_id }: Message
                     "Content-type": "application/json"
                 },
                 body: JSON.stringify({
-                    sender_id: currentUser?.user_id,
+                    sender_id: currentUser?.id,
                     recipient_id: recipient_id,
                     message: message
                 })

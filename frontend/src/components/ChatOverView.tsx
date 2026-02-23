@@ -1,17 +1,17 @@
 import { useCurrentUser } from '../contexts/useCurrentUser'
 import UserCard from '../components/common/UserCard'
 import SearchBar from '../components/common/SearchBar'
-import { useSearch } from '../hooks/useSearch';
 import { useDirectMessages } from "../contexts/useDirectMessages";
 import { useNavigate } from "react-router-dom";
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import notificationSound from '../assets/sounds/notification.mp3';
 import CurrentUserCard from "./common/CurrentUserCard";
 
 export default function ChatOverView() {
     const { currentUser } = useCurrentUser();
     const { directMessages, setDirectMessages, loading } = useDirectMessages();
-    const { searchQuery, setSearchQuery, filtered } = useSearch(directMessages);
+    const [searchQuery, setSearchQuery] = useState('');
+    const filtered = directMessages.filter(dm => dm.user.username.toLowerCase().startsWith(searchQuery.toLowerCase()));
     const navigate = useNavigate();
     const audioRef = useRef<HTMLAudioElement>(null);
     
@@ -19,51 +19,52 @@ export default function ChatOverView() {
         const handleMessage = (event: MessageEvent) => {
             try {
                 const data = JSON.parse(event.data);
-                if (data.type === 'new_direct_message') {
-                    setDirectMessages(directmessages => {
-                        if (directmessages.find(dm => dm.user_id === data.user_id)) {
-                            return directmessages.map(dm => dm.user_id === data.user_id ? { ...dm, latest_message: data.latest_message } : dm)
+                if (data.type === 'newDirectMessage') {
+                    setDirectMessages(prev => {
+                        const existing = prev.find(dm => dm.user.id === data.id);
+                        if (existing) {
+                            return prev.map(dm => dm.user.id === data.id ? { ...dm, latestMessage: data.latestMessage } : dm);
                         }
                         return [
                             {
-                                user_id: data.user_id,
-                                username: data.username,
-                                profile_image: data.profile_image,
-                                is_online: data.is_online,
-                                latest_message: data.latest_message,
-                                created_at: data.created_at,
+                                user: {
+                                    id: data.id,
+                                    username: data.username,
+                                    image: data.image,
+                                    isOnline: data.isOnline,
+                                    createdAt: data.createdAt,
+                                },
+                                latestMessage: data.latestMessage,
                             },
-                            ...directmessages
+                            ...prev
                         ];
                     });
                 }
 
-                if (data.type == 'conversation_deleted') {
-                    setDirectMessages(directmessages => {
-                        return directmessages.filter(dm => dm.user_id !== data.conversation_id);
-                    });
+                if (data.type === 'conversationDeleted') {
+                    setDirectMessages(prev => prev.filter(dm => dm.user.id !== data.id));
                     navigate('/');
                 }
 
-                if (data.type === 'message_sent') {
-                    if (data.recipient_id === currentUser?.user_id && audioRef.current) {
+                if (data.type === 'messageSent') {
+                    if (data.senderId !== currentUser?.id && audioRef.current) {
                         audioRef.current.src = notificationSound;
                         audioRef.current.play().catch(() => {});
                     }
                 }
 
-                if (data.type === 'user_online') {
-                    setDirectMessages(directmessages => 
-                        directmessages.map(directmessage => 
-                            directmessage.user_id === data.user_id ? { ...directmessage, is_online: true } : directmessage
+                if (data.type === 'userOnline') {
+                    setDirectMessages(prev =>
+                        prev.map(dm =>
+                            dm.user.id === data.id ? { ...dm, user: { ...dm.user, isOnline: true } } : dm
                         )
-                     );
+                    );
                 }
 
-                if (data.type === 'user_offline') {
-                    setDirectMessages(directmessages => 
-                        directmessages.map(directmessage =>
-                            directmessage.user_id === data.user_id ? { ...directmessage, is_online: false } : directmessage
+                if (data.type === 'userOffline') {
+                    setDirectMessages(prev =>
+                        prev.map(dm =>
+                            dm.user.id === data.id ? { ...dm, user: { ...dm.user, isOnline: false } } : dm
                         )
                     );
                 }
@@ -78,7 +79,7 @@ export default function ChatOverView() {
             ws.addEventListener('message', handleMessage);
             return () => ws.removeEventListener('message', handleMessage);
         }
-    }, [currentUser?.user_id]);
+    }, [currentUser?.id]);
 
     return (
         <div className="w-[370px] h-screen border-r border-outline flex flex-col">
@@ -92,7 +93,7 @@ export default function ChatOverView() {
 
             <div className="p-2 flex gap-2 flex-col flex-1">
                 {!loading && directMessages.length >= 1 && (
-                <SearchBar value={searchQuery} onSearch={setSearchQuery} />
+                <SearchBar onSearch={(value: string) => setSearchQuery(value)} />
                 )}
                 {searchQuery && filtered.length === 0 && (
                 <div className='flex-1 flex flex-col justify-center items-center mt-[22px]'>
@@ -104,17 +105,13 @@ export default function ChatOverView() {
                     <div className="text-gray-400 text-sm">No messages yet</div>
                 </div>
                 )}
-                {filtered.map(directmessage => (
+                {filtered.map(dm => (
                     <UserCard 
-                    key={directmessage.user_id}
-                    id={directmessage.user_id}
-                    username={directmessage.username}
-                    image={directmessage.profile_image}
+                    key={dm.user.id}
+                    user={dm.user}
                     actions={{ deleteConversation: true }}
-                    isOnline={directmessage.is_online}
                     showLatestMessage
-                    latestMessage={directmessage.latest_message}
-                    createdAt={directmessage.created_at}
+                    latestMessage={dm.latestMessage}
                     />
                 ))}
             </div>

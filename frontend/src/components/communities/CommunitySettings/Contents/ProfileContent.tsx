@@ -87,17 +87,17 @@ export default function ProfileContent({ community, onCommunityUpdate }: Profile
                 setImageChanged(false);
 
                 const updatedData: Community = {
-                    id: data.community_id,
-                    name: data.community_name,
-                    image: data.community_image,
-                    onlineMembers: data.community_online_members,
-                    totalMembers: data.community_total_members,
-                    createdAt: data.community_created_at,
-                    ownerId: data.community_owner_id,
+                    id: data.id,
+                    name: data.name,
+                    image: data.image,
+                    onlineMembers: data.onlineMembers,
+                    totalMembers: data.totalMembers,
+                    createdAt: data.createdAt,
+                    ownerId: data.ownerId,
                 };
 
-                if (data.community_image) {
-                    setCommunityImage(data.community_image);
+                if (data.image) {
+                    setCommunityImage(data.image);
                 }
 
                 onCommunityUpdate(updatedData);
@@ -108,12 +108,13 @@ export default function ProfileContent({ community, onCommunityUpdate }: Profile
                     state: {
                         community: {
                             ...location.state?.community,
-                            id: data.community_id,
-                            name: data.community_name,
-                            image: data.community_image,
-                            onlineMembers: data.community_online_members,
-                            totalMembers: data.community_total_members,
-                            createdAt: data.community_created_at,
+                            id: data.id,
+                            name: data.name,
+                            image: data.image,
+                            onlineMembers: data.onlineMembers,
+                            totalMembers: data.totalMembers,
+                            createdAt: data.createdAt,
+                            ownerId: data.ownerId,
                         }
                     }
                 });

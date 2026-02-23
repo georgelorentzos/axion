@@ -1,13 +1,13 @@
 import { useState, useEffect } from "react";
 
 interface Community {
-    community_id: string;
-    community_name: string;
-    community_image: string;
-    community_online_members: string;
-    community_total_members: string;
-    community_created_at: string;
-    community_owner_id: string;
+    id: string;
+    name: string;
+    image: string;
+    onlineMembers: string;
+    totalMembers: string;
+    createdAt: string;
+    ownerId: string;
 }
 
 export function useCommunities() {
@@ -38,17 +38,17 @@ export function useCommunities() {
     }, []);
 
     const updateCommunity = (updatedCommunity: {
-        communityId: string;
-        communityName: string;
-        communityImage: string;
+        id: string;
+        name: string;
+        image: string;
     }) => {
         setCommunities(prev => 
             prev?.map(c => 
-                c.community_id === updatedCommunity.communityId 
+                c.id === updatedCommunity.id 
                     ? { 
                         ...c, 
-                        community_name: updatedCommunity.communityName,
-                        community_image: updatedCommunity.communityImage 
+                        name: updatedCommunity.name,
+                        image: updatedCommunity.image 
                     }
                     : c
             ) || null
@@ -58,16 +58,16 @@ export function useCommunities() {
     useEffect(() => {
         const handleMessage = async (event: MessageEvent) => {
             const data = JSON.parse(event.data);
-            if (data.type === "community_deleted") {
-                setCommunities(communities => communities?.filter(c => c.community_id !== data.community_id) || null);
+            if (data.type === "communityDeleted") {
+                setCommunities(communities => communities?.filter(c => c.id !== data.id) || null);
             }
-            if (data.type === "community_updated") {
+            if (data.type === "communityUpdated") {
                 setCommunities(prev => prev?.map(c =>
-                    c.community_id === data.community_id ? { ...c, community_name: data.community_name, community_image: data.community_image } : c
+                    c.id === data.id ? { ...c, name: data.name, image: data.image } : c
                 ) || null);
             }
-            if (data.type === "member_kicked") {
-                setCommunities(prev => prev?.filter(c => c.community_id !== data.community_id) || null);
+            if (data.type === "memberKicked") {
+                setCommunities(prev => prev?.filter(c => c.id !== data.id) || null);
             }
         }
         const ws = window._ws?.ws;

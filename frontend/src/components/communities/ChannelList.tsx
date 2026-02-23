@@ -30,13 +30,13 @@ export default function ChannelList() {
   const [isOwner, setIsOwner] = useState(false);
 
   useEffect(() => {
-    setIsOwner(community?.ownerId === currentUser?.user_id);
+    setIsOwner(community?.ownerId === currentUser?.id);
   }, [community, currentUser]);
 
   useEffect(() => {
     if (loading) return;
     if (!communities) return;
-    const isMember = communities.some(c => c.community_id === communityId);
+    const isMember = communities.some(c => c.id === communityId);
     if (!isMember) {
       navigate("/");
     }
@@ -84,7 +84,7 @@ export default function ChannelList() {
       });
       if (response.ok) {
         navigate("/");
-        setCommunities(prev => prev?.filter(c => c.community_id !== community?.id) || null);
+        setCommunities(prev => prev?.filter(c => c.id !== community?.id) || null);
       }
     } catch (error) {
       console.log("error leaving community: ", error);
@@ -99,14 +99,14 @@ export default function ChannelList() {
       } catch {
         return;
       }
-      if (data.type === "community_updated") {
+      if (data.type === "communityUpdated") {
         setCommunity(prev => {
           if (!prev) return prev;
           return {
             ...prev,
-            id: data.community_id,
-            name: data.community_name,
-            image: data.community_image,
+            id: data.id,
+            name: data.name,
+            image: data.image,
           };
         });
       }
@@ -187,6 +187,7 @@ export default function ChannelList() {
               text="Leave"
               svgPaths={["M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l-3 3m0 0 3 3m-3-3h12.75"]}
               onClick={handleCommunityLeave}
+              isVisible={!isOwner}
             />
           </ActionMenu>
         </div>

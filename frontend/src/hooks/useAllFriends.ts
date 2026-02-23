@@ -1,12 +1,5 @@
 import { useEffect, useState } from 'react';
-
-interface User {
-  user_id: string;
-  username: string;
-  profile_image: string;
-  is_online: boolean;
-  created_at: string;
-}
+import { type User } from '../types/user';
 
 export function useAllFriends() {
   const [allFriends, setAllFriends] = useState<User[]>([]);
@@ -22,7 +15,15 @@ export function useAllFriends() {
         });
         if (!response.ok) throw new Error('Fetch all friends failed');
         const data = await response.json();
-        setAllFriends(data.friends || []);
+        setAllFriends(
+          (data.friends || []).map((f: any) => ({
+            id: f.id,
+            username: f.username,
+            image: f.image,
+            isOnline: f.isOnline,
+            createdAt: f.createdAt,
+          }))
+        );
       } catch (error) {
         console.error('Fetch all friends error:', error);
         setAllFriends([]);
@@ -41,16 +42,16 @@ export function useAllFriends() {
 
         setAllFriends(prev => {
           return prev.map(friend => {
-            if (friend.user_id === (data.requester_id || data.user_id)) {
-              if (data.type === 'user_online') return { ...friend, is_online: true };
-              if (data.type === 'user_offline') return { ...friend, is_online: false };
-              if (data.type === 'ally_accept_request') {
+            if (friend.id === (data.id)) {
+              if (data.type === 'userOnline') return { ...friend, isOnline: true };
+              if (data.type === 'userOffline') return { ...friend, isOnline: false };
+              if (data.type === 'allyAcceptRequest') {
                 return {
                   ...friend,
-                  username: data.requester_username,
-                  profile_image: data.requester_profile_image,
-                  is_online: data.is_online,
-                  created_at: data.created_at
+                  username: data.username,
+                  image: data.image,
+                  isOnline: data.isOnline,
+                  createdAt: data.createdAt
                 };
               }
             }
@@ -58,25 +59,25 @@ export function useAllFriends() {
           });
         });
 
-        if (data.type === 'ally_accept_request') {
+        if (data.type === 'allyAcceptRequest') {
           setAllFriends(prev => {
-            if (prev.find(f => f.user_id === data.requester_id)) return prev;
+            if (prev.find(f => f.id === data.id)) return prev;
             return [
               {
-                user_id: data.requester_id,
-                username: data.requester_username,
-                profile_image: data.requester_profile_image,
-                is_online: data.is_online,
-                created_at: data.created_at
+                id: data.id,
+                username: data.username,
+                image: data.image,
+                isOnline: data.isOnline,
+                createdAt: data.createdAt
               },
               ...prev
             ];
           });
         }
 
-        if (data.type === 'ally_removed') {
-          setAllFriends(prev => prev.filter(p => p.user_id !== data.requester_id));
-        } 
+        if (data.type === 'allyRemoved') {
+          setAllFriends(prev => prev.filter(p => p.id !== data.requesterId));
+        }
 
       } catch (error) {
         console.error('Parse error:', error);

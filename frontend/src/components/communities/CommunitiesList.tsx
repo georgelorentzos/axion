@@ -16,24 +16,24 @@ export default function CommunitiesList() {
                 <CommunityButton
                     onClick={() => {
                         const community = {
-                            id: c.community_id,
-                            name: c.community_name,
-                            image: c.community_image,
-                            onlineMembers: c.community_online_members,
-                            totalMembers: c.community_total_members,
-                            createdAt: c.community_created_at,
-                            ownerId: c.community_owner_id,
+                            id: c.id,
+                            name: c.name,
+                            image: c.image,
+                            onlineMembers: c.onlineMembers,
+                            totalMembers: c.totalMembers,
+                            createdAt: c.createdAt,
+                            ownerId: c.ownerId,
                         }
-                        navigate(`/community/${c.community_id}`, { 
+                        navigate(`/community/${c.id}`, { 
                             state: { community },
                             replace: true 
                         })
                     }} 
-                    key={c.community_id}
+                    key={c.id}
                     isCommunity
-                    communityId={c.community_id}
-                    communityImage={c.community_image}
-                    communityName={c.community_name}
+                    communityId={c.id}
+                    communityImage={c.image}
+                    communityName={c.name}
                 />
             ))}
   

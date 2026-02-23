@@ -1,29 +1,25 @@
 import { useState, useEffect } from "react"
+import { type User } from "../types/user";
 
-interface DirectMessage {
-    user_id: string;
-    username: string;
-    profile_image: string;
-    is_online: boolean;
-    latest_message: string;
-    created_at: string;
-}
+type ConversationItem = {
+    user: User;
+    latestMessage: string;
+};
 
 export function useDirectMessages() {
-    const [directMessages, setDirectMessages] = useState<DirectMessage[]>([]);
+    const [directMessages, setDirectMessages] = useState<ConversationItem[]>([]);
     const token = localStorage.getItem('token');
     const apiUrl = window.GLOBAL_ENV.API_ENDPOINT;
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-
         if (!token) {
             setLoading(false);
             return;
         }
 
         const loadDirectMessages = async () => {
-            try{
+            try {
                 const response = await fetch(`${apiUrl}/api/my/conversations`, {
                     method: 'GET',
                     headers: {
@@ -31,9 +27,20 @@ export function useDirectMessages() {
                     }
                 });
 
-                const data = await response.json()
-                setDirectMessages(data.conversations || [])
-            }catch (error) {
+                const data = await response.json();
+                setDirectMessages(
+                    (data.conversations || []).map((c: any) => ({
+                        user: {
+                            id: c.id,
+                            username: c.username,
+                            image: c.image,
+                            isOnline: c.isOnline,
+                            createdAt: c.createdAt,
+                        },
+                        latestMessage: c.latestMessage,
+                    }))
+                );
+            } catch (error) {
                 console.error('Fetch direct messages error:', error);
                 setDirectMessages([]);
             } finally {

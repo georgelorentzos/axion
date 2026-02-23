@@ -1,21 +1,22 @@
 import UserCard from '../../common/UserCard'
 import SearchBar from '../../common/SearchBar'
-import { useSearch } from '../../../hooks/useSearch';
 import { usePending } from '../../../contexts/usePending';
+import { useState } from 'react';
 
 export default function PendingContent() {
     const { pending, setPending, loading } = usePending();
-    const { searchQuery, setSearchQuery, filtered } = useSearch(pending);
+    const [searchQuery, setSearchQuery] = useState('');
+    const filtered = pending.filter(f => f.username.toLowerCase().startsWith(searchQuery.toLowerCase()));
 
     const handleUserCardDeletion = (userId: string) => {
-        setPending(prev => prev.filter(p => p.user_id !== userId));
+        setPending(prev => prev.filter(p => p.id !== userId));
     };
 
     return (
         <div className="h-full flex flex-col">
             <div className="p-2 flex gap-2 flex-col flex-1">
                 {!loading && pending.length >= 1 && (
-                    <SearchBar value={searchQuery} onSearch={setSearchQuery} />
+                    <SearchBar onSearch={(value: string) => setSearchQuery(value)} />
                 )}
                 {searchQuery && filtered.length === 0 && (
                     <div className='flex-1 flex flex-col justify-center items-center mb-[58px]'>
@@ -29,15 +30,11 @@ export default function PendingContent() {
                 )}
                 {filtered.map(pending => (
                     <UserCard 
-                      key={pending.user_id} 
-                      id={pending.user_id}
-                      username={pending.username}
-                      image={pending.profile_image}
-                      isOnline={pending.is_online}
+                      key={pending.id} 
+                      user={pending}
                       actions={{ acceptPending: true, rejectPending: true}}
                       onReject={handleUserCardDeletion}
                       onAccept={handleUserCardDeletion}
-                      createdAt={pending.created_at}
                     />
                 ))}
             </div>

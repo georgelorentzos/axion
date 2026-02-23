@@ -189,7 +189,7 @@ def validate_token(request: Request, req: ValidateToken, db: Session = Depends(g
         return {
             "success": True,
             "message": "Token is valid",
-            "user_id": user.id,
+            "id": user.id,
             "username": user.username,
             "email": user.email
         }
@@ -212,10 +212,10 @@ async def get_current_user(request: Request, user_id: str = Depends(get_user_id_
 
     return {
         "success": True,
-        "user_id": user.id,
+        "id": user.id,
         "username": user.username,
         "email": user.email,
-        "profile_image": user.profile_image
+        "image": user.profile_image
     }
 
 @app.get('/api/users/search', response_model=Dict[str, Any])
@@ -226,11 +226,11 @@ def search_user(request: Request, search: str = Query(..., alias="search"), user
         "success": True,
         "users": [
             {
-                "user_id": user.id,
+                "id": user.id,
                 "username": user.username,
-                "profile_image": user.profile_image,
-                "is_online": user.is_online,
-                "created_at": user.created_at.year
+                "image": user.profile_image,
+                "isOnline": user.is_online,
+                "createdAt": user.created_at.year
             } for user in users
         ]
     }
@@ -244,11 +244,11 @@ def get_user_profile(request: Request, user_id: str, db: Session = Depends(get_d
     
     return {
         "success": True,
-        "user_id": user.id,
+        "id": user.id,
         "username": user.username,
-        "profile_image": user.profile_image,
-        "is_online": user.is_online,
-        "joined_at": user.created_at.year
+        "image": user.profile_image,
+        "isOnline": user.is_online,
+        "joinedAt": user.created_at.year
     }
 
 @app.post('/api/ally', response_model=Dict[str, Any])
@@ -291,11 +291,11 @@ async def ally(request: Request, req: AllyRequest, user_id: str = Depends(get_us
         db.commit()
 
         await manager.broadcast_to_user(req.addressee_id, {
-            "type": "ally_request",
-            "requester_id": req.requester_id,
-            "requester_username": requester.username,
-            "requester_profile_image": requester.profile_image,
-            "created_at": requester.created_at.year
+            "type": "allyRequest",
+            "id": req.requester_id,
+            "username": requester.username,
+            "image": requester.profile_image,
+            "createdAt": requester.created_at.year
         })
 
         return {
@@ -331,10 +331,10 @@ async def cancel_ally(request: Request, req: AllyRequest, user_id: str = Depends
             db.commit()
 
             await manager.broadcast_to_user(req.addressee_id, {
-                "type": "ally_cancel_request",
-                "requester_id": req.requester_id,
-                "requester_username": requester.username,
-                "requester_profile_image": requester.profile_image
+                "type": "allyCancelRequest",
+                "id": req.requester_id,
+                "username": requester.username,
+                "image": requester.profile_image
             })
             
             return {
@@ -367,8 +367,8 @@ async def ally_reject(request: Request, req: AllyRequest, user_id: str = Depends
         db.commit()
 
         await manager.broadcast_to_user(req.requester_id, {
-            "type": "ally_rejected",
-            "addressee_id": user_id
+            "type": "allyRejected",
+            "addresseeId": user_id
         })
 
         return {
@@ -399,21 +399,21 @@ async def ally_accept(request: Request, req: AllyRequest, user_id: str = Depends
         db.commit()
 
         await manager.broadcast_to_user(user_id, {
-            "type": "ally_accept_request",
-            "requester_id": req.requester_id,
-            "requester_username": requester.username,
-            "requester_profile_image": requester.profile_image,
-            "is_online": requester.is_online,
-            "created_at": requester.created_at.year
+            "type": "allyAcceptRequest",
+            "id": req.requester_id,
+            "username": requester.username,
+            "image": requester.profile_image,
+            "isOnline": requester.is_online,
+            "createdAt": requester.created_at.year
         })
 
         await manager.broadcast_to_user(req.requester_id, {
-            "type": "ally_accept_request",
-            "requester_id": user_id,
-            "requester_username": addressee.username,
-            "requester_profile_image": addressee.profile_image,
-            "is_online": addressee.is_online,
-            "created_at": addressee.created_at.year
+            "type": "allyAcceptRequest",
+            "id": user_id,
+            "username": addressee.username,
+            "image": addressee.profile_image,
+            "isOnline": addressee.is_online,
+            "createdAt": addressee.created_at.year
         })
 
         return {
@@ -439,9 +439,9 @@ def my_ally_requests(request: Request, user_id: str = Depends(get_user_id_from_t
         "success": True,
         "pending": [
             {
-                "pending_user_id": pending.addressee_id,
-                "requester_username": pending.requester.username,
-                "requester_profile_image": pending.requester.profile_image
+                "id": pending.addressee_id,
+                "requesterName": pending.requester.username,
+                "requesterImage": pending.requester.profile_image
             } for pending in pending
         ]
     }
@@ -461,11 +461,11 @@ def get_pending(request: Request, user_id: str = Depends(get_user_id_from_token)
         "success": True,
         "pending": [
             {
-                "user_id": pending.requester.id,
+                "id": pending.requester.id,
                 "username": pending.requester.username,
-                "profile_image": pending.requester.profile_image,
-                "is_online": pending.requester.is_online,
-                "created_at": pending.created_at.year
+                "image": pending.requester.profile_image,
+                "isOnline": pending.requester.is_online,
+                "createdAt": pending.created_at.year
             } for pending in pendigs
         ]
     }
@@ -491,11 +491,11 @@ def my_friends_all(request: Request, user_id: str = Depends(get_user_id_from_tok
     
     friends_list = [
         {
-            "user_id": friend.User.id,
+            "id": friend.User.id,
             "username": friend.User.username,
-            "profile_image": friend.User.profile_image,
-            "is_online": friend.User.is_online,
-            "created_at": friend.User.created_at.year
+            "image": friend.User.profile_image,
+            "isOnline": friend.User.is_online,
+            "createdAt": friend.User.created_at.year
         } for friend in friends
     ]
     
@@ -526,10 +526,10 @@ def my_friends_online(request: Request, user_id: str = Depends(get_user_id_from_
 
     friends_list = [
         {
-            "user_id": friend.User.id,
+            "id": friend.User.id,
             "username": friend.User.username,
-            "profile_image": friend.User.profile_image,
-            "created_at": friend.User.created_at.year
+            "image": friend.User.profile_image,
+            "createdAt": friend.User.created_at.year
         } for friend in friends
     ]
 
@@ -568,17 +568,17 @@ async def ally_remove(request: Request, req: AllyRequest, user_id: str = Depends
             db.commit()
 
             await manager.broadcast_to_user(req.addressee_id, {
-                "type": "ally_removed",
-                "requester_id": req.requester_id,
-                "requester_username": requester.username,
-                "requester_profile_image": requester.profile_image
+                "type": "allyRemoved",
+                "id": req.requester_id,
+                "username": requester.username,
+                "image": requester.profile_image
             })
 
             await manager.broadcast_to_user(user_id, {
-                "type": "ally_removed",
-                "requester_id": req.addressee_id,
-                "requester_username": addressee.username,
-                "requester_profile_image": addressee.profile_image
+                "type": "allyRemoved",
+                "id": req.addressee_id,
+                "username": addressee.username,
+                "image": addressee.profile_image
             })
 
             return {
@@ -636,41 +636,41 @@ async def send_message(request: Request, req: MessageRequest, user_id: str = Dep
         db.commit()
 
         await manager.broadcast_to_user(user_id, {
-            "type": "message_sent",
+            "type": "messageSent",
             "id": new_direct_message.id,
-            "sender_id": user_id,
-            "recipient_id": req.recipient_id,
+            "senderId": user_id,
+            "recipientId": req.recipient_id,
             "message": req.message,
-            "created_at": datetime.now().strftime("%H:%M"),
+            "createdAt": datetime.now().strftime("%H:%M"),
         })
 
         await manager.broadcast_to_user(req.recipient_id, {
-            "type": "new_direct_message",
-            "user_id": sender.id,
+            "type": "newDirectMessage",
+            "id": sender.id,
             "username": sender.username,
-            "profile_image": sender.profile_image,
-            "is_online": sender.is_online,
-            "latest_message": req.message,
-            "created_at": sender.created_at.year,
+            "image": sender.profile_image,
+            "isOnline": sender.is_online,
+            "latestMessage": req.message,
+            "createdAt": sender.created_at.year,
         })
 
         await manager.broadcast_to_user(req.recipient_id, {
-            "type": "message_sent",
+            "type": "messageSent",
             "id": new_direct_message.id,
-            "sender_id": user_id,
-            "recipient_id": req.recipient_id,
+            "senderId": user_id,
+            "recipientId": req.recipient_id,
             "message": req.message,
-            "created_at": datetime.now().strftime("%H:%M"),
+            "createdAt": datetime.now().strftime("%H:%M"),
         })
 
         await manager.broadcast_to_user(user_id, {
-            "type": "new_direct_message",
-            "user_id": recipient.id,
+            "type": "newDirectMessage",
+            "id": recipient.id,
             "username": recipient.username,
-            "profile_image": recipient.profile_image,
-            "is_online": recipient.is_online,
-            "latest_message": req.message,
-            "created_at": recipient.created_at.year,
+            "image": recipient.profile_image,
+            "isOnline": recipient.is_online,
+            "latestMessage": req.message,
+            "createdAt": recipient.created_at.year,
         })
 
         return {
@@ -732,10 +732,10 @@ def get_messages(
     messages_list = [
         {
             "id": message.id,
-            "sender_id": message.sender_id,
-            "recipient_id": message.recipient_id,
+            "senderId": message.sender_id,
+            "recipientId": message.recipient_id,
             "message": message.message,
-            "created_at": message.created_at.strftime("%H:%M")
+            "createdAt": message.created_at.strftime("%H:%M")
         } for message in messages
     ]
     
@@ -745,7 +745,7 @@ def get_messages(
         "total": total_count,
         "limit": limit,
         "offset": offset,
-        "has_more": (offset + limit) < total_count
+        "hasMore": (offset + limit) < total_count
     }
 
 @app.get('/api/my/conversations', response_model=Dict[str, Any])
@@ -779,12 +779,12 @@ def my_conversations(request: Request, user_id: str = Depends(get_user_id_from_t
             other_user = db.query(User).filter(User.id == other_user_id).first()
             if other_user:
                 seen_users[other_user_id] = {
-                    "user_id": other_user.id,
+                    "id": other_user.id,
                     "username": other_user.username,
-                    "profile_image": other_user.profile_image,
-                    "is_online": other_user.is_online,
-                    "created_at": other_user.created_at.year,
-                    "latest_message": message.message
+                    "image": other_user.profile_image,
+                    "isOnline": other_user.is_online,
+                    "createdAt": other_user.created_at.year,
+                    "latestMessage": message.message
                 }
     
     conversation_list = list(seen_users.values())
@@ -847,8 +847,8 @@ async def delete_conversation(request: Request, user_id: str, current_user_id: s
         db.commit()
 
         await manager.broadcast_to_user(current_user_id, {
-            "type": "conversation_deleted",
-            "conversation_id": user_id
+            "type": "conversationDeleted",
+            "conversationId": user_id
         })
 
         return {"success": True, "message": "Conversation deleted."}
@@ -902,9 +902,9 @@ def create_community(
         db.add(CommunityMember(user_id=user.id, community_id=new_community.id))
         db.commit()
         return {"success": True,
-                "community_id": new_community.id,
-                "community_name": new_community.community_name,
-                "community_image": new_community.community_image
+                "id": new_community.id,
+                "name": new_community.community_name,
+                "image": new_community.community_image
                 }
     except Exception as e:
         db.rollback()
@@ -958,12 +958,13 @@ def my_communities(request: Request, current_user_id: str = Depends(get_user_id_
         "success": True,
         "communities": [
             {
-                "community_id": community.id,
-                "community_name": community.community_name,
-                "community_image": community.community_image,
-                "community_online_members": online_map.get(community.id, 0),
-                "community_total_members": total_map.get(community.id, 0),
-                "community_created_at": community.created_at.year,
+                "id": community.id,
+                "name": community.community_name,
+                "image": community.community_image,
+                "onlineMembers": online_map.get(community.id, 0),
+                "totalMembers": total_map.get(community.id, 0),
+                "createdAt": community.created_at.year,
+                "ownerId": community.owner_id,
             } for member, community in communities
         ]
     }
@@ -1112,20 +1113,20 @@ async def update_community(
 
         await asyncio.gather(*{
             manager.broadcast_to_user(member.user_id, {
-                "type": "community_updated",
-                "community_id": community.id,
-                "community_name": community.community_name,
-                "community_image": community.community_image,
+                "type": "communityUpdated",
+                "id": community.id,
+                "name": community.community_name,
+                "image": community.community_image,
             })
             for member in members_to_notify
         })
         
         return {
             "success": True,
-            "community_id": community.id,
-            "community_name": community.community_name,
-            "community_image": community.community_image,
-            "community_owner_id": community.owner_id,
+            "id": community.id,
+            "name": community.community_name,
+            "image": community.community_image,
+            "ownerId": community.owner_id,
         }
     except Exception as e:
         db.rollback()
@@ -1157,13 +1158,13 @@ def fetch_community(request: Request, community_id: str, db: Session = Depends(g
     ).scalar()
 
     return {
-        "community_id": community.id,
-        "community_name": community.community_name,
-        "community_image": community.community_image,
-        "community_owner_id": community.owner_id,
-        "community_online_members": online_members or 0,
-        "community_total_members": total_members or 0,
-        "community_created_at": community.created_at.year,
+        "id": community.id,
+        "name": community.community_name,
+        "image": community.community_image,
+        "ownerId": community.owner_id,
+        "onlineMembers": online_members or 0,
+        "totalMembers": total_members or 0,
+        "createdAt": community.created_at.year,
     }
 
 @app.patch("/api/community/{community_id}/join", response_model=Dict[str, Any])
@@ -1206,13 +1207,12 @@ async def join_community(request: Request,
         db.commit()
         await asyncio.gather(*{
             manager.broadcast_to_user(member.user_id, {
-                "type": "user_joined",
-                "member_id": user.id,
-                "member_name": user.username,
-                "member_profile_image": user.profile_image,
-                "member_is_online": user.is_online,
-                "member_joined_at": new_community_member.joined_at.strftime("%d/%m/%Y"),
-                "member_created_at": user.created_at.year,
+                "type": "userJoined",
+                "id": user.id,
+                "username": user.username,
+                "image": user.profile_image,
+                "isOnline": user.is_online,
+                "createdAt": user.created_at.year,
             })
             for member in members_to_notify
         })
@@ -1260,8 +1260,8 @@ async def leave_community(request: Request,
         ).all()
         await asyncio.gather(*{
             manager.broadcast_to_user(member.user_id, {
-                "type": "user_left",
-                "member_id": user.id,
+                "type": "userLeft",
+                "memberId": user.id,
             })
             for member in members_to_notify
         })
@@ -1298,11 +1298,10 @@ def get_community_members(request: Request,
         "members": [
             {
                 "id": community_member.user_id,
-                "name": community_member.user.username,
+                "username": community_member.user.username,
                 "image": community_member.user.profile_image,
-                "is_online": community_member.user.is_online,
-                "joined_at": community_member.joined_at.strftime("%d/%m/%Y"),
-                "created_at": user.created_at.year,
+                "isOnline": community_member.user.is_online,
+                "createdAt": user.created_at.year,
             } for community_member in community_members
         ]
     }
@@ -1341,15 +1340,15 @@ async def delete_community(request: Request,
         db.query(Community).filter(Community.id == community_id).delete()
         await asyncio.gather(*(
             manager.broadcast_to_user(member.user_id, {
-                "type": "community_deleted",
-                "community_id": community.id,
+                "type": "communityDeleted",
+                "id": community.id,
             })
             for member in members_to_notify
         ))
         db.commit()
         return {
             "success": True,
-            "community_id": community.id
+            "id": community.id
             }
     except Exception as e:
         db.rollback()
@@ -1570,7 +1569,7 @@ async def delete_role(request: Request,
         db.commit()
         return {
             "success": True,
-            "role_id": role.id
+            "id": role.id
         }
     except Exception as e:
         db.rollback()
@@ -1626,8 +1625,8 @@ async def kick_member_from_community(request: Request,
         db.query(CommunityMember).filter(CommunityMember.id == community_member_to_kick.id).delete()
         db.commit()
         await manager.broadcast_to_user(community_member_to_kick.user_id, {
-            "type": "member_kicked",
-            "community_id": community.id,
+            "type": "memberKicked",
+            "id": community.id,
         })
         return {
             "success": True,

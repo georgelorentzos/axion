@@ -8,11 +8,10 @@ import { useCurrentUser } from "../../../../contexts/useCurrentUser";
 export default function MembersContent() {
     const { communityMembers } = useCommunityMembers();
     const [searchQuery, setSearchQuery] = useState('');
-    const filteredMembers = communityMembers.filter(member => member.name.startsWith(searchQuery.toLowerCase()));
+    const filteredMembers = communityMembers.filter(member => member.username?.startsWith(searchQuery.toLowerCase()));
     const { community } = useCommunity();
     const { currentUser } = useCurrentUser();
-    const isOwner = community?.communityOwnerId === currentUser?.user_id;
-    
+
     return (
         <div className="flex gap-2 justify-start items-start">
             <div className="px-6 flex flex-col gap-2 w-full">
@@ -30,13 +29,8 @@ export default function MembersContent() {
                 {filteredMembers.map(member => (
                     <UserCard
                         key={member.id}
-                        id={member.id}
-                        joinedAtText={`Joined ${member.joined_at}`}
-                        isOnline={member.is_online}
-                        username={member.name}
-                        image={member.image}
-                        createdAt={member.created_at}
-                        actions={{ options: member.id !== currentUser?.user_id && member.id !== community?.communityOwnerId, admin: member.id !== currentUser?.user_id && member.id !== community?.communityOwnerId }}
+                        user={member}
+                        actions={{ options: member.id !== currentUser?.id && member.id !== community?.ownerId, admin: member.id !== currentUser?.id && member.id !== community?.ownerId }}
                     />
                 ))}
             </div>

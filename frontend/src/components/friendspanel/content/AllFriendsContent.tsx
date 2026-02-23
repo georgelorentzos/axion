@@ -1,17 +1,18 @@
 import SearchBar from '../../common/SearchBar'
 import UserCard from '../../common/UserCard'
-import { useSearch } from '../../../hooks/useSearch';
-import { useAllFriends} from '../../../contexts/useAllFriends';
+import { useAllFriends } from '../../../contexts/useAllFriends';
+import { useState } from 'react';
 
 export default function AllFriendsContent() {
     const { allFriends, loading } = useAllFriends();
-    const { searchQuery, setSearchQuery, filtered } = useSearch(allFriends);
+    const [searchQuery, setSearchQuery] = useState('');
+    const filtered = allFriends.filter(f => f.username.toLowerCase().startsWith(searchQuery.toLowerCase()));
 
     return (
         <div className="h-full flex flex-col">
             <div className="p-2 flex gap-2 flex-col flex-1">
                 {!loading && allFriends.length >= 1 && (
-                    <SearchBar value={searchQuery} onSearch={setSearchQuery} />
+                    <SearchBar onSearch={(value: string) => setSearchQuery(value)} />
                 )}
                 {searchQuery && filtered.length === 0 && (
                     <div className='flex-1 flex flex-col justify-center items-center mb-[58px]'>
@@ -25,13 +26,9 @@ export default function AllFriendsContent() {
                 )}
                 {filtered.map(friend => (
                     <UserCard
-                        key={friend.user_id}
-                        id={friend.user_id}
-                        username={friend.username}
-                        image={friend.profile_image}
+                        key={friend.id}
+                        user={friend}
                         actions={{ options: true, unfriend: true}}
-                        isOnline={friend.is_online}
-                        createdAt={friend.created_at}
                     />
                 ))}
             </div>

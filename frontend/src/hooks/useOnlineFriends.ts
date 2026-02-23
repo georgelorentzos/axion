@@ -1,12 +1,5 @@
 import { useEffect, useState } from "react";
-
-interface User {
-  user_id: string;
-  username: string;
-  profile_image: string;
-  is_online?: boolean;
-  created_at: string;
-}
+import { type User } from "../types/user";
 
 export function useOnlineFriends() {
   const [onlineFriends, setOnlineFriends] = useState<User[]>([]);
@@ -20,16 +13,20 @@ export function useOnlineFriends() {
         const response = await fetch(`${apiUrl}/api/my/friends/online`, {
           headers: { "Authorization": `Bearer ${token}` }
         });
-
         if (!response.ok) throw new Error('Fetch online friends failed');
-
         const data = await response.json();
         setOnlineFriends(prev => {
-          const newFriends = data.friends || [];
+          const newFriends = (data.friends || []).map((f: any) => ({
+            id: f.id,
+            username: f.username,
+            image: f.image,
+            isOnline: true,
+            createdAt: f.createdAt,
+          }));
           const combined = [...prev];
           for (const friend of newFriends) {
-            if (!combined.find(f => f.user_id === friend.user_id)) {
-              combined.push({ ...friend, is_online: true });
+            if (!combined.find(f => f.id === friend.id)) {
+              combined.push(friend);
             }
           }
           return combined;
@@ -40,7 +37,6 @@ export function useOnlineFriends() {
         setIsLoading(false);
       }
     };
-
     fetchOnlineFriends();
   }, [apiUrl]);
 
@@ -48,45 +44,43 @@ export function useOnlineFriends() {
     const handleMessage = (event: MessageEvent) => {
       try {
         const data = JSON.parse(event.data);
-
-        if (data.type === 'user_online') {
+        if (data.type === 'userOnline') {
           setOnlineFriends(prev => {
-            if (prev.find(p => p.user_id === data.user_id)) return prev;
+            if (prev.find(p => p.id === data.id)) return prev;
             return [
               {
-                user_id: data.user_id,
+                id: data.id,
                 username: data.username,
-                profile_image: data.profile_image,
-                is_online: true,
-                created_at: data.created_at
+                image: data.image,
+                isOnline: true,
+                createdAt: data.createdAt
               },
               ...prev
             ];
           });
-        } else if (data.type === 'user_offline') {
-          setOnlineFriends(prev => prev.filter(p => p.user_id !== data.user_id));
-        } else if (data.type === 'ally_accept_request') {
-          if (data.is_online) {
+        } else if (data.type === 'userOffline') {
+          setOnlineFriends(prev => prev.filter(p => p.id !== data.id));
+        } else if (data.type === 'allyAcceptRequest') {
+          if (data.isOnline) {
             setOnlineFriends(prev => {
-            if (prev.find(p => p.user_id === data.user_id)) return prev;
-            return [
-              {
-                user_id: data.requester_id,
-                username: data.requester_username,
-                profile_image: data.requester_profile_image,
-                is_online: data.is_online,
-                created_at: data.created_at
-              },
-              ...prev
-            ];
-          });
+              if (prev.find(p => p.id === data.id)) return prev;
+              return [
+                {
+                  id: data.id,
+                  username: data.username,
+                  image: data.image,
+                  isOnline: true,
+                  createdAt: data.createdAt
+                },
+                ...prev
+              ];
+            });
           }
-        } else if (data.type === 'ally_removed') {
-          setOnlineFriends(prev => prev.filter(p => p.user_id !== data.requester_id));
-        } 
+        } else if (data.type === 'allyRemoved') {
+          setOnlineFriends(prev => prev.filter(p => p.id !== data.id));
+        }
       } catch {}
     };
-
     const ws = window._ws?.ws;
     if (ws) {
       ws.addEventListener('message', handleMessage);

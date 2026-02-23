@@ -2,14 +2,7 @@ import { useState, useRef } from 'react';
 import UserCard from '../../common/UserCard';
 import SearchBar from '../../common/SearchBar';
 import { useAllFriends } from '../../../contexts/useAllFriends';
-
-interface User {
-  user_id: string;
-  username: string;
-  profile_image: string;
-  is_online: boolean;
-  created_at?: string;
-}
+import { type User } from '../../../types/user';
 
 export default function AddFriendContent() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -75,13 +68,9 @@ export default function AddFriendContent() {
 
         {searchResults.map(user => (
           <UserCard
-            key={user.user_id}
-            id={user.user_id}
-            username={user.username}
-            image={user.profile_image}
-            actions={{ options: allFriends.some(f => f.user_id === user.user_id), addFriend: !allFriends.some(f => f.user_id === user.user_id), unfriend: true }}
-            isOnline={user.is_online}
-            createdAt={user.created_at}
+            key={user.id}
+            user={user}
+            actions={{ options: allFriends.some(f => f.id === user.id), addFriend: !allFriends.some(f => f.id === user.id), unfriend: true }}
           />
         ))}
       </div>

@@ -29,7 +29,7 @@ export default function DeleteCommunity({ community }: DeleteCommunityProps){
         const token = localStorage.getItem("token");
         if (!token) return;
         try {
-            const response = await fetch(`${apiUrl}/api/community/${community?.communityId}?community_name=${encodeURIComponent(confirmInput)}`, {
+            const response = await fetch(`${apiUrl}/api/community/${community?.id}?community_name=${encodeURIComponent(confirmInput)}`, {
                 method: "DELETE",
                 headers: {"Authorization": `Bearer ${token}`}
             });
@@ -39,7 +39,7 @@ export default function DeleteCommunity({ community }: DeleteCommunityProps){
                 return;
             }
             navigate("/");
-            setCommunities(communities => communities?.filter(c => c.community_id !== data.community_id) || null);
+            setCommunities(communities => communities?.filter(c => c.id !== data.id) || null);
         } catch (error) {
             setError('Connection error.');
         }
@@ -48,7 +48,7 @@ export default function DeleteCommunity({ community }: DeleteCommunityProps){
     return(
         <>
             <div className="flex flex-col text-center">
-                <div className="font-bold text-[20px]">Delete {community?.communityName}</div>
+                <div className="font-bold text-[20px]">Delete {community?.name}</div>
                 <div className="text-gray-500">Are you sure you want to delete this community? This action cannot be undone.</div>
             </div>
             {error && <div className="text-crimson text-sm text-center">{error}</div>}

@@ -18,13 +18,13 @@ export function useCommunity() {
         });
         const data = await response.json();
         setCommunity({
-          id: data.community_id,
-          name: data.community_name,
-          image: data.community_image,
-          onlineMembers: data.community_online_members,
-          totalMembers: data.community_total_members,
-          createdAt: data.community_created_at,
-          ownerId: data.community_owner_id,
+          id: data.id,
+          name: data.name,
+          image: data.image,
+          onlineMembers: data.onlineMembers,
+          totalMembers: data.totalMembers,
+          createdAt: data.createdAt,
+          ownerId: data.ownerId,
         });
       } catch (error) {
         console.log("failed to fetch community data: ", error);

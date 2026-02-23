@@ -6,32 +6,18 @@ import { useEffect, useState, useRef } from 'react';
 import { useCurrentUser } from '../../contexts/useCurrentUser';
 import { useNavigate } from 'react-router-dom';
 import { MessageSkeleton } from './MessageSkeleton';
-
-interface User {
-    success: boolean;
-    user_id: string;
-    username: string;
-    profile_image: string;
-    is_online: boolean;
-    created_at: string;
-}
+import { type User } from '../../types/user';
 
 interface LocationState {
-    userData?: {
-        user_id: string;
-        username: string;
-        profile_image: string;
-        is_online: boolean;
-        created_at?: string | number;
-    };
+    user?: User;
 }
 
 interface Message {
     id: string;
-    sender_id: string;
-    recipient_id: string;
+    senderId: string;
+    recipientId: string;
     message: string;
-    created_at: string;
+    createdAt: string;
 }
 
 export default function Conversation() {
@@ -48,38 +34,26 @@ export default function Conversation() {
     const navigate = useNavigate();
     const [loadingMessages, setLoadingMessages] = useState(true);
 
-   useEffect(() => {
-    console.log("userId:", userId);
-    console.log("currentUser:", currentUser);
-    console.log("match:", userId === currentUser?.user_id);
-    if (userId === currentUser?.user_id) {
-        navigate("/");
-    }
-}, [userId, currentUser]);
+    useEffect(() => {
+        if (userId === currentUser?.id) {
+            navigate("/");
+        }
+    }, [userId, currentUser]);
 
     useEffect(() => {
         const state = location.state as LocationState;
-        
-        if (state?.userData) {
-            const userData = state.userData;
-            
-            setUser({
-                success: true,
-                user_id: userData.user_id,
-                username: userData.username,
-                profile_image: userData.profile_image,
-                is_online: userData.is_online,
-                created_at: userData.created_at?.toString() || ''
-            });
-            
-            if (!userData.created_at) {
-                fetchCreatedAt(userData.user_id);
+
+        if (state?.user) {
+            setUser(state.user);
+
+            if (!state.user.createdAt) {
+                fetchCreatedAt(state.user.id);
             }
-            
-            load20Messages(userData.user_id);
+
+            load20Messages(state.user.id);
             return;
         }
-        
+
         loadUser();
     }, [userId, token, location]);
 
@@ -95,12 +69,12 @@ export default function Conversation() {
             });
             if (response.ok) {
                 const data = await response.json();
-                setUser(prev => prev ? { ...prev, created_at: data.created_at } : null);
+                setUser(prev => prev ? { ...prev, createdAt: data.joined_at?.toString() || '' } : null);
             }
         } catch (error) {
             console.error('Error fetching created_at:', error);
         } finally {
-            setLoadingJoinedAt(false); 
+            setLoadingJoinedAt(false);
         }
     };
 
@@ -118,7 +92,13 @@ export default function Conversation() {
                 navigate("/");
                 return;
             }
-            setUser(data);
+            setUser({
+                id: data.user_id,
+                username: data.username,
+                image: data.profile_image,
+                isOnline: data.is_online,
+                createdAt: data.joined_at?.toString() || '',
+            });
             load20Messages(userId);
         } catch (error) {
             console.error('Fetch error:', error);
@@ -164,34 +144,31 @@ export default function Conversation() {
         const handleMessage = (event: MessageEvent) => {
             try {
                 const data = JSON.parse(event.data);
-                if (data.type === 'message_sent') {
+                if (data.type === 'messageSent') {
                     setMessages(currentMessages => {
                         return [
                             ...currentMessages,
                             {
                                 id: data.id,
-                                sender_id: data.sender_id,
-                                recipient_id: data.recipient_id,
+                                senderId: data.senderId,
+                                recipientId: data.recipientId,
                                 message: data.message,
-                                created_at: data.created_at,
+                                createdAt: data.createdAt,
                             },
                         ];
                     });
                 }
-
-                if (data.type === 'user_online') {
-                    setUser(user => user ? { ...user, is_online: true } : null)
+                if (data.type === 'userOnline') {
+                    setUser(prev => prev ? { ...prev, isOnline: true } : null);
                 }
-
-                if (data.type === 'user_offline') {
-                    setUser(user => user ? { ...user, is_online: false } : null)
+                if (data.type === 'userOffline') {
+                    setUser(prev => prev ? { ...prev, isOnline: false } : null);
                 }
-    
             } catch (error) {
                 console.error('Error parsing WebSocket message:', error);
             }
         };
-        
+
         const ws = window._ws?.ws;
         if (ws) {
             ws.addEventListener('message', handleMessage);
@@ -233,14 +210,14 @@ export default function Conversation() {
             <div className="h-[60px] border-b border-outline flex items-center px-6 gap-2 flex-shrink-0">
                 <div className="flex justify-between items-center w-full">
                     <div className="flex items-center gap-2">
-                        <ImageProfile 
-                            src={user?.profile_image} 
-                            online={user?.is_online} 
+                        <ImageProfile
+                            src={user?.image}
+                            online={user?.isOnline}
                         />
                         <div className="flex flex-col leading-none gap-1">
                             <div className="text-gray-100">{user?.username}</div>
                             <div className="text-gray-500 text-[12px]">
-                                {user?.is_online ? 'Online' : 'Offline'}
+                                {user?.isOnline ? 'Online' : 'Offline'}
                             </div>
                         </div>
                     </div>
@@ -248,7 +225,7 @@ export default function Conversation() {
             </div>
 
             {loadingMessages && (
-                <div 
+                <div
                     className="bg-onyx p-6 pointer-events-none overflow-hidden"
                     style={skeletonStyle}
                 >
@@ -259,44 +236,43 @@ export default function Conversation() {
             <div ref={scrollContainerRef} className={`flex-1 w-full min-h-0 p-6 pb-3 space-y-3 ${loadingMessages ? "overflow-hidden" : "overflow-y-auto"}`}>
                 <div className={`${loadingMessages ? "opacity-0" : "pb-6"}`}>
                     <div className="flex flex-col items-center gap-2">
-                        <ImageProfile 
-                            src={user?.profile_image} 
-                            width="80" 
-                            height="80" 
-                            showStatus={false} 
+                        <ImageProfile
+                            src={user?.image}
+                            width="80"
+                            height="80"
+                            showStatus={false}
                         />
                         <div className="flex flex-col leading-none gap-1 justify-center items-center">
                             <div className="text-gray-100">{user?.username}</div>
                             <div className="text-gray-500 text-[12px]">
-                                {loadingJoinedAt ? 'Loading...' : `Joined in ${formatCreatedAt(user?.created_at)}`}
+                                {loadingJoinedAt ? 'Loading...' : `Joined in ${formatCreatedAt(user?.createdAt)}`}
                             </div>
                         </div>
                     </div>
                 </div>
-
                 <div className={`${loadingMessages ? "opacity-0" : ""}`}>
                     {messages.map((message) => (
                         <div
                             key={message.id}
                             className={`flex ${
-                                message.sender_id === currentUser?.user_id
+                                message.senderId === currentUser?.id
                                     ? "justify-end"
                                     : "justify-start"
                             }`}
                         >
                             <MessageBubble
-                                isCurrentUser={message.sender_id === currentUser?.user_id}
+                                isCurrentUser={message.senderId === currentUser?.id}
                                 message={message.message}
-                                sender_username={
-                                    message.sender_id === currentUser?.user_id
+                                senderUsername={
+                                    message.senderId === currentUser?.id
                                         ? currentUser?.username || ""
                                         : user?.username || ""
                                 }
-                                created_at={message.created_at}
-                                sender_profile_image={
-                                    message.sender_id === currentUser?.user_id
-                                        ? currentUser?.profile_image || ""
-                                        : user?.profile_image || ""
+                                createdAt={message.createdAt}
+                                senderProfileImage={
+                                    message.senderId === currentUser?.id
+                                        ? currentUser?.image || ""
+                                        : user?.image || ""
                                 }
                             />
                         </div>
@@ -304,10 +280,10 @@ export default function Conversation() {
                 </div>
                 <div ref={messagesEndRef} />
             </div>
-            
+
             <div className="px-2 h-[80px] flex items-center flex-shrink-0 justify-center">
-                <MessageInput 
-                    recipient_id={user?.user_id || ''} 
+                <MessageInput
+                    recipient_id={user?.id || ''}
                 />
             </div>
         </div>

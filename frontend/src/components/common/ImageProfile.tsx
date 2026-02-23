@@ -1,5 +1,3 @@
-import { useState } from "react";
-
 type ImageProfileProps = {
     src?: string;
     online?: boolean;

@@ -3,15 +3,12 @@ import { useCurrentUser } from '../../contexts/useCurrentUser';
 import ActionMenu from "./ActionMenu/ActionMenu";
 import ActionMenuButton from "./ActionMenu/ActionMenuButton";
 import React, { useState, useEffect, useRef } from "react";
-import { useNavigate, useLocation, useParams } from "react-router-dom";
-import { useCommunityMembers } from "../../contexts/communities/useCommunityMembers";
+import { useNavigate, useLocation } from "react-router-dom";
+import Modal from "./modal/Modal";
+import { type User } from "../../types/user";
 
 type UserCardProps = {
-  id?: string;
-  username?: string;
-  image?: string;
-  isOnline: boolean;
-  createdAt?: string;
+  user?: User;
 
   actions?: {
     options?: boolean;
@@ -43,11 +40,7 @@ type PendingResponse = {
 };
 
 export default function UserCard({
-  id,
-  username,
-  image,
-  isOnline,
-  createdAt,
+  user,
   actions,
   onReject,
   onAccept,
@@ -67,11 +60,10 @@ export default function UserCard({
   const navigate = useNavigate();
   const buttonRef = useRef<HTMLButtonElement | null>(null);
   const location = useLocation();
-  const isSelected = location.pathname === `/chat/${id}`;
-  const { communityId } = useParams();
+  const isSelected = location.pathname === `/chat/${user?.id}`;
   const isThisPending =
-    id !== undefined && pendingIds.includes(id);
-  const { setCommunityMembers } = useCommunityMembers();
+    user?.id !== undefined && pendingIds.includes(user?.id);
+  const [isKickUserModalOpen, setIsKickUserModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchPendingRequests = async () => {
@@ -97,7 +89,7 @@ export default function UserCard({
   }, [actions?.addFriend]);
 
   const handleAlly = async () => {
-    if (!id || !currentUser?.user_id) return;
+    if (!user?.id || !currentUser?.id) return;
 
     setLoading(true);
     try {
@@ -108,22 +100,22 @@ export default function UserCard({
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          requester_id: currentUser.user_id,
-          addressee_id: id
+          requester_id: currentUser.id,
+          addressee_id: user?.id
         })
       });
 
       if (!response.ok) throw new Error();
 
       setSent(true);
-      setPendingIds(prev => [...prev, id]);
+      setPendingIds(prev => [...prev, user?.id]);
     } finally {
       setLoading(false);
     }
   };
 
   const handleRemovePending = async () => {
-    if (!id || !currentUser?.user_id) return;
+    if (!user?.id || !currentUser?.id) return;
 
     setLoading(true);
     try {
@@ -135,14 +127,14 @@ export default function UserCard({
             "Content-Type": "application/json"
           },
           body: JSON.stringify({
-            requester_id: currentUser.user_id,
-            addressee_id: id
+            requester_id: currentUser.id,
+            addressee_id: user?.id
           })
         }
       );
 
       if (response.status === 404) {
-        setPendingIds(prev => prev.filter(pid => pid !== id));
+        setPendingIds(prev => prev.filter(pid => pid !== user?.id));
         setSent(false);
         return;
       }
@@ -151,7 +143,7 @@ export default function UserCard({
         throw new Error(`Failed with status ${response.status}`);
       }
 
-      setPendingIds(prev => prev.filter(pid => pid !== id));
+      setPendingIds(prev => prev.filter(pid => pid !== user?.id));
       setSent(false);
     } catch (error) {
       if (error instanceof Error && !error.message.includes('404')) {
@@ -163,7 +155,7 @@ export default function UserCard({
   };
 
   const handlePendingReject = async () => {
-    if (!id || !currentUser?.user_id) return;
+    if (!user?.id || !currentUser?.id) return;
 
     setLoading(true);
     try {
@@ -174,13 +166,13 @@ export default function UserCard({
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          requester_id: id,
-          addressee_id: currentUser.user_id
+          requester_id: user?.id,
+          addressee_id: currentUser.id
         })
       });
 
       if (!response.ok) throw new Error();
-      onReject?.(id);
+      onReject?.(user?.id);
 
     } catch (error) {
       console.error("Error declining request:", error);
@@ -190,7 +182,7 @@ export default function UserCard({
   };
 
   const handlePendingAccept = async () => {
-    if (!id || !currentUser?.user_id) return;
+    if (!user?.id || !currentUser?.id) return;
 
     setLoading(true);
     try {
@@ -201,13 +193,13 @@ export default function UserCard({
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          requester_id: id,
-          addressee_id: currentUser.user_id
+          requester_id: user?.id,
+          addressee_id: currentUser.id
         })
       });
 
       if (!response.ok) throw new Error();
-      onAccept?.(id);
+      onAccept?.(user?.id);
 
     } catch (error) {
       console.error("Error accepting request:", error);
@@ -217,7 +209,7 @@ export default function UserCard({
   };
 
   const handleRemoveFriend = async () => {
-    if (!id || !currentUser?.user_id) return;
+    if (!user?.id || !currentUser?.id) return;
 
     setLoading(true);
     try {
@@ -228,8 +220,8 @@ export default function UserCard({
           "Content-type": "application/json"
         },
         body: JSON.stringify({
-            requester_id: currentUser.user_id,
-            addressee_id: id
+            requester_id: currentUser.id,
+            addressee_id: user?.id
         })
       });
 
@@ -245,11 +237,11 @@ export default function UserCard({
   };
 
   const handleDeleteConversation = async () => {
-    if (!id || !currentUser?.user_id) return;
+    if (!user?.id || !currentUser?.id) return;
 
     setLoading(true);
     try {
-      const response = await fetch(`${apiUrl}/api/conversation/${id}`, {
+      const response = await fetch(`${apiUrl}/api/conversation/${user?.id}`, {
         method: 'DELETE',
         headers: {
           "Authorization": `Bearer ${token}`
@@ -271,44 +263,19 @@ export default function UserCard({
 
   const handleNavigateToChat = (e: React.MouseEvent<HTMLDivElement>) => {
     e.preventDefault();
-    if (!id) return;
+    if (!user?.id) return;
     if (!(e.target as HTMLDivElement).closest('button')) {
-      const userData = {
-        user_id: id,
-        username: username,
-        profile_image: image,
-        is_online: isOnline,
-        created_at: createdAt,
-      };
-      
-      navigate(`/chat/${id}`, { state: { userData } });
+      navigate(`/chat/${user?.id}`, { state: { user } });
     }
   }
-
-  const handleKick = async () => {
-    if (!id) return;
-    if (!token) return;
-    if (!communityId) return;
-    try{
-      const response = await fetch(`${apiUrl}/api/community/${communityId}/members/${id}/kick`, {
-        method: "DELETE",
-        headers: {"Authorization": `Bearer ${token}`}
-      });
-      if (response.ok) {
-        setCommunityMembers(prev => prev.filter(m => m.id !== id));
-      }
-    } catch (error) {
-      console.log(`error kicking ${username}: `, error)
-    }
-  };
 
   useEffect(() => {
     const handleMessage = (e: MessageEvent) => {
       try{
         const data = JSON.parse(e.data);
-        if (data.type === "ally_rejected" && data.addressee_id === id) {
+        if (data.type === "allyRejected" && data.addressee_id === user?.id) {
           setSent(false);
-          setPendingIds(prev => prev.filter(pid => pid !== id));
+          setPendingIds(prev => prev.filter(pid => pid !== user?.id));
         }
       } catch (error) {
         console.error('Parse error:', error);
@@ -320,7 +287,7 @@ export default function UserCard({
       ws.addEventListener('message', handleMessage);
       return () => ws.removeEventListener('message', handleMessage);
     }
-  }, [id]);
+  }, [user?.id]);
 
   return (
     <div
@@ -332,16 +299,16 @@ export default function UserCard({
   }`}
     >
       <div className="flex items-center gap-2">
-        <ImageProfile src={image} online={isOnline} />
+        <ImageProfile src={user?.image} online={user?.isOnline} />
         <div className="flex flex-col leading-none gap-1">
-          <div className="text-gray-100">{username}</div>
+          <div className="text-gray-100">{user?.username}</div>
           {showLatestMessage ? (
           <div className="text-gray-500 text-[12px] truncate w-[200px]">
             {latestMessage}
           </div>
           ) : (
           <div className="text-gray-500 text-[12px]">
-            {isOnline ? "Online" : "Offline"}
+            {user?.isOnline ? "Online" : "Offline"}
           </div>
           )}
         </div>
@@ -415,19 +382,20 @@ export default function UserCard({
               isVisible={!!actions.unfriend}
             />
             <ActionMenuButton
-              text={`Kick ${username}`}
+              text={`Kick ${user?.username}`}
               svgPaths={["M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l-3 3m0 0 3 3m-3-3h12.75"]}
               isDanger
               isVisible={!!actions.admin}
-              onClick={handleKick}
+              onClick={() => {setIsKickUserModalOpen(true); setisActionMenuOpen(false);}}
             />
             <ActionMenuButton
-              text={`Ban ${username}`}
+              text={`Ban ${user?.username}`}
               svgPaths={["M18.364 18.364A9 9 0 0 0 5.636 5.636m12.728 12.728A9 9 0 0 1 5.636 5.636m12.728 12.728L5.636 5.636"]}
               isDanger
               isVisible={!!actions.admin}
             />
           </ActionMenu>
+          <Modal isOpen={isKickUserModalOpen} onClose={() => setIsKickUserModalOpen(false)} type="kickUser" user={user} />
           </div>
         )}
 

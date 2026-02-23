@@ -1,11 +1,5 @@
 import { useState, useEffect } from 'react';
-
-interface User {
-    user_id: string;
-    username: string;
-    email: string;
-    profile_image: string;
-}
+import { type User } from '../types/user';
 
 interface UseCurrentUserReturn {
     currentUser: User | null;
@@ -32,10 +26,11 @@ export function useCurrentUser(): UseCurrentUserReturn {
                 
                 if (data.success) {
                     setCurrentUser({
-                        user_id: data.user_id,
+                        id: data.id,
                         username: data.username,
-                        email: data.email,
-                        profile_image: data.profile_image
+                        image: data.image,
+                        isOnline: data.isOnline,
+                        createdAt: data.createdAt,
                     });
                 }
             } catch (error) {

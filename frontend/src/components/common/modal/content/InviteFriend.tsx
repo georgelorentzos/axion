@@ -4,16 +4,14 @@ import { useParams } from "react-router-dom";
 import UserCard from "../../UserCard";
 import Input from "../../Input";
 import Button from "../../Button";
+import { useCurrentUser } from "../../../../contexts/useCurrentUser";
 
-export default function InviteFriend({
-  onInvite,
-}: {
-  onInvite?: (userId: string) => void;
-}) {
+export default function InviteFriend() {
   const { allFriends } = useAllFriends();
   const [copied, setCopied] = useState(false);
   const { communityId } = useParams();
-
+  const apiUrl = window.GLOBAL_ENV.API_ENDPOINT;
+  const { currentUser } = useCurrentUser();
   const domainUrl =
     typeof window !== "undefined" ? window.location.origin : "";
 
@@ -23,8 +21,26 @@ export default function InviteFriend({
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleInvite = (userId: string) => {
-    onInvite?.(userId);
+  const handleInvite = async (userId: string) => {
+    const token = localStorage.getItem("token");
+    const currentUserId = currentUser?.id;
+    if (!token || !currentUserId || !communityId) return;
+    try {
+      await fetch(`${apiUrl}/api/send/message`, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          sender_id: currentUserId,
+          recipient_id: userId,
+          message: `${domainUrl}/join/${communityId}`
+        })
+      });
+    } catch (error) {
+      console.error("Error inviting user:", error);
+    }
   };
 
   return (
@@ -37,14 +53,10 @@ export default function InviteFriend({
         <div className="w-full max-h-[200px] h-auto border border-outline rounded-xl overflow-y-auto flex flex-col gap-2 justify-center p-2">
           {allFriends.map((friend) => (
             <UserCard
-              key={friend.user_id}
-              id={friend.user_id}
-              isOnline={friend.is_online}
-              username={friend.username}
-              image={friend.profile_image}
-              createdAt={friend.created_at}
+              user={friend}
+              key={friend.id}
               actions={{ invite: true }}
-              onInvite={() => handleInvite(friend.user_id)}
+              onInvite={() => handleInvite(friend.id)}
             />
           ))}
         </div>
