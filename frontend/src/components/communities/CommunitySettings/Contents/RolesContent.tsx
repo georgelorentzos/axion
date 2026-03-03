@@ -294,7 +294,9 @@ export default function RolesContent({ onDeleteModalChange }: RolesContentProps)
                 Use roles to group your server members and assign permissions.
             </div>
             <div className="w-full flex gap-2 items-center">
-                <SearchBar onSearch={(q) => setSearchQuery(q)} />
+                {roles && roles.length > 0 && (
+                    <SearchBar onSearch={(q) => setSearchQuery(q)} />
+                )}
                 <div className="w-[170.48px]">
                     <Button text="Create Role" isGreen onClick={handleOpenCreateRole} />
                 </div>

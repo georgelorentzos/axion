@@ -1,6 +1,6 @@
 export type Log = {
     log: string,
-    reason: string,
+    description: string,
     createdAt: string;
     userImgUrl: string;
 }

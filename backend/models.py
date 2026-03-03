@@ -1,7 +1,7 @@
 from utils.database import Base
 from sqlalchemy import Column, String, ForeignKey, Boolean, DateTime
 from sqlalchemy.orm import relationship
-from sqlalchemy.dialects.postgresql import JSON
+from sqlalchemy.dialects.postgresql import JSONB
 from datetime import datetime, timedelta
 from nanoid import generate
 
@@ -123,7 +123,7 @@ class CommunityRole(Base):
     __tablename__ = "community_roles"
     id = Column(String, primary_key=True, default=lambda: generate(NUMERIC_ALPHABET, 20))
     role_name = Column(String, nullable=False)
-    permissions = Column(JSON, nullable=False, default=lambda: [])
+    permissions = Column(JSONB, nullable=False, default=lambda: [])
     community_id = Column(String, ForeignKey("communities.id"), nullable=False)
     community = relationship("Community", back_populates="roles")
 
@@ -138,7 +138,7 @@ class CommunityLog(Base):
     __tablename__ = "community_logs"
     id = Column(String, primary_key=True, default=lambda : generate(NUMERIC_ALPHABET, 20))
     log = Column(String, nullable=False)
-    reason = Column(String, nullable=True)
+    description = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     community_id = Column(String, ForeignKey("communities.id"), nullable=False)
     community = relationship("Community", back_populates="logs")

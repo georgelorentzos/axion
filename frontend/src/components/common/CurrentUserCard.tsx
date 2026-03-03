@@ -4,7 +4,7 @@ import ImageProfile from "./ImageProfile";
 export default function CurrentUserCard() {
     const { currentUser } = useCurrentUser();
     return(
-        <div className="border border-outline flex items-center bg-basalt rounded-lg gap-2 w-full h-[60px]">
+        <div className="border border-outline flex items-center bg-basalt rounded-lg gap-2 w-full py-2.5">
          <div className="px-4 flex justify-between items-center w-full">
                 <div className="flex items-center gap-2">
                     <ImageProfile src={currentUser?.image} online />

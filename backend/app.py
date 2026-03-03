@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException, Depends, BackgroundTasks, Request, Q
 from fastapi.middleware.cors import CORSMiddleware
 from schemas import *
 from utils.database import get_db, Session as SessionLocal
-from sqlalchemy import and_, or_, func
+from sqlalchemy import and_, or_, func, cast, String
 from sqlalchemy.orm import Session, joinedload
 from models import *
 from utils.mail import send_mail
@@ -551,7 +551,7 @@ async def ally_remove(request: Request, req: AllyRequest, user_id: str = Depends
         User.id == req.requester_id
     ).first()
 
-    addressee = db.query(User).filter(User.id == user_id).first()
+    addressee = db.query(User).filter(User.id == req.addressee_id).first()
     
     if not db.query(User).filter(User.id == req.addressee_id).first():
         raise HTTPException(status_code=404, detail="User not found.")
@@ -900,6 +900,15 @@ def create_community(
         db.flush()
 
         db.add(CommunityMember(user_id=user.id, community_id=new_community.id))
+        new_log = CommunityLog(
+            log=f"Community created by {user.username}",
+            community_id=new_community.id,
+            user_id=user.id
+        )
+        db.add(new_log)
+        db.flush()
+        db.refresh(new_log)
+
         db.commit()
         return {"success": True,
                 "id": new_community.id,
@@ -1092,11 +1101,61 @@ async def update_community(
         image_url = f"{base}/{filename}"
 
     try:
+        name_changed = community.community_name != community_name
+        image_changed = image_url is not None or should_remove_image
+
         community.community_name = community_name
         if should_remove_image:
             community.community_image = None
         elif image_url:
             community.community_image = image_url
+
+        if name_changed and image_changed:
+            log_message = f"{user.username} updated community image and name to {community_name}"
+        elif name_changed:
+            log_message = f"{user.username} updated community name to {community_name}"
+        elif image_changed:
+            log_message = f"{user.username} updated community image"
+        else:
+            log_message = None
+
+        if log_message:
+            new_log = CommunityLog(
+                log=log_message,
+                community_id=community.id,
+                user_id=user.id
+            )
+            db.add(new_log)
+            db.flush()
+            db.refresh(new_log)
+
+            members_with_log_permission = db.query(CommunityMember).join(
+                MemberRole, MemberRole.member_id == CommunityMember.id
+            ).join(
+                CommunityRole, CommunityRole.id == MemberRole.role_id
+            ).filter(
+                CommunityMember.community_id == community.id,
+                CommunityMember.user_id != user.id,
+                or_(
+                    cast(CommunityRole.permissions, String).like(f'%{PERMISSIONS.VIEW_LOGS}%'),
+                    cast(CommunityRole.permissions, String).like(f'%{PERMISSIONS.ADMINISTRATOR}%')
+                )
+            ).all()
+            log_user_ids = {m.user_id for m in members_with_log_permission}
+            log_user_ids.add(community.owner_id)
+            if user.id != community.owner_id:
+                log_user_ids.discard(user.id)
+            await asyncio.gather(*[
+                manager.broadcast_to_user(uid, {
+                    "type": "newLog",
+                    "log": new_log.log,
+                    "description": "",
+                    "createdAt": new_log.created_at.strftime("%D %H:%M"),
+                    "userImgUrl": user.profile_image
+                })
+                for uid in log_user_ids
+            ])
+
         db.commit()
         db.flush()
         
@@ -1111,7 +1170,7 @@ async def update_community(
             CommunityMember.user_id != community.owner_id
         ).all()
 
-        await asyncio.gather(*{
+        await asyncio.gather(*[
             manager.broadcast_to_user(member.user_id, {
                 "type": "communityUpdated",
                 "id": community.id,
@@ -1119,7 +1178,7 @@ async def update_community(
                 "image": community.community_image,
             })
             for member in members_to_notify
-        })
+        ])
         
         return {
             "success": True,
@@ -1204,7 +1263,7 @@ async def join_community(request: Request,
             community_id=community.id,
         )
         db.add(new_community_member)
-        await asyncio.gather(*{
+        await asyncio.gather(*[
             manager.broadcast_to_user(member.user_id, {
                 "type": "userJoined",
                 "id": user.id,
@@ -1214,13 +1273,42 @@ async def join_community(request: Request,
                 "createdAt": user.created_at.year,
             })
             for member in members_to_notify
-        })
+        ])
         new_log = CommunityLog(
             log=f"{user.username} joined",
             community_id=community.id,
             user_id=user.id,
         )
         db.add(new_log)
+        db.flush()
+        db.refresh(new_log)
+
+        members_with_log_permission = db.query(CommunityMember).join(
+            MemberRole, MemberRole.member_id == CommunityMember.id
+        ).join(
+            CommunityRole, CommunityRole.id == MemberRole.role_id
+        ).filter(
+            CommunityMember.community_id == community.id,
+            CommunityMember.user_id != user.id,
+            or_(
+                cast(CommunityRole.permissions, String).like(f'%{PERMISSIONS.VIEW_LOGS}%'),
+                cast(CommunityRole.permissions, String).like(f'%{PERMISSIONS.ADMINISTRATOR}%')
+            )
+        ).all()
+        log_user_ids = {m.user_id for m in members_with_log_permission}
+        log_user_ids.add(community.owner_id)
+        if user.id != community.owner_id:
+            log_user_ids.discard(user.id)
+        await asyncio.gather(*[
+            manager.broadcast_to_user(uid, {
+                "type": "newLog",
+                "log": new_log.log,
+                "description": "",
+                "createdAt": new_log.created_at.strftime("%D %H:%M"),
+                "userImgUrl": user.profile_image
+            })
+            for uid in log_user_ids
+        ])
         db.commit()
         return { 
             "success": True,
@@ -1264,13 +1352,13 @@ async def leave_community(request: Request,
             CommunityMember.community_id == community.id,
             CommunityMember.user_id != user.id,
         ).all()
-        await asyncio.gather(*{
+        await asyncio.gather(*[
             manager.broadcast_to_user(member.user_id, {
                 "type": "userLeft",
                 "memberId": user.id,
             })
             for member in members_to_notify
-        })
+        ])
         return {
             "success": True,
             "status": "left"
@@ -1307,7 +1395,7 @@ def get_community_members(request: Request,
                 "username": community_member.user.username,
                 "image": community_member.user.profile_image,
                 "isOnline": community_member.user.is_online,
-                "createdAt": user.created_at.year,
+                "createdAt": community_member.user.created_at.year,
             } for community_member in community_members
         ]
     }
@@ -1339,19 +1427,23 @@ async def delete_community(request: Request,
             CommunityMember.community_id == community_id,
             CommunityMember.user_id != community.owner_id
         ).all()
-        db.query(CommunityRole).filter(CommunityRole.community_id == community_id).delete()
+        member_ids = [m.id for m in db.query(CommunityMember).filter(
+            CommunityMember.community_id == community_id).all()]
+        db.query(MemberRole).filter(MemberRole.member_id.in_(member_ids)).delete(synchronize_session=False)
+        db.query(CommunityLog).filter(CommunityLog.community_id == community_id).delete()
         db.query(CommunityMember).filter(CommunityMember.community_id == community_id).delete()
         db.query(CommunityChannel).filter(CommunityChannel.community_id == community_id).delete()
         db.query(CommunityCategory).filter(CommunityCategory.community_id == community_id).delete()
+        db.query(CommunityRole).filter(CommunityRole.community_id == community_id).delete()
         db.query(Community).filter(Community.id == community_id).delete()
-        await asyncio.gather(*(
+        db.commit()
+        await asyncio.gather(*[
             manager.broadcast_to_user(member.user_id, {
                 "type": "communityDeleted",
                 "id": community.id,
             })
             for member in members_to_notify
-        ))
-        db.commit()
+        ])
         return {
             "success": True,
             "id": community.id
@@ -1407,6 +1499,43 @@ async def create_role(request: Request,
             community_id=community.id,
         )
         db.add(new_role)
+        db.flush()
+        new_log = CommunityLog(
+            log=f"{user.username} created the role {new_role.role_name}",
+            description=f"With permissions: {', '.join(req.permissions.split('|'))}" if req.permissions else "",
+            community_id=community.id,
+            user_id=user.id
+        )
+        db.add(new_log)
+        db.flush()
+        db.refresh(new_log)
+
+        members_with_log_permission = db.query(CommunityMember).join(
+            MemberRole, MemberRole.member_id == CommunityMember.id
+        ).join(
+            CommunityRole, CommunityRole.id == MemberRole.role_id
+        ).filter(
+            CommunityMember.community_id == community.id,
+            CommunityMember.user_id != user.id,
+            or_(
+                cast(CommunityRole.permissions, String).like(f'%{PERMISSIONS.VIEW_LOGS}%'),
+                cast(CommunityRole.permissions, String).like(f'%{PERMISSIONS.ADMINISTRATOR}%')
+            )
+        ).all()
+        log_user_ids = {m.user_id for m in members_with_log_permission}
+        log_user_ids.add(community.owner_id)
+        if user.id != community.owner_id:
+            log_user_ids.discard(user.id)
+        await asyncio.gather(*[
+            manager.broadcast_to_user(uid, {
+                "type": "newLog",
+                "log": new_log.log,
+                "description": "",
+                "createdAt": new_log.created_at.strftime("%D %H:%M"),
+                "userImgUrl": user.profile_image
+            })
+            for uid in log_user_ids
+        ])
         db.commit()
         return {
             "success": True,
@@ -1418,6 +1547,8 @@ async def create_role(request: Request,
         }
     except Exception as e:
         db.rollback()
+        import traceback
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail="Failed to create role due to an internal server error.")
 
 @app.patch("/api/community/{community_id}/roles/{role_id}", response_model=Dict[str, Any])
@@ -1571,6 +1702,41 @@ async def delete_role(request: Request,
 
     try:
         db.query(MemberRole).filter(MemberRole.role_id == role.id).delete()
+        new_log = CommunityLog(
+            log=f"{user.username} deleted the role {role.role_name}",
+            community_id=community.id,
+            user_id=user.id
+        )
+        db.add(new_log)
+        db.flush()
+        db.refresh(new_log)
+
+        members_with_log_permission = db.query(CommunityMember).join(
+            MemberRole, MemberRole.member_id == CommunityMember.id
+        ).join(
+            CommunityRole, CommunityRole.id == MemberRole.role_id
+        ).filter(
+            CommunityMember.community_id == community.id,
+            CommunityMember.user_id != user.id,
+            or_(
+                cast(CommunityRole.permissions, String).like(f'%{PERMISSIONS.VIEW_LOGS}%'),
+                cast(CommunityRole.permissions, String).like(f'%{PERMISSIONS.ADMINISTRATOR}%')
+            )
+        ).all()
+        log_user_ids = {m.user_id for m in members_with_log_permission}
+        log_user_ids.add(community.owner_id)
+        if user.id != community.owner_id:
+            log_user_ids.discard(user.id)
+        await asyncio.gather(*[
+            manager.broadcast_to_user(uid, {
+                "type": "newLog",
+                "log": new_log.log,
+                "description": "",
+                "createdAt": new_log.created_at.strftime("%D %H:%M"),
+                "userImgUrl": user.profile_image
+            })
+            for uid in log_user_ids
+        ])
         db.delete(role)
         db.commit()
         return {
@@ -1608,10 +1774,10 @@ async def kick_member_from_community(request: Request,
 
     community_member_to_kick = db.query(CommunityMember).filter(CommunityMember.community_id == community_id, CommunityMember.user_id == user_to_kick.id).first()
     if not community_member_to_kick:
-        raise HTTPException(status_code=404, detail=f"Reason exceeds maximum length: {len(reason)} characters provided, but limit is 100.")
+        raise HTTPException(status_code=404, detail="Member not found in this community.")
 
     if len(reason) > 100:
-        raise HTTPException(status_code=400, detail="")
+        raise HTTPException(status_code=400, detail=f"Reason exceeds maximum length: {len(reason)} characters provided, but limit is 100.")
 
     if community.owner_id == user_to_kick.id:
         raise HTTPException(status_code=404, detail="you cant kick the owner")
@@ -1639,11 +1805,40 @@ async def kick_member_from_community(request: Request,
         })
         new_log = CommunityLog(
             log=f"{community_member.user.username} kicked {community_member_to_kick.user.username}",
-            reason=reason,
+            description=reason,
             community_id=community_member_to_kick.community_id,
             user_id=user.id,
         )
         db.add(new_log)
+        db.flush()
+        db.refresh(new_log)
+
+        members_with_log_permission = db.query(CommunityMember).join(
+            MemberRole, MemberRole.member_id == CommunityMember.id
+        ).join(
+            CommunityRole, CommunityRole.id == MemberRole.role_id
+        ).filter(
+            CommunityMember.community_id == community.id,
+            CommunityMember.user_id != user.id,
+            or_(
+                cast(CommunityRole.permissions, String).like(f'%{PERMISSIONS.VIEW_LOGS}%'),
+                cast(CommunityRole.permissions, String).like(f'%{PERMISSIONS.ADMINISTRATOR}%')
+            )
+        ).all()
+        log_user_ids = {m.user_id for m in members_with_log_permission}
+        log_user_ids.add(community.owner_id)
+        if user.id != community.owner_id:
+            log_user_ids.discard(user.id)
+        await asyncio.gather(*[
+            manager.broadcast_to_user(uid, {
+                "type": "newLog",
+                "log": new_log.log,
+                "description": "",
+                "createdAt": new_log.created_at.strftime("%D %H:%M"),
+                "userImgUrl": user.profile_image
+            })
+            for uid in log_user_ids
+        ])
         db.commit()
         return {
             "success": True,
@@ -1689,7 +1884,7 @@ def fetch_logs(request: Request,
             raise HTTPException(status_code=403, detail="You don't have permissions.")
 
     community_logs = db.query(CommunityLog).filter(
-        community_id == community.id
+        CommunityLog.community_id == community.id
     ).all()
 
     return {
@@ -1697,7 +1892,7 @@ def fetch_logs(request: Request,
         "logs": [
             {
                 "log": log.log,
-                "reason": log.reason,
+                "description": log.description,
                 "createdAt": log.created_at.strftime("%D %H:%M"),
                 "userImgUrl": log.user.profile_image,
             } for log in community_logs

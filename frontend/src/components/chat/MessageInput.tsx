@@ -50,7 +50,7 @@ export default function MessageInput({ value: propValue, recipient_id }: Message
     };
 
     return (
-        <div className='border border-outline flex items-center bg-basalt px-4 rounded-lg gap-2 w-full h-[60px]'>
+        <div className='border border-outline flex items-center bg-basalt px-4 rounded-lg gap-2 w-full py-2.5'>
             <button>
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-5 text-gray-500 hover:text-gray-300 transition duration-300">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />

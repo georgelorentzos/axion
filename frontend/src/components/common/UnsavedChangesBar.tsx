@@ -26,7 +26,7 @@ export default function UnsavedChangesBar({ isVisible, onReset, onSave, error }:
     if (!shouldRender) return null;
     
     return (
-        <div className={`rounded-lg fixed flex px-6 items-center justify-between bottom-5 left-1/2 -translate-x-1/2 bg-onyx w-[600px] h-[60px] border border-outline 
+        <div className={`rounded-lg fixed flex px-6 items-center justify-between bottom-5 left-1/2 -translate-x-1/2 bg-onyx w-[600px] py-2.5 border border-outline 
         transition-opacity duration-200
         ${showFade ? 'opacity-100' : 'opacity-0'}`}>
             <div className={`whitespace-nowrap transition-colors duration-300 ${error ? 'text-red-500' : ''}`}>

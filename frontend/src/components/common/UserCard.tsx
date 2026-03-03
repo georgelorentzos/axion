@@ -294,7 +294,7 @@ export default function UserCard({
   return (
     <div
       onClick={currentUser?.id === user?.id ? () => {} : handleNavigateToChat}
-      className={` ${currentUser?.id === user?.id ? "cursor-default" : "cursor-pointer"} transition duration-300 h-[60px] px-4 flex justify-between items-center w-full rounded-lg ${
+      className={` ${currentUser?.id === user?.id ? "cursor-default" : "cursor-pointer"} transition duration-300 py-2.5 px-4 flex justify-between items-center w-full rounded-lg ${
     isSelected
       ? "bg-basalt"
       : "hover:bg-basalt"

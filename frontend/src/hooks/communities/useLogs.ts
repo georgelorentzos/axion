@@ -10,6 +10,7 @@ export function useLogs() {
 
     useEffect(() => {
         if (!token) return;
+        if (!communityId) return;
         const fetchLogs = async () => {
             try{
                 const response = await fetch(`${apiUrl}/api/community/${communityId}/logs`, {
@@ -25,7 +26,29 @@ export function useLogs() {
             }
         };
         fetchLogs();
-    }, []);  
+    }, [communityId]);
+
+    useEffect(() => {
+        const handleMessage = (event: MessageEvent) => {
+            const data = JSON.parse(event.data);
+            if (data.type === "newLog") {
+                setLogs(prev => [
+                    {
+                        log: data.log,
+                        description: data.description,
+                        createdAt: data.createdAt,
+                        userImgUrl: data.userImgUrl,
+                    },
+                    ...prev
+                ] )
+            }
+        }
+        const ws = window._ws?.ws;
+        if (ws) {
+            ws.addEventListener("message", handleMessage);
+            return () => ws.removeEventListener("message", handleMessage);
+        }
+    }, []);
 
     return { logs, setLogs };
 }
