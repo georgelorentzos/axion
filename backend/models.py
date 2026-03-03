@@ -84,6 +84,7 @@ class Community(Base):
     categories = relationship("CommunityCategory", back_populates="community")
     channels = relationship("CommunityChannel", back_populates="community", foreign_keys="CommunityChannel.community_id")
     roles = relationship("CommunityRole", back_populates="community")
+    logs = relationship("CommunityLog", back_populates="community")
 
 class CommunityCategory(Base):
     __tablename__ = "community_categories"
@@ -132,3 +133,14 @@ class MemberRole(Base):
     member_id = Column(String, ForeignKey("community_members.id"), nullable=False)
     role_id = Column(String, ForeignKey("community_roles.id"), nullable=False)
     role = relationship("CommunityRole")
+
+class CommunityLog(Base):
+    __tablename__ = "community_logs"
+    id = Column(String, primary_key=True, default=lambda : generate(NUMERIC_ALPHABET, 20))
+    log = Column(String, nullable=False)
+    reason = Column(String, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    community_id = Column(String, ForeignKey("communities.id"), nullable=False)
+    community = relationship("Community", back_populates="logs")
+    user_id = Column(String, ForeignKey("users.id"), nullable=False)
+    user = relationship("User")

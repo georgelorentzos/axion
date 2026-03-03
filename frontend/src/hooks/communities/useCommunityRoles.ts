@@ -6,12 +6,12 @@ export function useCommunityRoles(){
     const [roles, setRoles] = useState<Role[]>([]);
     const { communityId } = useParams();
     const apiUrl = window.GLOBAL_ENV.API_ENDPOINT;
+    const token = localStorage.getItem("token");
 
     useEffect(() => {
         if (!communityId) return;
+        if (!token) return;
         const handleFetchRoles = async () => {
-            const token = localStorage.getItem("token");
-            if (!token) return;
             try {
                 const response = await fetch(
                     `${apiUrl}/api/community/${communityId}/roles`,

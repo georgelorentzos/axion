@@ -113,7 +113,6 @@ export default function ProfileContent({ community, onCommunityUpdate }: Profile
                             image: data.image,
                             onlineMembers: data.onlineMembers,
                             totalMembers: data.totalMembers,
-                            createdAt: data.createdAt,
                             ownerId: data.ownerId,
                         }
                     }

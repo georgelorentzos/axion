@@ -227,6 +227,12 @@ export default function RolesContent({ onDeleteModalChange }: RolesContentProps)
                         text="Manage Community"
                         description="Allows members to edit community settings, such as the community name and description."
                     />
+                    <PermissionsItem
+                        onClick={() => togglePermission(PERMISSIONS.VIEW_LOGS)}
+                        active={selectedPermissions.includes(PERMISSIONS.VIEW_LOGS)}
+                        text="View Logs"
+                        description="Allows members to view system logs."
+                    />
                 </PermissionsSection>
                 <PermissionsSection title="MEMBERSHIP">
                     <PermissionsItem

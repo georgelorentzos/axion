@@ -24,7 +24,8 @@ type UserCardProps = {
   onReject?: (id: string) => void;
   onAccept?: (id: string) => void;
   onInvite?: () => void;
-
+  
+  showStatus?: boolean;
   showLatestMessage?: boolean;
   latestMessage?: string;
   joinedAtText?: string;
@@ -45,6 +46,7 @@ export default function UserCard({
   onReject,
   onAccept,
   onInvite,
+  showStatus = true,
   showLatestMessage,
   latestMessage,
   joinedAtText
@@ -299,7 +301,7 @@ export default function UserCard({
   }`}
     >
       <div className="flex items-center gap-2">
-        <ImageProfile src={user?.image} online={user?.isOnline} />
+        <ImageProfile src={user?.image} online={user?.isOnline} showStatus={showStatus} />
         <div className="flex flex-col leading-none gap-1">
           <div className="text-gray-100">{user?.username}</div>
           {showLatestMessage ? (
@@ -307,9 +309,13 @@ export default function UserCard({
             {latestMessage}
           </div>
           ) : (
+            <>
+          {showStatus && (
           <div className="text-gray-500 text-[12px]">
             {user?.isOnline ? "Online" : "Offline"}
           </div>
+           )}
+           </>
           )}
         </div>
       </div>

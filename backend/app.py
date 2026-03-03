@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Depends, BackgroundTasks, Request, Query, UploadFile, File, Form
+from fastapi import FastAPI, HTTPException, Depends, BackgroundTasks, Request, Query, UploadFile, File, Form, Body
 from fastapi.middleware.cors import CORSMiddleware
 from schemas import *
 from utils.database import get_db, Session as SessionLocal
@@ -1204,7 +1204,6 @@ async def join_community(request: Request,
             community_id=community.id,
         )
         db.add(new_community_member)
-        db.commit()
         await asyncio.gather(*{
             manager.broadcast_to_user(member.user_id, {
                 "type": "userJoined",
@@ -1216,6 +1215,13 @@ async def join_community(request: Request,
             })
             for member in members_to_notify
         })
+        new_log = CommunityLog(
+            log=f"{user.username} joined",
+            community_id=community.id,
+            user_id=user.id,
+        )
+        db.add(new_log)
+        db.commit()
         return { 
             "success": True,
             "status": "joined"
@@ -1580,6 +1586,7 @@ async def delete_role(request: Request,
 async def kick_member_from_community(request: Request,
                                community_id: str,
                                member_id: str,
+                               reason: str = Body(default="No Reason", embed=True),
                                current_user_id: str = Depends(get_user_id_from_token),
                                db: Session = Depends(get_db)
                                ) -> Dict[str, Any]:
@@ -1601,7 +1608,10 @@ async def kick_member_from_community(request: Request,
 
     community_member_to_kick = db.query(CommunityMember).filter(CommunityMember.community_id == community_id, CommunityMember.user_id == user_to_kick.id).first()
     if not community_member_to_kick:
-        raise HTTPException(status_code=404, detail="community member to kick not found.")
+        raise HTTPException(status_code=404, detail=f"Reason exceeds maximum length: {len(reason)} characters provided, but limit is 100.")
+
+    if len(reason) > 100:
+        raise HTTPException(status_code=400, detail="")
 
     if community.owner_id == user_to_kick.id:
         raise HTTPException(status_code=404, detail="you cant kick the owner")
@@ -1623,11 +1633,18 @@ async def kick_member_from_community(request: Request,
 
     try:
         db.query(CommunityMember).filter(CommunityMember.id == community_member_to_kick.id).delete()
-        db.commit()
         await manager.broadcast_to_user(community_member_to_kick.user_id, {
             "type": "memberKicked",
             "id": community.id,
         })
+        new_log = CommunityLog(
+            log=f"{community_member.user.username} kicked {community_member_to_kick.user.username}",
+            reason=reason,
+            community_id=community_member_to_kick.community_id,
+            user_id=user.id,
+        )
+        db.add(new_log)
+        db.commit()
         return {
             "success": True,
             "message": "user kicked successfully"
@@ -1635,6 +1652,57 @@ async def kick_member_from_community(request: Request,
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail="Failed to delete role due to an internal server error.")
+
+@app.get("/api/community/{community_id}/logs", response_model=Dict[str, Any])
+@limiter.limit("120/minute")
+def fetch_logs(request: Request,
+               community_id: str,
+               current_user_id: str = Depends(get_user_id_from_token),
+               db: Session = Depends(get_db)
+               ) -> Dict[str, Any]:
+    
+    user = db.query(User).filter(User.id == current_user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found.")
+
+    community = db.query(Community).filter(Community.id == community_id).first()
+    if not community:
+        raise HTTPException(status_code=404, detail="Community not found.")
+    
+    community_member = db.query(CommunityMember).filter(CommunityMember.community_id == community_id, CommunityMember.user_id == user.id).first()
+    if not community_member:
+        raise HTTPException(status_code=404, detail="Community member not found.")
+    
+    if community.owner_id != user.id:
+        community_member_roles = db.query(CommunityRole).join(
+            MemberRole, MemberRole.role_id == CommunityRole.id
+        ).filter(
+            CommunityRole.community_id == community.id,
+            MemberRole.member_id == community_member.id
+        ).all()
+
+        all_permissions = []
+        for r in community_member_roles:
+            all_permissions.extend(r.permissions)
+        
+        if PERMISSIONS.VIEW_LOGS not in all_permissions and PERMISSIONS.ADMINISTRATOR not in all_permissions:
+            raise HTTPException(status_code=403, detail="You don't have permissions.")
+
+    community_logs = db.query(CommunityLog).filter(
+        community_id == community.id
+    ).all()
+
+    return {
+        "success": True,
+        "logs": [
+            {
+                "log": log.log,
+                "reason": log.reason,
+                "createdAt": log.created_at.strftime("%D %H:%M"),
+                "userImgUrl": log.user.profile_image,
+            } for log in community_logs
+        ]
+    }
 
 # if os.path.exists("dist/assets"):
 #     app.mount("/assets", StaticFiles(directory="dist/assets"), name="assets")

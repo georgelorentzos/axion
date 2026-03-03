@@ -7,9 +7,9 @@ export function useCommunityMembers() {
     const onlineMembers = communityMembers.filter(m => m.isOnline);
     const apiUrl = window.GLOBAL_ENV.API_ENDPOINT;
     const { communityId } = useParams();
-
+    const token = localStorage.getItem("token");
+    
     useEffect(() => {
-            const token = localStorage.getItem("token");
             if (!token) return;
             if (!communityId) return;
             const fetchcommunityMembers = async () => {

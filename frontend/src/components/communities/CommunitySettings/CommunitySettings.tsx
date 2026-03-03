@@ -4,6 +4,7 @@ import SettingsItem from "../CommunitySettings/SettingsItem";
 import ProfileContent from "../CommunitySettings/Contents/ProfileContent";
 import RolesContent from "../CommunitySettings/Contents/RolesContent";
 import MembersContent from "../CommunitySettings/Contents/MembersContent";
+import LogsContent from "./Contents/LogsContent";
 import ModalCloseButton from "../../common/modal/ModalCloseButton";
 import Modal from "../../common/modal/Modal";
 import { type Community } from "../../../types/community";
@@ -48,6 +49,8 @@ export default function CommunitySettingsModal(
                 return <RolesContent onDeleteModalChange={setIsDeleteRoleModal} />;
             case "Members":
                 return <MembersContent />;
+            case "Logs":
+                return <LogsContent />;
         }
     }
 

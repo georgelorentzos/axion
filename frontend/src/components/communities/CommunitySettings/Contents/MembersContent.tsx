@@ -31,6 +31,7 @@ export default function MembersContent() {
                         key={member.id}
                         user={member}
                         actions={{ options: member.id !== currentUser?.id && member.id !== community?.ownerId, admin: member.id !== currentUser?.id && member.id !== community?.ownerId }}
+                        showStatus={false}
                     />
                 ))}
             </div>

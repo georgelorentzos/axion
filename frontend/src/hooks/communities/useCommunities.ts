@@ -17,9 +17,8 @@ export function useCommunities() {
     const [loading, setIsLoading] = useState(true);
 
     useEffect(() => {
+        if (!token) return;
         const handleCommunities = async () => {
-            if (!token) return;
-
             try {
                 const response = await fetch(`${apiUrl}/api/my/communities`, {
                     headers: {"Authorization": `Bearer ${token}`}
