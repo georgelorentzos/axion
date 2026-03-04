@@ -2,10 +2,9 @@ import ImageProfile from '../common/ImageProfile';
 import MessageInput from './MessageInput';
 import MessageBubble from './MessageBubble'
 import { useParams, useLocation } from "react-router-dom";
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useLayoutEffect, useState, useRef } from 'react';
 import { useCurrentUser } from '../../contexts/useCurrentUser';
 import { useNavigate } from 'react-router-dom';
-import { MessageSkeleton } from './MessageSkeleton';
 import { type User } from '../../types/user';
 
 interface LocationState {
@@ -40,7 +39,7 @@ export default function Conversation() {
         }
     }, [userId, currentUser]);
 
-    useEffect(() => {
+    useLayoutEffect(() => {
         const state = location.state as LocationState;
 
         if (state?.user) {
@@ -121,9 +120,7 @@ export default function Conversation() {
         } catch (error) {
             console.error('Error loading messages:', error);
         } finally {
-            setTimeout(() => {
-                setLoadingMessages(false);
-            }, 500);
+            setLoadingMessages(false);
         }
     };
 
@@ -176,34 +173,15 @@ export default function Conversation() {
         }
     }, []);
 
-    useEffect(() => {
+    useLayoutEffect(() => {
         if (messages.length > 0) {
-            setTimeout(() => {
-                requestAnimationFrame(() => {
-                    messagesEndRef.current?.scrollIntoView({ behavior: 'instant' });
-                });
-            }, 50);
+            requestAnimationFrame(() => {
+                messagesEndRef.current?.scrollIntoView({ behavior: 'instant' });
+            });
         }
     }, [messages]);
 
     const conversationRef = useRef<HTMLDivElement>(null);
-    const [skeletonStyle, setSkeletonStyle] = useState<React.CSSProperties>({});
-
-    useEffect(() => {
-        if (loadingMessages && conversationRef.current) {
-            const rect = conversationRef.current.getBoundingClientRect();
-            const headerHeight = 60;
-            const inputHeight = 80;
-            setSkeletonStyle({
-                position: 'fixed',
-                top: rect.top + headerHeight + 1,
-                left: rect.left,
-                width: rect.width,
-                height: rect.height - headerHeight - inputHeight - 1,
-                zIndex: 50,
-            });
-        }
-    }, [loadingMessages]);
 
     return (
         <div ref={conversationRef} className="flex-1 h-screen border-r border-outline flex flex-col">
@@ -223,15 +201,6 @@ export default function Conversation() {
                     </div>
                 </div>
             </div>
-
-            {loadingMessages && (
-                <div
-                    className="bg-onyx p-6 pointer-events-none overflow-hidden"
-                    style={skeletonStyle}
-                >
-                    <MessageSkeleton />
-                </div>
-            )}
 
             <div ref={scrollContainerRef} className={`flex-1 w-full min-h-0 p-6 pb-3 space-y-3 ${loadingMessages ? "overflow-hidden" : "overflow-y-auto"}`}>
                 <div className={`${loadingMessages ? "opacity-0" : "pb-6"}`}>
