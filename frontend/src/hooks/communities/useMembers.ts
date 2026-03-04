@@ -2,9 +2,9 @@ import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { type User } from "../../types/user";
 
-export function useCommunityMembers() {
-    const [communityMembers, setCommunityMembers] = useState<User[]>([]);
-    const onlineMembers = communityMembers.filter(m => m.isOnline);
+export function useMembers() {
+    const [members, setMembers] = useState<User[]>([]);
+    const onlineMembers = members.filter(m => m.isOnline);
     const apiUrl = window.GLOBAL_ENV.API_ENDPOINT;
     const { communityId } = useParams();
     const token = localStorage.getItem("token");
@@ -12,25 +12,25 @@ export function useCommunityMembers() {
     useEffect(() => {
             if (!token) return;
             if (!communityId) return;
-            const fetchcommunityMembers = async () => {
+            const fetchmembers = async () => {
                 try {
                     const response = await fetch(`${apiUrl}/api/community/${communityId}/members`, {
                         headers: {"Authorization": `Bearer ${token}`}
                     });
                     const data = await response.json()
-                    setCommunityMembers(data.members || []);
+                    setMembers(data.members || []);
                 } catch (error) {
-                    console.log("error fetching communityMembers: ", error)
+                    console.log("error fetching members: ", error)
                 }
             }
-            fetchcommunityMembers();
+            fetchmembers();
     }, [communityId])
 
     useEffect(() => {
         const handleMessage = async (event: MessageEvent) => {
             const data = JSON.parse(event.data);
             if (data.type === "userJoined") {
-                setCommunityMembers(
+                setMembers(
                     prev => [
                         ...prev,
                         {
@@ -44,7 +44,7 @@ export function useCommunityMembers() {
                 );
             }
             if (data.type === "userLeft") {
-                setCommunityMembers(prev => prev.filter(m => m.id !== data.id));
+                setMembers(prev => prev.filter(m => m.id !== data.memberId));
             }
         };
 
@@ -55,5 +55,5 @@ export function useCommunityMembers() {
         }
     }, [])
 
-    return {communityMembers, setCommunityMembers, onlineMembers};
+    return {members, setMembers, onlineMembers};
 }

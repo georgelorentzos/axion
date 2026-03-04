@@ -936,33 +936,6 @@ def my_communities(request: Request, current_user_id: str = Depends(get_user_id_
 
     community_ids = [community.id for _, community in communities]
 
-    online_counts = (
-        db.query(
-            CommunityMember.community_id,
-            func.count(CommunityMember.id)
-        ).join(
-            User, User.id == CommunityMember.user_id
-        ).filter(
-            CommunityMember.community_id.in_(community_ids),
-            User.is_online.is_(True)
-        ).group_by(CommunityMember.community_id).all()
-    )
-
-    online_map = dict(online_counts)
-
-    total_counts = (
-        db.query(
-            CommunityMember.community_id,
-            func.count(CommunityMember.id)
-        ).filter(
-            CommunityMember.community_id.in_(community_ids)
-        )
-        .group_by(CommunityMember.community_id)
-        .all()
-    )
-
-    total_map = dict(total_counts)
-
     return {
         "success": True,
         "communities": [
@@ -970,9 +943,6 @@ def my_communities(request: Request, current_user_id: str = Depends(get_user_id_
                 "id": community.id,
                 "name": community.community_name,
                 "image": community.community_image,
-                "onlineMembers": online_map.get(community.id, 0),
-                "totalMembers": total_map.get(community.id, 0),
-                "createdAt": community.created_at.year,
                 "ownerId": community.owner_id,
             } for member, community in communities
         ]
@@ -1186,6 +1156,7 @@ async def update_community(
             "name": community.community_name,
             "image": community.community_image,
             "ownerId": community.owner_id,
+            "createdAt": community.created_at.year,
         }
     except Exception as e:
         db.rollback()
@@ -1312,7 +1283,11 @@ async def join_community(request: Request,
         db.commit()
         return { 
             "success": True,
-            "status": "joined"
+            "id": community.id,
+            "name": community.community_name,
+            "image": community.community_image,
+            "createdAt": community.created_at,
+            "ownerId": community.owner_id,
             }
     
     except Exception as e:
@@ -1530,7 +1505,7 @@ async def create_role(request: Request,
             manager.broadcast_to_user(uid, {
                 "type": "newLog",
                 "log": new_log.log,
-                "description": "",
+                "description": f"With permissions: {', '.join(req.permissions.split('|'))}" if req.permissions else "",
                 "createdAt": new_log.created_at.strftime("%D %H:%M"),
                 "userImgUrl": user.profile_image
             })
@@ -1805,7 +1780,7 @@ async def kick_member_from_community(request: Request,
         })
         new_log = CommunityLog(
             log=f"{community_member.user.username} kicked {community_member_to_kick.user.username}",
-            description=reason,
+            description=f"With reason: {reason}",
             community_id=community_member_to_kick.community_id,
             user_id=user.id,
         )
@@ -1833,7 +1808,7 @@ async def kick_member_from_community(request: Request,
             manager.broadcast_to_user(uid, {
                 "type": "newLog",
                 "log": new_log.log,
-                "description": "",
+                "description": f"With reason: {reason}",
                 "createdAt": new_log.created_at.strftime("%D %H:%M"),
                 "userImgUrl": user.profile_image
             })

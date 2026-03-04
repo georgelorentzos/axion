@@ -207,7 +207,7 @@ export default function Conversation() {
 
     return (
         <div ref={conversationRef} className="flex-1 h-screen border-r border-outline flex flex-col">
-            <div className="py-2.5 border-b border-outline flex items-center px-6 gap-2 flex-shrink-0">
+            <div className="h-[60px] border-b border-outline flex items-center px-6 gap-2 flex-shrink-0">
                 <div className="flex justify-between items-center w-full">
                     <div className="flex items-center gap-2">
                         <ImageProfile

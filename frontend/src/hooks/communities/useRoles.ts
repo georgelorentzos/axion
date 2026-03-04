@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { type Role } from "../../types/role";
 
-export function useCommunityRoles(){
+export function useRoles(){
     const [roles, setRoles] = useState<Role[]>([]);
     const { communityId } = useParams();
     const apiUrl = window.GLOBAL_ENV.API_ENDPOINT;

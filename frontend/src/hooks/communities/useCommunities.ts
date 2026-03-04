@@ -1,14 +1,5 @@
 import { useState, useEffect } from "react";
-
-interface Community {
-    id: string;
-    name: string;
-    image: string;
-    onlineMembers: string;
-    totalMembers: string;
-    createdAt: string;
-    ownerId: string;
-}
+import { type Community } from "../../types/community";
 
 export function useCommunities() {
     const [communities, setCommunities] = useState<Community[] | null>(null);

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import SettingsSection from "../CommunitySettings/SettingsSection";
 import SettingsItem from "../CommunitySettings/SettingsItem";
 import ProfileContent from "../CommunitySettings/Contents/ProfileContent";
@@ -23,7 +23,13 @@ export default function CommunitySettingsModal(
     const [showFade, setShowFade] = useState(false);
     const [selectedTab, setSelectedTab] = useState("Profile");
     const [isDeleteCommunityModal, setIsDeleteCommunityModal] = useState(false);
-    const [isDeleteRoleModal, setIsDeleteRoleModal] = useState(false);
+    const [childModalCount, setChildModalCount] = useState(0);
+
+    const hasChildModalOpen = isDeleteCommunityModal || childModalCount > 0;
+
+    const registerChildModal = useCallback((isOpen: boolean) => {
+        setChildModalCount(prev => isOpen ? prev + 1 : Math.max(0, prev - 1));
+    }, []);
 
     useEffect(() => {
         if (isOpen) {
@@ -46,9 +52,9 @@ export default function CommunitySettingsModal(
             case "Profile":
                 return <ProfileContent community={community} onCommunityUpdate={onCommunityUpdate} />;
             case "Roles":
-                return <RolesContent onDeleteModalChange={setIsDeleteRoleModal} />;
+                return <RolesContent onChildModalChange={registerChildModal} />;
             case "Members":
-                return <MembersContent />;
+                return <MembersContent onChildModalChange={registerChildModal} />;
             case "Logs":
                 return <LogsContent />;
         }
@@ -87,7 +93,7 @@ export default function CommunitySettingsModal(
             <div className="pt-16 w-[920px]">
                 {renderContent()}
 
-                <ModalCloseButton onClose={isDeleteCommunityModal || isDeleteRoleModal ? () => {} : onClose} top="top-4" right="right-4" />
+                <ModalCloseButton onClose={hasChildModalOpen ? () => {} : onClose} top="top-4" right="right-4" />
             </div>
 
             <Modal isOpen={isDeleteCommunityModal} onClose={() => setIsDeleteCommunityModal(false)} type="deleteCommunity" community={community} />

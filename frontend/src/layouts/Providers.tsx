@@ -4,9 +4,9 @@ import { AllFriendsProvider } from '../contexts/useAllFriends';
 import { PendingProvider } from '../contexts/usePending';
 import { DirectMessagesProvider } from '../contexts/useDirectMessages';
 import { CommunitiesProvider } from '../contexts/communities/useCommunities';
-import { CommunitiesMembersProvider } from '../contexts/communities/useCommunityMembers';
+import { MembersProvider } from '../contexts/communities/useMembers';
 import { CommunityProvider } from '../contexts/communities/useCommunity';
-import { CommunityRolesProvider } from '../contexts/communities/useCommunityRoles';
+import { RolesProvider } from '../contexts/communities/useRoles';
 import { LogsProvider } from '../contexts/communities/useLogs';
 
 export const MainWithProviders = ({ children }: { children: React.ReactNode }) => (
@@ -16,15 +16,15 @@ export const MainWithProviders = ({ children }: { children: React.ReactNode }) =
         <PendingProvider>
           <DirectMessagesProvider>
             <CommunitiesProvider>
-              <CommunitiesMembersProvider>
+              <MembersProvider>
                 <CommunityProvider>
-                  <CommunityRolesProvider>
+                  <RolesProvider>
                     <LogsProvider>
                       { children }
                     </LogsProvider>
-                  </CommunityRolesProvider>
+                  </RolesProvider>
                 </CommunityProvider>
-              </CommunitiesMembersProvider>
+              </MembersProvider>
             </CommunitiesProvider>
           </DirectMessagesProvider>
         </PendingProvider>

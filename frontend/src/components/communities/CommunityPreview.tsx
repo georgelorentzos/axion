@@ -53,8 +53,6 @@ export default function CommunityPreview({ joinBtn, community: communityProp, sk
         communityId: id,
         communityName: name || "",
         communityImage: image || "",
-        communityOnlineMembers: onlineMembers || "0",
-        communityTotalMembers: totalMembers || "0",
         communityCreatedAt: createdAt || "",
         communityOwnerId: community?.ownerId || "",
       };
@@ -67,8 +65,6 @@ export default function CommunityPreview({ joinBtn, community: communityProp, sk
             id: id || "",
             name: name || "",
             image: image || "",
-            onlineMembers: onlineMembers || "0",
-            totalMembers: totalMembers || "0",
             createdAt: createdAt || "",
             ownerId: community?.ownerId || "",
           },

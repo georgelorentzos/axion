@@ -3,7 +3,7 @@ import Button from "../../Button";
 import TextArea from "../../TextArea";
 import { type User } from "../../../../types/user";
 import { useParams } from "react-router-dom";
-import { useCommunityMembers } from "../../../../contexts/communities/useCommunityMembers";
+import { useMembers } from "../../../../hooks/communities/useMembers";
 
 type KickUserProps = {
     onClose: () => void;
@@ -14,7 +14,7 @@ export default function KickUser({ user, onClose }: KickUserProps) {
     const token = localStorage.getItem("token");
     const { communityId } = useParams();
     const apiUrl = window.GLOBAL_ENV.API_ENDPOINT;
-    const { setCommunityMembers } = useCommunityMembers();
+    const { setMembers } = useMembers();
     const [reason, setReason] = useState("");
 
     const handleKick = async () => {
@@ -34,7 +34,7 @@ export default function KickUser({ user, onClose }: KickUserProps) {
                 }
             );
             if (response.ok) {
-                setCommunityMembers(prev => prev.filter(m => m.id !== user.id));
+                setMembers(prev => prev.filter(m => m.id !== user.id));
                 onClose();
             }
         } catch (error) {

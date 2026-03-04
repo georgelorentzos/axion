@@ -19,8 +19,6 @@ export default function CommunitiesList() {
                             id: c.id,
                             name: c.name,
                             image: c.image,
-                            onlineMembers: c.onlineMembers,
-                            totalMembers: c.totalMembers,
                             createdAt: c.createdAt,
                             ownerId: c.ownerId,
                         }

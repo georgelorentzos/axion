@@ -1,16 +1,25 @@
 import UserCard from "../../../common/UserCard";
 import SearchBar from "../../../common/SearchBar";
-import { useCommunityMembers } from "../../../../contexts/communities/useCommunityMembers";
-import { useState } from "react";
+import { useMembers } from "../../../../contexts/communities/useMembers";
+import { useEffect, useState } from "react";
 import { useCommunity } from "../../../../hooks/communities/useCommunity";
 import { useCurrentUser } from "../../../../contexts/useCurrentUser";
 
-export default function MembersContent() {
-    const { communityMembers } = useCommunityMembers();
+type MembersContentProps = {
+    onChildModalChange?: (isOpen: boolean) => void;
+}
+
+export default function MembersContent({ onChildModalChange }: MembersContentProps) {
+    const { members } = useMembers();
     const [searchQuery, setSearchQuery] = useState('');
-    const filteredMembers = communityMembers.filter(member => member.username?.startsWith(searchQuery.toLowerCase()));
+    const filteredMembers = members.filter(member => member.username?.startsWith(searchQuery.toLowerCase()));
     const { community } = useCommunity();
     const { currentUser } = useCurrentUser();
+    const [manageUser, setManageUser] = useState(false);
+
+    useEffect(() => {
+        onChildModalChange?.(manageUser);
+    }, [manageUser]);
 
     return (
         <div className="flex gap-2 justify-start items-start h-full min-h-0">
@@ -23,9 +32,9 @@ export default function MembersContent() {
                     <SearchBar onSearch={(q) => setSearchQuery(q)} />
                     <br />
                     <div className="text-gray-500 text-[12px] border-b border-outline pb-2">
-                        {communityMembers.length && communityMembers.length > 1
-                            ? `${communityMembers.length} Members`
-                            : `${communityMembers.length} Member`}
+                        {members.length && members.length > 1
+                            ? `${members.length} Members`
+                            : `${members.length} Member`}
                     </div>
                     <div className="flex-1 min-h-0 overflow-y-auto flex flex-col py-2">
                         {filteredMembers.map(member => (
@@ -34,6 +43,9 @@ export default function MembersContent() {
                                 user={member}
                                 actions={{ options: member.id !== currentUser?.id && member.id !== community?.ownerId, admin: member.id !== currentUser?.id && member.id !== community?.ownerId }}
                                 showStatus={false}
+                                onChildModalChange={(isOpen) => {
+                                    setManageUser(isOpen);
+                                }}
                             />
                         ))}
                     </div>

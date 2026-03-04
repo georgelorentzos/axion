@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import Button from "../../Button";
-import { useCommunityRoles } from "../../../../contexts/communities/useCommunityRoles";
+import { useRoles } from "../../../../contexts/communities/useRoles";
 import { type Role } from "../../../../types/role";
 
 type DeleteRoleProps = {
@@ -13,7 +13,7 @@ export default function DeleteRole({ onClose, role }: DeleteRoleProps) {
     const { communityId } = useParams();
     const [cachedName, setCachedName] = useState(role?.name);
     const apiUrl = window.GLOBAL_ENV.API_ENDPOINT;
-    const { setRoles } = useCommunityRoles();
+    const { setRoles } = useRoles();
 
     useEffect(() => {
         if (role?.name) setCachedName(role?.name);

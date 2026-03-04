@@ -24,6 +24,7 @@ type UserCardProps = {
   onReject?: (id: string) => void;
   onAccept?: (id: string) => void;
   onInvite?: () => void;
+  onChildModalChange?: (isOpen: boolean) => void;
   
   showStatus?: boolean;
   showLatestMessage?: boolean;
@@ -46,6 +47,7 @@ export default function UserCard({
   onReject,
   onAccept,
   onInvite,
+  onChildModalChange,
   showStatus = true,
   showLatestMessage,
   latestMessage,
@@ -66,6 +68,10 @@ export default function UserCard({
   const isThisPending =
     user?.id !== undefined && pendingIds.includes(user?.id);
   const [isKickUserModalOpen, setIsKickUserModalOpen] = useState(false);
+
+  useEffect(() => {
+    onChildModalChange?.(isKickUserModalOpen);
+}, [isKickUserModalOpen]);
 
   useEffect(() => {
     const fetchPendingRequests = async () => {

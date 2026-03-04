@@ -5,7 +5,7 @@ import Button from "../../../common/Button";
 import UnsavedChangesBar from "../../../common/UnsavedChangesBar";
 import { useCommunities } from "../../../../contexts/communities/useCommunities";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useCommunityMembers } from "../../../../contexts/communities/useCommunityMembers";
+import { useMembers } from "../../../../contexts/communities/useMembers";
 import { type Community } from "../../../../types/community";
 
 type ProfileContentProps = {
@@ -25,7 +25,7 @@ export default function ProfileContent({ community, onCommunityUpdate }: Profile
     const [imageChanged, setImageChanged] = useState(false);
     const [unsavedChangesBarIsVisible, setUnsavedChangesBarIsVisible] = useState(false);
     const { updateCommunity } = useCommunities();
-    const { communityMembers, onlineMembers } = useCommunityMembers();
+    const { members, onlineMembers } = useMembers();
 
     const handleFileUpload = () => {
         const input = document.createElement("input");
@@ -90,8 +90,6 @@ export default function ProfileContent({ community, onCommunityUpdate }: Profile
                     id: data.id,
                     name: data.name,
                     image: data.image,
-                    onlineMembers: data.onlineMembers,
-                    totalMembers: data.totalMembers,
                     createdAt: data.createdAt,
                     ownerId: data.ownerId,
                 };
@@ -111,8 +109,7 @@ export default function ProfileContent({ community, onCommunityUpdate }: Profile
                             id: data.id,
                             name: data.name,
                             image: data.image,
-                            onlineMembers: data.onlineMembers,
-                            totalMembers: data.totalMembers,
+                            createdAt: data.createdAt,
                             ownerId: data.ownerId,
                         }
                     }
@@ -164,7 +161,7 @@ export default function ProfileContent({ community, onCommunityUpdate }: Profile
                     name: name || "",
                     image: communityImage ?? "",
                     onlineMembers: String(onlineMembers.length),
-                    totalMembers: String(communityMembers.length),
+                    totalMembers: String(members.length),
                     createdAt: community?.createdAt || "",
                     ownerId: community?.ownerId || "",
                 }} skipFetch />

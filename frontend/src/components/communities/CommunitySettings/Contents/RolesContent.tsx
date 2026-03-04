@@ -9,14 +9,14 @@ import RoleCard from "./Roles/RoleCard";
 import UnsavedChangesBar from "../../../common/UnsavedChangesBar";
 import Modal from "../../../common/modal/Modal";
 import SearchBar from "../../../common/SearchBar";
-import { useCommunityRoles } from "../../../../contexts/communities/useCommunityRoles";
+import { useRoles } from "../../../../contexts/communities/useRoles";
 import { type Role } from "../../../../types/role";
 
 interface RolesContentProps {
-    onDeleteModalChange?: (isOpen: boolean) => void;
+    onChildModalChange?: (isOpen: boolean) => void;
 }
 
-export default function RolesContent({ onDeleteModalChange }: RolesContentProps) {
+export default function RolesContent({ onChildModalChange }: RolesContentProps) {
     const [isCreateRole, setIsCreateRole] = useState(false);
     const [editingRole, setEditingRole] = useState<Role | null>(null);
     const [selectedPermissions, setSelectedPermissions] = useState<string[]>([]);
@@ -25,13 +25,13 @@ export default function RolesContent({ onDeleteModalChange }: RolesContentProps)
     const [error, setError] = useState('');
     const apiUrl = window.GLOBAL_ENV.API_ENDPOINT;
     const { communityId } = useParams();
-    const { roles, setRoles } = useCommunityRoles();
+    const { roles, setRoles } = useRoles();
     const [deletingRole, setDeletingRole] = useState<Role | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
     const filteredRoles = roles.filter(role => role.name.startsWith(searchQuery.toLowerCase()))
 
     useEffect(() => {
-        onDeleteModalChange?.(!!deletingRole);
+        onChildModalChange?.(!!deletingRole);
     }, [deletingRole]);
 
     useEffect(() => {
