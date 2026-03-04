@@ -56,7 +56,7 @@ export function useCommunities() {
                     c.id === data.id ? { ...c, name: data.name, image: data.image } : c
                 ) || null);
             }
-            if (data.type === "memberKicked") {
+            if (data.type === "memberKicked" || data.type === "memberBanned") {
                 setCommunities(prev => prev?.filter(c => c.id !== data.id) || null);
             }
         }

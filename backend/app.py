@@ -1212,6 +1212,19 @@ async def join_community(request: Request,
     if not community:
         raise HTTPException(status_code=404, detail="Community not found.")
 
+    banned_member = db.query(CommunityBan).filter(
+        CommunityBan.community_id == community.id,
+        CommunityBan.user_id == user.id
+    ).first()
+    
+    if banned_member:
+        return {
+            "success": False, 
+            "reason": banned_member.reason,
+            "message": "You are Banned",
+            "status": "banned_member"
+        }
+
     existing_member = db.query(CommunityMember).filter(
         CommunityMember.user_id == user.id,
         CommunityMember.community_id == community.id
@@ -1410,6 +1423,7 @@ async def delete_community(request: Request,
         db.query(CommunityChannel).filter(CommunityChannel.community_id == community_id).delete()
         db.query(CommunityCategory).filter(CommunityCategory.community_id == community_id).delete()
         db.query(CommunityRole).filter(CommunityRole.community_id == community_id).delete()
+        db.query(CommunityBan).filter(CommunityBan.community_id == community_id).delete()
         db.query(Community).filter(Community.id == community_id).delete()
         db.commit()
         await asyncio.gather(*[
@@ -1821,7 +1835,150 @@ async def kick_member_from_community(request: Request,
         }
     except Exception as e:
         db.rollback()
-        raise HTTPException(status_code=500, detail="Failed to delete role due to an internal server error.")
+        raise HTTPException(status_code=500, detail="Failed to kick user due to an internal server error.")
+
+
+@app.delete("/api/community/{community_id}/members/{member_id}/ban", response_model=Dict[str, Any])
+@limiter.limit("120/minute")
+async def ban_member_from_community(request: Request,
+                               community_id: str,
+                               member_id: str,
+                               reason: str = Body(default="No Reason", embed=True),
+                               current_user_id: str = Depends(get_user_id_from_token),
+                               db: Session = Depends(get_db)
+                               ) -> Dict[str, Any]:
+    user = db.query(User).filter(User.id == current_user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found.")
+    
+    user_to_ban = db.query(User).filter(User.id == member_id).first()
+    if not user_to_ban:
+        raise HTTPException(status_code=404, detail="User to ban not found.")
+
+    community = db.query(Community).filter(Community.id == community_id).first()
+    if not community:
+        raise HTTPException(status_code=404, detail="Community not found.")
+
+    community_member = db.query(CommunityMember).filter(CommunityMember.community_id == community_id, CommunityMember.user_id == user.id).first()
+    if not community_member:
+        raise HTTPException(status_code=404, detail="Community member not found.")
+
+    community_member_to_ban = db.query(CommunityMember).filter(CommunityMember.community_id == community_id, CommunityMember.user_id == user_to_ban.id).first()
+    if not community_member_to_ban:
+        raise HTTPException(status_code=404, detail="Member not found in this community.")
+
+    existing_ban = db.query(CommunityBan).filter(
+        CommunityBan.user_id == user_to_ban.id,
+        CommunityBan.community_id == community_id
+    ).first()
+    if existing_ban:
+        raise HTTPException(status_code=400, detail="User is already banned from this community.")
+    
+    if len(reason) > 100:
+        raise HTTPException(status_code=400, detail=f"Reason exceeds maximum length: {len(reason)} characters provided, but limit is 100.")
+
+    if community.owner_id == user_to_ban.id:
+        raise HTTPException(status_code=404, detail="you cant ban the owner")
+
+    if community.owner_id != user.id:
+        community_member_roles = db.query(CommunityRole).join(
+            MemberRole, MemberRole.role_id == CommunityRole.id
+        ).filter(
+            CommunityRole.community_id == community.id,
+            MemberRole.member_id == community_member.id
+        ).all()
+
+        all_permissions = []
+        for r in community_member_roles:
+            all_permissions.extend(r.permissions)
+        
+        if PERMISSIONS.BAN not in all_permissions and PERMISSIONS.ADMINISTRATOR not in all_permissions:
+            raise HTTPException(status_code=403, detail="You don't have permissions.")
+
+    try:
+        db.query(CommunityMember).filter(CommunityMember.id == community_member_to_ban.id).delete()
+        await manager.broadcast_to_user(community_member_to_ban.user_id, {
+            "type": "memberBanned",
+            "id": community.id,
+        })
+        new_log = CommunityLog(
+            log=f"{community_member.user.username} banned {community_member_to_ban.user.username}",
+            description=f"With reason: {reason}",
+            community_id=community_member_to_ban.community_id,
+            user_id=user.id,
+        )
+        db.add(new_log)
+        db.flush()
+        db.refresh(new_log)
+
+        members_with_log_permission = db.query(CommunityMember).join(
+            MemberRole, MemberRole.member_id == CommunityMember.id
+        ).join(
+            CommunityRole, CommunityRole.id == MemberRole.role_id
+        ).filter(
+            CommunityMember.community_id == community.id,
+            CommunityMember.user_id != user.id,
+            or_(
+                cast(CommunityRole.permissions, String).like(f'%{PERMISSIONS.VIEW_LOGS}%'),
+                cast(CommunityRole.permissions, String).like(f'%{PERMISSIONS.ADMINISTRATOR}%')
+            )
+        ).all()
+        members_with_ban_permission = db.query(CommunityMember).join(
+            MemberRole, MemberRole.member_id == CommunityMember.id
+        ).join(
+            CommunityRole, CommunityRole.id == MemberRole.role_id
+        ).filter(
+            CommunityMember.community_id == community.id,
+            CommunityMember.user_id != user.id,
+            or_(
+                cast(CommunityRole.permissions, String).like(f'%{PERMISSIONS.BAN}%'),
+                cast(CommunityRole.permissions, String).like(f'%{PERMISSIONS.ADMINISTRATOR}%')
+            )
+        ).all()
+
+        log_user_ids = {m.user_id for m in members_with_log_permission}
+        log_user_ids.add(community.owner_id)
+        ban_users_ids = {m.user_id for m in members_with_ban_permission}
+        ban_users_ids.add(community.owner_id)
+
+        if user.id != community.owner_id:
+            log_user_ids.discard(user.id)
+        await asyncio.gather(*[
+            manager.broadcast_to_user(uid, {
+                "type": "newLog",
+                "log": new_log.log,
+                "description": f"With reason: {reason}",
+                "createdAt": new_log.created_at.strftime("%D %H:%M"),
+                "userImgUrl": user.profile_image
+            })
+            for uid in log_user_ids
+        ])
+        new_ban = CommunityBan(
+            log=f"{community_member.user.username} banned {community_member_to_ban.user.username}",
+            reason=f"With reason: {reason}",
+            user_id=user_to_ban.id,
+            community_id=community.id
+        )
+        await asyncio.gather(*[
+            manager.broadcast_to_user(uid, {
+                "type": "newBan",
+                "log": new_log.log,
+                "description": f"With reason: {reason}",
+                "createdAt": new_log.created_at.strftime("%D %H:%M"),
+                "userImgUrl": user.profile_image
+            })
+            for uid in ban_users_ids
+        ])
+        db.add(new_ban)
+        db.commit()
+        return {
+            "success": True,
+            "message": "user banned successfully"
+        }
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Failed to ban user due to an internal server error.")
+
 
 @app.get("/api/community/{community_id}/logs", response_model=Dict[str, Any])
 @limiter.limit("120/minute")
@@ -1871,6 +2028,57 @@ def fetch_logs(request: Request,
                 "createdAt": log.created_at.strftime("%D %H:%M"),
                 "userImgUrl": log.user.profile_image,
             } for log in community_logs
+        ]
+    }
+
+@app.get("/api/community/{community_id}/bans", response_model=Dict[str, Any])
+@limiter.limit("120/minute")
+def fetch_bans(request: Request,
+               community_id: str,
+               current_user_id: str = Depends(get_user_id_from_token),
+               db: Session = Depends(get_db)
+               ) -> Dict[str, Any]:
+    
+    user = db.query(User).filter(User.id == current_user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found.")
+
+    community = db.query(Community).filter(Community.id == community_id).first()
+    if not community:
+        raise HTTPException(status_code=404, detail="Community not found.")
+    
+    community_member = db.query(CommunityMember).filter(CommunityMember.community_id == community_id, CommunityMember.user_id == user.id).first()
+    if not community_member:
+        raise HTTPException(status_code=404, detail="Community member not found.")
+    
+    if community.owner_id != user.id:
+        community_member_roles = db.query(CommunityRole).join(
+            MemberRole, MemberRole.role_id == CommunityRole.id
+        ).filter(
+            CommunityRole.community_id == community.id,
+            MemberRole.member_id == community_member.id
+        ).all()
+
+        all_permissions = []
+        for r in community_member_roles:
+            all_permissions.extend(r.permissions)
+        
+        if PERMISSIONS.BAN not in all_permissions and PERMISSIONS.ADMINISTRATOR not in all_permissions:
+            raise HTTPException(status_code=403, detail="You don't have permissions.")
+
+    community_bans = db.query(CommunityBan).filter(
+        CommunityBan.community_id == community.id
+    ).all()
+
+    return {
+        "success": True,
+        "bans": [
+            {
+                "log": log.log,
+                "description": log.reason,
+                "createdAt": log.created_at.strftime("%D %H:%M"),
+                "userImgUrl": log.user.profile_image,
+            } for log in community_bans
         ]
     }
 

@@ -5,6 +5,7 @@ import ProfileContent from "../CommunitySettings/Contents/ProfileContent";
 import RolesContent from "../CommunitySettings/Contents/RolesContent";
 import MembersContent from "../CommunitySettings/Contents/MembersContent";
 import LogsContent from "./Contents/LogsContent";
+import BansContent from "./Contents/BansContent";
 import ModalCloseButton from "../../common/modal/ModalCloseButton";
 import Modal from "../../common/modal/Modal";
 import { type Community } from "../../../types/community";
@@ -57,6 +58,8 @@ export default function CommunitySettingsModal(
                 return <MembersContent onChildModalChange={registerChildModal} />;
             case "Logs":
                 return <LogsContent />;
+            case "Bans":
+                return <BansContent />;
         }
     }
 

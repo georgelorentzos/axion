@@ -85,6 +85,7 @@ class Community(Base):
     channels = relationship("CommunityChannel", back_populates="community", foreign_keys="CommunityChannel.community_id")
     roles = relationship("CommunityRole", back_populates="community")
     logs = relationship("CommunityLog", back_populates="community")
+    bans = relationship("CommunityBan", back_populates="community")
 
 class CommunityCategory(Base):
     __tablename__ = "community_categories"
@@ -144,3 +145,14 @@ class CommunityLog(Base):
     community = relationship("Community", back_populates="logs")
     user_id = Column(String, ForeignKey("users.id"), nullable=False)
     user = relationship("User")
+
+class CommunityBan(Base):
+    __tablename__ = "community_bans"
+    id = Column(String, primary_key=True, default=lambda : generate(NUMERIC_ALPHABET, 20))
+    log = Column(String, nullable=False)
+    reason = Column(String, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    user_id = Column(String, ForeignKey("users.id"), nullable=False)
+    community_id = Column(String, ForeignKey("communities.id"), nullable=False)
+    user = relationship("User")
+    community = relationship("Community", back_populates="bans")

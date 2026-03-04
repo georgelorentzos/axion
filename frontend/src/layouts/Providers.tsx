@@ -8,6 +8,7 @@ import { MembersProvider } from '../contexts/communities/useMembers';
 import { CommunityProvider } from '../contexts/communities/useCommunity';
 import { RolesProvider } from '../contexts/communities/useRoles';
 import { LogsProvider } from '../contexts/communities/useLogs';
+import { BansProvider } from '../contexts/communities/useBans';
 
 export const MainWithProviders = ({ children }: { children: React.ReactNode }) => (
   <UserProvider>
@@ -20,7 +21,9 @@ export const MainWithProviders = ({ children }: { children: React.ReactNode }) =
                 <CommunityProvider>
                   <RolesProvider>
                     <LogsProvider>
-                      { children }
+                      <BansProvider>
+                        { children }
+                      </BansProvider>
                     </LogsProvider>
                   </RolesProvider>
                 </CommunityProvider>

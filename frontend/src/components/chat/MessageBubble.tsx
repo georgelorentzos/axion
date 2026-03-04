@@ -43,7 +43,7 @@ export default function MessageBubble({
   if (isInviteLink) {
     return (
       <div
-        className={`flex gap-2 items-end mb-1 ${
+        className={`flex gap-2 items-end mb-2 ${
           isCurrentUser ? "flex-row-reverse" : "flex-row"
         }`}
       >
@@ -58,7 +58,7 @@ export default function MessageBubble({
   return (
     <>
       <div
-        className={`flex gap-2 items-end mb-1 ${
+        className={`flex gap-2 items-end mb-2 ${
           isCurrentUser ? "flex-row-reverse" : "flex-row"
         }`}
       >

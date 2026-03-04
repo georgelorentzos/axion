@@ -8,6 +8,8 @@ import CreateChannel from "./content/CreateChannel";
 import DeleteRole from "./content/DeleteRole";
 import LinkAlert from "./content/LinkAlert";
 import KickUser from "./content/KickUser";
+import BanUser from "./content/BanUser";
+import Alert from "./content/Alert";
 import { type Community } from "../../../types/community";
 import { type Role } from "../../../types/role";
 import { type User } from "../../../types/user";
@@ -20,7 +22,9 @@ type ModalType =
   | "createChannel"
   | "deleteRole"
   | "linkAlert"
-  | "kickUser";
+  | "kickUser"
+  | "banUser"
+  | "alert";
 
 type ModalProps = {
     isOpen: boolean;
@@ -30,9 +34,10 @@ type ModalProps = {
     user?: User;
     role?: Role;
     link?: string;
+    text?: string;
 }
 
-export default function Modal({ isOpen, onClose, type, community, user, role, link }: ModalProps){
+export default function Modal({ isOpen, onClose, type, community, user, role, link, text }: ModalProps){
     const [showFade, setShowFade] = useState(false);
     const [isVisible, setIsVisible] = useState(false);
 
@@ -67,6 +72,10 @@ export default function Modal({ isOpen, onClose, type, community, user, role, li
                 return <LinkAlert onClose={onClose} link={link} />;
             case "kickUser":
                 return <KickUser user={user} onClose={onClose} />;
+            case "banUser":
+                return <BanUser user={user} onClose={onClose} />
+            case "alert":
+                return <Alert text={text} />
             default:
                 return null;
         }

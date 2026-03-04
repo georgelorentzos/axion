@@ -127,7 +127,7 @@ export default function ProfileContent({ community, onCommunityUpdate }: Profile
     };
 
     return (
-        <div className="flex gap-2 justify-start items-start">
+        <div className="flex gap-2 justify-between items-start">
             <div className="px-6 flex flex-col gap-2">
                 <div>Community Profile</div>
                 <div className="text-[14px] w-[500px] text-gray-500">
@@ -150,7 +150,7 @@ export default function ProfileContent({ community, onCommunityUpdate }: Profile
                     <div className="max-w-[170.48px] w-full">
                         <Button text="Change Icon" isGreen onClick={handleFileUpload} />
                     </div>
-                    {(community?.image || communityImage) && (
+                    {(community?.image || communityImage && !UnsavedChangesBar) && (
                         <Button text="Remove Icon" onClick={handleRemoveIcon} />
                     )}
                 </div>

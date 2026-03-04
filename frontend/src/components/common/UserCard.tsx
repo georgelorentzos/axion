@@ -68,6 +68,8 @@ export default function UserCard({
   const isThisPending =
     user?.id !== undefined && pendingIds.includes(user?.id);
   const [isKickUserModalOpen, setIsKickUserModalOpen] = useState(false);
+  const [isBanUserModalOpen, setIsBanUserModalOpen] = useState(false);
+  const [pos, setPos] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
 
   useEffect(() => {
     onChildModalChange?.(isKickUserModalOpen);
@@ -297,7 +299,9 @@ export default function UserCard({
     }
   }, [user?.id]);
 
+
   return (
+    <>
     <div
       onClick={currentUser?.id === user?.id ? () => {} : handleNavigateToChat}
       className={` ${currentUser?.id === user?.id ? "cursor-default" : "cursor-pointer"} transition duration-300 py-2.5 px-4 flex justify-between items-center w-full rounded-lg ${
@@ -363,9 +367,10 @@ export default function UserCard({
           <div className="relative">
           <button 
           ref={buttonRef}
-          onClick={() => 
-            setisActionMenuOpen(prev => !prev)
-          }
+          onClick={(e: any) => {
+    setPos({ x: e.clientX, y: e.clientY });
+    setisActionMenuOpen(prev => !prev);
+  }}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -382,32 +387,6 @@ export default function UserCard({
               />
             </svg>
           </button>
-          <ActionMenu
-            isActionMenuOpen={isActionMenuOpen}
-            onClose={() => setisActionMenuOpen(false)}
-            buttonRef={buttonRef}
-          >
-            <ActionMenuButton
-              text="Unfriend"
-              svgPaths={["M22 10.5h-6m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM4 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 10.374 21c-2.331 0-4.512-.645-6.374-1.766Z"]}
-              onClick={handleRemoveFriend}
-              isVisible={!!actions.unfriend}
-            />
-            <ActionMenuButton
-              text={`Kick ${user?.username}`}
-              svgPaths={["M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l-3 3m0 0 3 3m-3-3h12.75"]}
-              isDanger
-              isVisible={!!actions.admin}
-              onClick={() => {setIsKickUserModalOpen(true); setisActionMenuOpen(false);}}
-            />
-            <ActionMenuButton
-              text={`Ban ${user?.username}`}
-              svgPaths={["M18.364 18.364A9 9 0 0 0 5.636 5.636m12.728 12.728A9 9 0 0 1 5.636 5.636m12.728 12.728L5.636 5.636"]}
-              isDanger
-              isVisible={!!actions.admin}
-            />
-          </ActionMenu>
-          <Modal isOpen={isKickUserModalOpen} onClose={() => setIsKickUserModalOpen(false)} type="kickUser" user={user} />
           </div>
         )}
 
@@ -476,5 +455,35 @@ export default function UserCard({
         )}
       </div>
     </div>
+       <ActionMenu
+            isActionMenuOpen={isActionMenuOpen}
+            onClose={() => setisActionMenuOpen(false)}
+            buttonRef={buttonRef}
+            position={pos}
+          >
+            <ActionMenuButton
+              text="Unfriend"
+              svgPaths={["M22 10.5h-6m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM4 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 10.374 21c-2.331 0-4.512-.645-6.374-1.766Z"]}
+              onClick={handleRemoveFriend}
+              isVisible={!!actions?.unfriend}
+            />
+            <ActionMenuButton
+              text={`Kick ${user?.username}`}
+              svgPaths={["M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l-3 3m0 0 3 3m-3-3h12.75"]}
+              isDanger
+              isVisible={!!actions?.admin}
+              onClick={() => {setIsKickUserModalOpen(true); setisActionMenuOpen(false);}}
+            />
+            <ActionMenuButton
+              text={`Ban ${user?.username}`}
+              svgPaths={["M18.364 18.364A9 9 0 0 0 5.636 5.636m12.728 12.728A9 9 0 0 1 5.636 5.636m12.728 12.728L5.636 5.636"]}
+              isDanger
+              isVisible={!!actions?.admin}
+              onClick={() => {setIsBanUserModalOpen(true); setisActionMenuOpen(false);}}
+            />
+          </ActionMenu>
+          <Modal isOpen={isKickUserModalOpen} onClose={() => setIsKickUserModalOpen(false)} type="kickUser" user={user} />
+          <Modal isOpen={isBanUserModalOpen} onClose={() => setIsBanUserModalOpen(false)} type="banUser" user={user} />
+    </>
   );
 }

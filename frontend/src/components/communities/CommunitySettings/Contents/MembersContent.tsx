@@ -48,6 +48,11 @@ export default function MembersContent({ onChildModalChange }: MembersContentPro
                                 }}
                             />
                         ))}
+                        {filteredMembers.length === 0 && searchQuery && (
+                            <div className="text-gray-500 transition duration-300 py-2.5 px-4 flex justify-between items-center w-full rounded-lg hover:bg-basalt"> 
+                                No results found
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>

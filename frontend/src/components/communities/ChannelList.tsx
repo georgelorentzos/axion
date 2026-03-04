@@ -70,6 +70,10 @@ export default function ChannelList() {
     setIsChannelListMenuOpen(true);
   };
 
+  const handleServerOptionsMenu = (e: React.MouseEvent<HTMLDivElement>) => {
+    setPos({ x: e.clientX, y: e.clientY });
+  };
+
   const handleCommunityUpdate = (updatedData: Community) => {
     setCommunity(updatedData);
   };
@@ -142,7 +146,10 @@ export default function ChannelList() {
           <div className="text-gray-100">{community?.name}</div>
         </div>
         <div className="flex flex-col relative">
-          <button onClick={() => setIsServerOptionsMenuOpen(prev => !prev)} ref={serverOptionsButtonRef}>
+          <button onClick={(e: any) => {
+            setIsServerOptionsMenuOpen(prev => !prev);
+            handleServerOptionsMenu(e);
+            }} ref={serverOptionsButtonRef}>
             <svg
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
@@ -162,6 +169,7 @@ export default function ChannelList() {
           </button>
 
           <ActionMenu
+            position={pos}
             isActionMenuOpen={isServerOptionsMenuOpen}
             onClose={() => setIsServerOptionsMenuOpen(false)}
             buttonRef={serverOptionsButtonRef}

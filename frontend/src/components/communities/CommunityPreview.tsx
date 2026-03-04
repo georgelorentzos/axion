@@ -4,6 +4,7 @@ import Button from "../common/Button";
 import { useEffect, useState } from "react";
 import { useCommunities } from "../../contexts/communities/useCommunities";
 import { type Community } from "../../types/community";
+import Modal from "../common/modal/Modal";
 
 type CommunityPreviewProps = {
   joinBtn?: boolean;
@@ -19,6 +20,9 @@ export default function CommunityPreview({ joinBtn, community: communityProp, sk
   const navigate = useNavigate();
   const { setCommunities } = useCommunities();
   const { communityId } = useParams();
+  const [isBannedModalOpen, setIsBannedModalOpen] = useState(false);
+  const [banReason, setBanReason] = useState('');
+
 
   const community = fetchedCommunity || communityProp;
 
@@ -47,6 +51,12 @@ export default function CommunityPreview({ joinBtn, community: communityProp, sk
       });
       if (!response.ok) {
         navigate("/auth");
+        return;
+      }
+      const data = await response.json();
+      if (data.status === "banned_member") {
+        setBanReason(data.reason);
+        setIsBannedModalOpen(true);
         return;
       }
       const navData = {
@@ -134,6 +144,7 @@ export default function CommunityPreview({ joinBtn, community: communityProp, sk
   }
 
   return (
+    <>
     <div className="bg-onyx border border-outline flex gap-2 flex-col justify-center items-start rounded-2xl w-[300px] p-4">
       <div className="flex gap-2 items-center">
         {image ? (
@@ -160,5 +171,7 @@ export default function CommunityPreview({ joinBtn, community: communityProp, sk
         <Button text="Join Community" isGreen onClick={() => id && joinCommunity(id)} bold />
       )}
     </div>
+      <Modal isOpen={isBannedModalOpen} onClose={() => setIsBannedModalOpen(false)} type="alert" text={`You have been banned from ${name} with reason: ${banReason}`} />
+    </>
   );
 }
