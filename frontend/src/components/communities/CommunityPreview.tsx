@@ -10,6 +10,7 @@ type CommunityPreviewProps = {
   joinBtn?: boolean;
   community?: Community;
   skipFetch?: boolean;
+  onContentLoaded?: () => void;
 };
 
 export default function CommunityPreview({ joinBtn, community: communityProp, skipFetch }: CommunityPreviewProps) {

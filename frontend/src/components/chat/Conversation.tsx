@@ -120,7 +120,9 @@ export default function Conversation() {
         } catch (error) {
             console.error('Error loading messages:', error);
         } finally {
-            setLoadingMessages(false);
+            setTimeout(() => {
+                setLoadingMessages(false);
+            }, 100);
         }
     };
 
@@ -175,12 +177,16 @@ export default function Conversation() {
 
     useLayoutEffect(() => {
         if (messages.length > 0) {
+            
             requestAnimationFrame(() => {
-                messagesEndRef.current?.scrollIntoView({ behavior: 'instant' });
+                setTimeout(() => {
+                    messagesEndRef.current?.scrollIntoView({ behavior: 'instant' });
+                }, 50);
             });
         }
     }, [messages]);
 
+    
     const conversationRef = useRef<HTMLDivElement>(null);
 
     return (
