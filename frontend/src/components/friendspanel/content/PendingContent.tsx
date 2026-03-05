@@ -1,6 +1,6 @@
 import UserCard from '../../common/UserCard'
 import SearchBar from '../../common/SearchBar'
-import { usePending } from '../../../contexts/usePending';
+import { usePending } from '../../../contexts/friendspanel/usePending';
 import { useState } from 'react';
 
 export default function PendingContent() {

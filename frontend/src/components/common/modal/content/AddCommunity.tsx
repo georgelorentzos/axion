@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import Input from "../../Input";
 import Button from "../../Button";
 import UploadImageProfile from "../../UploadImageProfile";
-import { useCommunities } from "../../../../contexts/communities/useCommunities";
+import { useCommunities } from "../../../../contexts/community/useCommunities";
 import { useNavigate } from "react-router-dom";
 
 type AddCommunityProps = {

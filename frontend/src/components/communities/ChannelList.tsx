@@ -6,8 +6,8 @@ import { useNavigate } from "react-router-dom";
 import { useCurrentUser } from "../../contexts/useCurrentUser";
 import ActionMenu from "../common/ActionMenu/ActionMenu";
 import ActionMenuButton from "../common/ActionMenu/ActionMenuButton";
-import { useCommunities } from "../../contexts/communities/useCommunities";
-import { useCommunity } from "../../contexts/communities/useCommunity";
+import { useCommunities } from "../../contexts/community/useCommunities";
+import { useCommunity } from "../../contexts/community/useCommunity";
 import Modal from "../common/modal/Modal";
 import { type Community } from "../../types/community";
 interface LocationState {

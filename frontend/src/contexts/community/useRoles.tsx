@@ -1,5 +1,5 @@
 import React, { createContext, useContext } from "react";
-import { useRoles as Roles } from "../../hooks/communities/useRoles";
+import { useRoles as Roles } from "../../hooks/community/useRoles";
 
 type RolesProviderProps = {
     children: React.ReactNode;

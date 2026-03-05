@@ -1,4 +1,4 @@
-import { useDirectMessages as DirectMessages } from '../hooks/useDirectMessages';
+import { useDirectMessages as DirectMessages } from '../../hooks/chatoverview/useDirectMessages';
 import React, { useContext, createContext } from 'react';
 
 type DirectMessagesProviderProps = {

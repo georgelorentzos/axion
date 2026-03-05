@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { type User } from '../types/user';
+import { type User } from '../../types/user';
 
 export function useAllFriends() {
   const [allFriends, setAllFriends] = useState<User[]>([]);

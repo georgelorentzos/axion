@@ -1,5 +1,5 @@
 import React, { useContext, createContext } from "react";
-import { useBans as Bans } from "../../hooks/communities/useBans";
+import { useBans as Bans } from "../../hooks/community/useBans";
 
 type useBansProviderProps = {
     children: React.ReactNode;

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { type User } from "../types/user";
+import { type User } from "../../types/user";
 
 export function usePending() {
   const [pending, setPending] = useState<User[]>([]);

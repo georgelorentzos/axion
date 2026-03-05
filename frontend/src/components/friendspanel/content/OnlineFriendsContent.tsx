@@ -1,6 +1,6 @@
 import SearchBar from '../../common/SearchBar'
 import UserCard from '../../common/UserCard'
-import { useOnlineFriends } from '../../../contexts/useOnlineFriends';
+import { useOnlineFriends } from '../../../contexts/friendspanel/useOnlineFriends';
 import { useState } from 'react';
 
 export default function OnlineFriendsContent() {

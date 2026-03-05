@@ -1,8 +1,8 @@
 import UserCard from "../../../common/UserCard";
 import SearchBar from "../../../common/SearchBar";
-import { useMembers } from "../../../../contexts/communities/useMembers";
+import { useMembers } from "../../../../contexts/community/useMembers";
 import { useEffect, useState } from "react";
-import { useCommunity } from "../../../../hooks/communities/useCommunity";
+import { useCommunity } from "../../../../contexts/community/useCommunity";
 import { useCurrentUser } from "../../../../contexts/useCurrentUser";
 
 type MembersContentProps = {

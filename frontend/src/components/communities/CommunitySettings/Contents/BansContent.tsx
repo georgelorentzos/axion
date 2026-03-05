@@ -1,6 +1,6 @@
 import SearchBar from "../../../common/SearchBar";
 import LogCard from "./Logs/LogCard";
-import { useBans } from "../../../../contexts/communities/useBans";
+import { useBans } from "../../../../contexts/community/useBans";
 import { useState } from "react";
 
 export default function BansContent() {

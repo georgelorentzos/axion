@@ -1,5 +1,5 @@
 import React, { createContext, useContext } from "react";
-import { useCommunity as Community } from "../../hooks/communities/useCommunity";
+import { useCommunity as Community } from "../../hooks/community/useCommunity";
 
 type CommunityProviderProps = {
     children: React.ReactNode;  

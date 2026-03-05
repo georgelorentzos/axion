@@ -1,5 +1,5 @@
 import React, { useContext, createContext } from "react";
-import { useAllFriends as AllFriends } from "../hooks/useAllFriends";
+import { useAllFriends as AllFriends } from "../../hooks/friendspanel/useAllFriends";
 
 type AllFriendsProviderProps = {
     children: React.ReactNode;

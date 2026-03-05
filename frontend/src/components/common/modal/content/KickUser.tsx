@@ -3,7 +3,7 @@ import Button from "../../Button";
 import TextArea from "../../TextArea";
 import { type User } from "../../../../types/user";
 import { useParams } from "react-router-dom";
-import { useMembers } from "../../../../hooks/communities/useMembers";
+import { useMembers } from "../../../../hooks/community/useMembers";
 
 type KickUserProps = {
     onClose: () => void;

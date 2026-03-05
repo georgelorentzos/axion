@@ -9,7 +9,7 @@ import RoleCard from "./Roles/RoleCard";
 import UnsavedChangesBar from "../../../common/UnsavedChangesBar";
 import Modal from "../../../common/modal/Modal";
 import SearchBar from "../../../common/SearchBar";
-import { useRoles } from "../../../../contexts/communities/useRoles";
+import { useRoles } from "../../../../contexts/community/useRoles";
 import { type Role } from "../../../../types/role";
 
 interface RolesContentProps {

@@ -1,6 +1,6 @@
 import CommunityButton from "./CommunityButton";
 import { useNavigate } from "react-router-dom";
-import { useCommunities } from "../../contexts/communities/useCommunities";
+import { useCommunities } from "../../contexts/community/useCommunities";
 
 export default function CommunitiesList() {
     const navigate = useNavigate();

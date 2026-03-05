@@ -3,9 +3,9 @@ import Input from "../../../common/Input";
 import CommunityPreview from "../../CommunityPreview";
 import Button from "../../../common/Button";
 import UnsavedChangesBar from "../../../common/UnsavedChangesBar";
-import { useCommunities } from "../../../../contexts/communities/useCommunities";
+import { useCommunities } from "../../../../contexts/community/useCommunities";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useMembers } from "../../../../contexts/communities/useMembers";
+import { useMembers } from "../../../../contexts/community/useMembers";
 import { type Community } from "../../../../types/community";
 
 type ProfileContentProps = {

@@ -398,10 +398,10 @@ export default function UserCard({
               setTimeout(() => setSent(false), 2000);
             }}
             disabled={sent}
-            className={`text-sm transition duration-300 ${
+            className={`px-2 py-1 bg-forestgreen rounded-lg hover:bg-emerald text-white text-sm transition duration-300 ${
               sent
-                ? "text-gray-500 cursor-default"
-                : "text-gray-500 hover:text-gray-300"
+                ? "cursor-default"
+                : "hover:text-gray-300"
             }`}
           >
             {sent ? "Sent" : "Send"}

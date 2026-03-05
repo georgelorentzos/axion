@@ -1,7 +1,7 @@
 import { useCurrentUser } from '../contexts/useCurrentUser'
 import UserCard from '../components/common/UserCard'
 import SearchBar from '../components/common/SearchBar'
-import { useDirectMessages } from "../contexts/useDirectMessages";
+import { useDirectMessages } from '../contexts/chatoverview/useDirectMessages';
 import { useNavigate } from "react-router-dom";
 import { useEffect, useRef, useState } from 'react';
 import notificationSound from '../assets/sounds/notification.mp3';

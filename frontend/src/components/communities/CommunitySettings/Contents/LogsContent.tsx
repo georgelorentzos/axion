@@ -1,6 +1,6 @@
 import SearchBar from "../../../common/SearchBar";
 import LogCard from "./Logs/LogCard";
-import { useLogs } from "../../../../contexts/communities/useLogs";
+import { useLogs } from "../../../../contexts/community/useLogs";
 import { useState } from "react";
 
 export default function LogsContent() {

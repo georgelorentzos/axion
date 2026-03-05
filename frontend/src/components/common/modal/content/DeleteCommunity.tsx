@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useCommunities } from "../../../../contexts/communities/useCommunities";
+import { useCommunities } from "../../../../contexts/community/useCommunities";
 import Input from "../../Input";
 import Button from "../../Button";
 import { type Community } from "../../../../types/community";

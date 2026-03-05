@@ -1,6 +1,6 @@
 import SearchBar from '../../common/SearchBar'
 import UserCard from '../../common/UserCard'
-import { useAllFriends } from '../../../contexts/useAllFriends';
+import { useAllFriends } from '../../../contexts/friendspanel/useAllFriends';
 import { useState } from 'react';
 
 export default function AllFriendsContent() {

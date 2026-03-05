@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import UserCard from '../../common/UserCard';
 import SearchBar from '../../common/SearchBar';
-import { useAllFriends } from '../../../contexts/useAllFriends';
+import { useAllFriends } from '../../../contexts/friendspanel/useAllFriends';
 import { type User } from '../../../types/user';
 
 export default function AddFriendContent() {

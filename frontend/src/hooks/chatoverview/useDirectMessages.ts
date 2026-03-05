@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import { type User } from "../types/user";
+import { type User } from "../../types/user";
 
 type ConversationItem = {
     user: User;

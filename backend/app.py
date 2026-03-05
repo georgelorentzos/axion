@@ -176,7 +176,7 @@ def verify_token(request: Request, req: CreateToken, db: Session = Depends(get_d
     }
 
 @app.post('/api/validate-token', response_model=Dict[str, Any])
-@limiter.limit("120/minute")
+@limiter.limit("220/minute")
 def validate_token(request: Request, req: ValidateToken, db: Session = Depends(get_db)) -> Dict[str, Any]:
     try:
         payload = jwt.decode(req.token, SECRET_KEY, algorithms=["HS256"])
@@ -204,7 +204,7 @@ def validate_token(request: Request, req: ValidateToken, db: Session = Depends(g
         raise HTTPException(status_code=401, detail="Token validation failed.")
     
 @app.get('/api/me', response_model=Dict[str, Any])
-@limiter.limit("120/minute")
+@limiter.limit("220/minute")
 async def get_current_user(request: Request, user_id: str = Depends(get_user_id_from_token), db: Session = Depends(get_db)) -> Dict[str, Any]:
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
@@ -236,7 +236,7 @@ def search_user(request: Request, search: str = Query(..., alias="search"), user
     }
 
 @app.get('/api/users/{user_id}', response_model=Dict[str, Any])
-@limiter.limit('120/minute')
+@limiter.limit('220/minute')
 def get_user_profile(request: Request, user_id: str, db: Session = Depends(get_db)) -> Dict[str, Any]:
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
@@ -252,7 +252,7 @@ def get_user_profile(request: Request, user_id: str, db: Session = Depends(get_d
     }
 
 @app.post('/api/ally', response_model=Dict[str, Any])
-@limiter.limit('120/minute')
+@limiter.limit('220/minute')
 async def ally(request: Request, req: AllyRequest, user_id: str = Depends(get_user_id_from_token) ,db: Session = Depends(get_db)) -> Dict[str, Any]:
     if req.requester_id != user_id:
         raise HTTPException(status_code=403, detail="Cannot send as another user.")
@@ -307,7 +307,7 @@ async def ally(request: Request, req: AllyRequest, user_id: str = Depends(get_us
         raise HTTPException(status_code=500, detail="Failed to send request.")
     
 @app.delete('/api/ally/cancel', response_model=Dict[str, Any])
-@limiter.limit('120/minute')
+@limiter.limit('220/minute')
 async def cancel_ally(request: Request, req: AllyRequest, user_id: str = Depends(get_user_id_from_token), db: Session = Depends(get_db)) -> Dict[str, Any]:
     if req.requester_id != user_id:
         raise HTTPException(status_code=403, )
@@ -351,7 +351,7 @@ async def cancel_ally(request: Request, req: AllyRequest, user_id: str = Depends
             }
 
 @app.delete("/api/ally/reject", response_model=Dict[str, Any])
-@limiter.limit('120/minute')
+@limiter.limit('220/minute')
 async def ally_reject(request: Request, req: AllyRequest, user_id: str = Depends(get_user_id_from_token), db: Session = Depends(get_db)) -> Dict[str, Any]:
     existing = db.query(Friend).filter(
         Friend.addressee_id == user_id,
@@ -380,7 +380,7 @@ async def ally_reject(request: Request, req: AllyRequest, user_id: str = Depends
         raise HTTPException(status_code=500, detail="Failed to reject ally.")
 
 @app.post('/api/ally/accept', response_model=Dict[str, Any])
-@limiter.limit('120/minute')
+@limiter.limit('220/minute')
 async def ally_accept(request: Request, req: AllyRequest, user_id: str = Depends(get_user_id_from_token), db: Session = Depends(get_db)):
     existing = db.query(Friend).filter(
         Friend.addressee_id == user_id,
@@ -425,7 +425,7 @@ async def ally_accept(request: Request, req: AllyRequest, user_id: str = Depends
         raise HTTPException(status_code=500, detail="Failed to accept friend request.")
 
 @app.get('/api/my/ally/requests', response_model=Dict[str, Any])
-@limiter.limit('120/minute')
+@limiter.limit('220/minute')
 def my_ally_requests(request: Request, user_id: str = Depends(get_user_id_from_token), db: Session = Depends(get_db)) -> Dict[str, Any]:
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
@@ -447,7 +447,7 @@ def my_ally_requests(request: Request, user_id: str = Depends(get_user_id_from_t
     }
 
 @app.get('/api/my/pending', response_model=Dict[str, Any])
-@limiter.limit('120/minute')
+@limiter.limit('220/minute')
 def get_pending(request: Request, user_id: str = Depends(get_user_id_from_token), db: Session = Depends(get_db)) -> Dict[str, Any]:
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
@@ -471,7 +471,7 @@ def get_pending(request: Request, user_id: str = Depends(get_user_id_from_token)
     }
 
 @app.get('/api/my/friends/all', response_model=Dict[str, Any])
-@limiter.limit('120/minute')
+@limiter.limit('220/minute')
 def my_friends_all(request: Request, user_id: str = Depends(get_user_id_from_token), db: Session = Depends(get_db)) -> Dict[str, Any]:
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
@@ -505,7 +505,7 @@ def my_friends_all(request: Request, user_id: str = Depends(get_user_id_from_tok
     }
         
 @app.get('/api/my/friends/online', response_model=Dict[str, Any])
-@limiter.limit('120/minute')
+@limiter.limit('220/minute')
 def my_friends_online(request: Request, user_id: str = Depends(get_user_id_from_token), db: Session = Depends(get_db)) -> Dict[str, Any]:
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
@@ -539,7 +539,7 @@ def my_friends_online(request: Request, user_id: str = Depends(get_user_id_from_
     }
 
 @app.delete('/api/ally/remove', response_model=Dict[str, Any])
-@limiter.limit('120/minute')
+@limiter.limit('220/minute')
 async def ally_remove(request: Request, req: AllyRequest, user_id: str = Depends(get_user_id_from_token), db: Session = Depends(get_db)) -> Dict[str, Any]:
     if req.requester_id != user_id:
         raise HTTPException(status_code=403, detail="Cannot remove as another user.")
@@ -590,7 +590,7 @@ async def ally_remove(request: Request, req: AllyRequest, user_id: str = Depends
             raise HTTPException(status_code=500, detail="Failed to cancel request.")
 
 @app.post('/api/send/message', response_model=Dict[str, Any])
-@limiter.limit("120/minute")
+@limiter.limit("220/minute")
 async def send_message(request: Request, req: MessageRequest, user_id: str = Depends(get_user_id_from_token), db: Session = Depends(get_db)) -> Dict[str, Any]:
     
     if req.sender_id != user_id:
@@ -682,7 +682,7 @@ async def send_message(request: Request, req: MessageRequest, user_id: str = Dep
         raise HTTPException(status_code=500, detail="Failed to send message.")
 
 @app.get('/api/messages/{user_id}', response_model=Dict[str, Any])
-@limiter.limit("120/minute")
+@limiter.limit("220/minute")
 def get_messages(
     request: Request, 
     user_id: str,
@@ -749,7 +749,7 @@ def get_messages(
     }
 
 @app.get('/api/my/conversations', response_model=Dict[str, Any])
-@limiter.limit('120/minute')
+@limiter.limit('220/minute')
 def my_conversations(request: Request, user_id: str = Depends(get_user_id_from_token), db: Session = Depends(get_db)) -> Dict[str, Any]:
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
@@ -795,7 +795,7 @@ def my_conversations(request: Request, user_id: str = Depends(get_user_id_from_t
     }
 
 @app.delete('/api/conversation/{user_id}', response_model=Dict[str, Any])
-@limiter.limit('120/minute')
+@limiter.limit('220/minute')
 async def delete_conversation(request: Request, user_id: str, current_user_id: str = Depends(get_user_id_from_token), db: Session = Depends(get_db)) -> Dict[str, Any]:
     other_user = db.query(User).filter(User.id == user_id).first()
     if not other_user:
@@ -920,7 +920,7 @@ def create_community(
         raise HTTPException(status_code=500, detail="Failed to create community due to an internal server error.")
 
 @app.get("/api/my/communities", response_model=Dict[str, Any])
-@limiter.limit("120/minute")
+@limiter.limit("220/minute")
 def my_communities(request: Request, current_user_id: str = Depends(get_user_id_from_token) ,db: Session = Depends(get_db)) -> Dict[str, Any]:
     user = db.query(User).filter(User.id == current_user_id).first()
     if not user:
@@ -1003,7 +1003,7 @@ def create_category(request: Request, req: CategoryRequest, user_id: str = Depen
     return {"id": category.id, "name": category.category_name}
 
 @app.patch("/api/community/{community_id}", response_model=Dict[str, Any])
-@limiter.limit("120/minute")
+@limiter.limit("220/minute")
 async def update_community(
     request: Request,
     community_id: str,
@@ -1170,7 +1170,7 @@ async def update_community(
         raise HTTPException(status_code=500, detail="Failed to update community due to an internal server error.")
 
 @app.get("/api/community/{community_id}", response_model=Dict[str, Any])
-@limiter.limit("120/minute")
+@limiter.limit("220/minute")
 def fetch_community(request: Request, community_id: str, db: Session = Depends(get_db)) -> Dict[str, Any]:
     community = db.query(Community).filter(Community.id == community_id).first()
     if not community:
@@ -1198,7 +1198,7 @@ def fetch_community(request: Request, community_id: str, db: Session = Depends(g
     }
 
 @app.patch("/api/community/{community_id}/join", response_model=Dict[str, Any])
-@limiter.limit("120/minute")
+@limiter.limit("220/minute")
 async def join_community(request: Request, 
                    community_id: str, 
                    current_user_id: str = Depends(get_user_id_from_token),
@@ -1308,7 +1308,7 @@ async def join_community(request: Request,
         raise HTTPException(status_code=500, detail="Failed to join community due to an internal server error.")
 
 @app.delete("/api/community/{community_id}/leave", response_model=Dict[str, Any])
-@limiter.limit("120/minute")
+@limiter.limit("220/minute")
 async def leave_community(request: Request, 
                     community_id: str, 
                     current_user_id: str = Depends(get_user_id_from_token),
@@ -1356,7 +1356,7 @@ async def leave_community(request: Request,
         raise HTTPException(status_code=500, detail="An unexpected error occurred while leaving the community.",)
 
 @app.get("/api/community/{community_id}/members", response_model=Dict[str, Any])
-@limiter.limit("120/minute")
+@limiter.limit("220/minute")
 def get_community_members(request: Request, 
                           community_id: str,
                           current_user_id: str = Depends(get_user_id_from_token),
@@ -1389,7 +1389,7 @@ def get_community_members(request: Request,
     }
 
 @app.delete("/api/community/{community_id}", response_model=Dict[str, Any])
-@limiter.limit("120/minute")
+@limiter.limit("220/minute")
 async def delete_community(request: Request,
                     community_id: str,
                     community_name: str,
@@ -1442,7 +1442,7 @@ async def delete_community(request: Request,
         raise HTTPException(status_code=500, detail="Failed to delete community due to an internal server error.")
         
 @app.post("/api/community/{community_id}/roles", response_model=Dict[str, Any])
-@limiter.limit("120/minute")
+@limiter.limit("220/minute")
 async def create_role(request: Request,
                 community_id: str,
                 req: RoleRequest,
@@ -1541,7 +1541,7 @@ async def create_role(request: Request,
         raise HTTPException(status_code=500, detail="Failed to create role due to an internal server error.")
 
 @app.patch("/api/community/{community_id}/roles/{role_id}", response_model=Dict[str, Any])
-@limiter.limit("120/minute")
+@limiter.limit("220/minute")
 async def update_role(request: Request,
                 community_id: str,
                 role_id: str,
@@ -1602,7 +1602,7 @@ async def update_role(request: Request,
         raise HTTPException(status_code=500, detail="Failed to update role due to an internal server error.")
 
 @app.get("/api/community/{community_id}/roles", response_model=Dict[str, Any])
-@limiter.limit("120/minute")
+@limiter.limit("220/minute")
 def fetch_roles(request: Request,
                 community_id: str,
                 current_user_id: str = Depends(get_user_id_from_token),
@@ -1652,7 +1652,7 @@ def fetch_roles(request: Request,
     }
 
 @app.delete("/api/community/{community_id}/roles/{role_id}", response_model=Dict[str, Any])
-@limiter.limit("120/minute")
+@limiter.limit("220/minute")
 async def delete_role(request: Request,
                 community_id: str,
                 role_id: str,
@@ -1737,7 +1737,7 @@ async def delete_role(request: Request,
         raise HTTPException(status_code=500, detail="Failed to delete role due to an internal server error.")
 
 @app.delete("/api/community/{community_id}/members/{member_id}/kick", response_model=Dict[str, Any])
-@limiter.limit("120/minute")
+@limiter.limit("220/minute")
 async def kick_member_from_community(request: Request,
                                community_id: str,
                                member_id: str,
@@ -1839,7 +1839,7 @@ async def kick_member_from_community(request: Request,
 
 
 @app.delete("/api/community/{community_id}/members/{member_id}/ban", response_model=Dict[str, Any])
-@limiter.limit("120/minute")
+@limiter.limit("220/minute")
 async def ban_member_from_community(request: Request,
                                community_id: str,
                                member_id: str,
@@ -1981,7 +1981,7 @@ async def ban_member_from_community(request: Request,
 
 
 @app.get("/api/community/{community_id}/logs", response_model=Dict[str, Any])
-@limiter.limit("120/minute")
+@limiter.limit("220/minute")
 def fetch_logs(request: Request,
                community_id: str,
                current_user_id: str = Depends(get_user_id_from_token),
@@ -2032,7 +2032,7 @@ def fetch_logs(request: Request,
     }
 
 @app.get("/api/community/{community_id}/bans", response_model=Dict[str, Any])
-@limiter.limit("120/minute")
+@limiter.limit("220/minute")
 def fetch_bans(request: Request,
                community_id: str,
                current_user_id: str = Depends(get_user_id_from_token),

@@ -1,5 +1,5 @@
 import React, { useContext, createContext } from "react";
-import { usePending as Pending } from "../hooks/usePending";
+import { usePending as Pending } from "../../hooks/friendspanel/usePending";
 
 type PendingProviderProps = {
     children: React.ReactNode;

@@ -1,5 +1,5 @@
 import React, { useContext, createContext } from "react";
-import { useLogs as Logs } from "../../hooks/communities/useLogs";
+import { useLogs as Logs } from "../../hooks/community/useLogs";
 
 type useLogsProviderProps = {
     children: React.ReactNode;

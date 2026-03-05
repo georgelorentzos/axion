@@ -14,7 +14,7 @@ import { ProtectedRoute, PublicRoute } from "./hooks/useRouteGuards";
 import { UserProvider } from "./contexts/useCurrentUser";
 import { MainLayout } from "./layouts/MainLayout";
 import { MainWithProviders } from "./layouts/Providers";
-import { CommunitiesProvider } from "./contexts/communities/useCommunities";
+import { CommunitiesProvider } from "./contexts/community/useCommunities";
 
 function App() {
   useEffect(() => {
