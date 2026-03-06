@@ -1,11 +1,11 @@
 import CurrentUserCard from "../common/CurrentUserCard";
 import { useLocation, useParams } from "react-router-dom";
 import React, { useState, useRef, useEffect } from "react";
-import CommunitySettingsModal from "./CommunitySettings/CommunitySettings";
+import CommunitySettingsModal from "./settings/Settings";
 import { useNavigate } from "react-router-dom";
 import { useCurrentUser } from "../../contexts/useCurrentUser";
-import ActionMenu from "../common/ActionMenu/ActionMenu";
-import ActionMenuButton from "../common/ActionMenu/ActionMenuButton";
+import ActionMenu from "../common/actionmenu/ActionMenu";
+import ActionMenuButton from "../common/actionmenu/ActionMenuButton";
 import { useCommunities } from "../../contexts/community/useCommunities";
 import { useCommunity } from "../../contexts/community/useCommunity";
 import Modal from "../common/modal/Modal";

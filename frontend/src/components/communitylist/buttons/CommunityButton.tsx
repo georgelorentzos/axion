@@ -1,7 +1,7 @@
 import { useLocation } from 'react-router-dom';
-import Modal from '../common/modal/Modal';
+import Modal from '../../common/modal/Modal';
 import { useState } from 'react';
-import CommunityProfile from './CommunityProfile';
+import CommunityProfile from '../../community/CommunityProfile';
 
 type CommunityButtonProps = {
     onClick?: () => void;

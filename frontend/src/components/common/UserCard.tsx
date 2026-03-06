@@ -1,7 +1,7 @@
 import ImageProfile from "../common/ImageProfile";
 import { useCurrentUser } from '../../contexts/useCurrentUser';
-import ActionMenu from "./ActionMenu/ActionMenu";
-import ActionMenuButton from "./ActionMenu/ActionMenuButton";
+import ActionMenu from "./actionmenu/ActionMenu";
+import ActionMenuButton from "./actionmenu/ActionMenuButton";
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import Modal from "./modal/Modal";

@@ -1,9 +1,9 @@
 import { useEffect, useState, useCallback } from "react";
-import SettingsSection from "../CommunitySettings/SettingsSection";
-import SettingsItem from "../CommunitySettings/SettingsItem";
-import ProfileContent from "../CommunitySettings/Contents/ProfileContent";
-import RolesContent from "../CommunitySettings/Contents/RolesContent";
-import MembersContent from "../CommunitySettings/Contents/MembersContent";
+import SettingsSection from "../settings/SettingsSection";
+import SettingsItem from "../settings/SettingsItem";
+import ProfileContent from "../settings/Contents/ProfileContent";
+import RolesContent from "../settings/Contents/RolesContent";
+import MembersContent from "../settings/Contents/MembersContent";
 import LogsContent from "./Contents/LogsContent";
 import BansContent from "./Contents/BansContent";
 import ModalCloseButton from "../../common/modal/ModalCloseButton";

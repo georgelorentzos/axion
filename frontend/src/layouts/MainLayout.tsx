@@ -1,6 +1,6 @@
-import CommunitiesList from '../components/communities/CommunitiesList';
+import CommunityList from '../components/communitylist/CommunityList';
 import ChatOverView from '../components/ChatOverView';
-import ChannelList from '../components/communities/ChannelList';
+import ChannelList from '../components/community/ChannelList';
 import { useLocation } from 'react-router-dom';
 
 export const MainLayout = ({ children }: { children: React.ReactNode }) => {
@@ -10,7 +10,7 @@ export const MainLayout = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <div className="h-screen w-full flex items-center">
-      <CommunitiesList />
+      <CommunityList />
 
       {isCommunityPage ? <ChannelList/> : <ChatOverView/>}
 

@@ -1,4 +1,4 @@
-import CommunityPreview from "../components/communities/CommunityPreview";
+import CommunityPreview from "../components/community/CommunityPreview";
 
 export default function JoinCommunity() {
 

@@ -663,16 +663,6 @@ async def send_message(request: Request, req: MessageRequest, user_id: str = Dep
             "createdAt": datetime.now().strftime("%H:%M"),
         })
 
-        await manager.broadcast_to_user(user_id, {
-            "type": "newDirectMessage",
-            "id": recipient.id,
-            "username": recipient.username,
-            "image": recipient.profile_image,
-            "isOnline": recipient.is_online,
-            "latestMessage": req.message,
-            "createdAt": recipient.created_at.year,
-        })
-
         return {
             "success": True, 
             "message": "Message send successfuly!"

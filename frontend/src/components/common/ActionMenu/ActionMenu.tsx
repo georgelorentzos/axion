@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useLayoutEffect, useCallback } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 
 type ActionMenuProps = {
   isActionMenuOpen: boolean;
@@ -14,7 +14,6 @@ export default function ActionMenu({
   canOpen = true,
   onClose,
   buttonRef,
-  position,
   children,
 }: ActionMenuProps) {
   const actionMenuRef = useRef<HTMLDivElement>(null);

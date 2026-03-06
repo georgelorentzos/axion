@@ -1,6 +1,6 @@
 import { useState } from "react";
 import ImageProfile from "../common/ImageProfile";
-import CommunityPreview from "../communities/CommunityPreview";
+import CommunityPreview from "../community/CommunityPreview";
 import Modal from "../common/modal/Modal";
 
 type MessageBubbleProps = {
