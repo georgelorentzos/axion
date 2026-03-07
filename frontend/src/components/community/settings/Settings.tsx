@@ -1,11 +1,11 @@
 import { useEffect, useState, useCallback } from "react";
 import SettingsSection from "../settings/SettingsSection";
 import SettingsItem from "../settings/SettingsItem";
-import ProfileContent from "../settings/Contents/ProfileContent";
-import RolesContent from "../settings/Contents/RolesContent";
-import MembersContent from "../settings/Contents/MembersContent";
-import LogsContent from "./Contents/LogsContent";
-import BansContent from "./Contents/BansContent";
+import ProfileContent from "../settings/content/Profile";
+import RolesContent from "../settings/content/Roles";
+import MembersContent from "../settings/content/Members";
+import LogsContent from "./content/Logs";
+import BansContent from "./content/Bans";
 import ModalCloseButton from "../../common/modal/ModalCloseButton";
 import Modal from "../../common/modal/Modal";
 import { type Community } from "../../../types/community";

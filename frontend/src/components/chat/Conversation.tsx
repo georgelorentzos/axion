@@ -1,6 +1,6 @@
 import ImageProfile from '../common/ImageProfile';
 import MessageInput from './MessageInput';
-import MessageBubble from './MessageBubble'
+import MessageBubble from './MessageBubble';
 import { useParams } from "react-router-dom";
 import { useEffect, useLayoutEffect, useState, useRef } from 'react';
 import { useCurrentUser } from '../../contexts/useCurrentUser';
@@ -12,12 +12,17 @@ export default function Conversation() {
     const { userId } = useParams();
     const { currentUser } = useCurrentUser();
     const { user, setUser } = useUser();
-    const { messages, setMessages, isMessagesLoaded } = useMessages();
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const scrollContainerRef = useRef<HTMLDivElement>(null);
     const navigate = useNavigate();
     const [showMessages, setShowMessages] = useState(false);
     const conversationRef = useRef<HTMLDivElement>(null);
+    const prevScrollHeightRef = useRef(0);
+    const { messages, setMessages, isMessagesLoaded, hasMore, isLoading, loadMore } = useMessages();
+
+    useEffect(() => {
+        prevScrollHeightRef.current = 0;
+    }, [userId]);
 
     useEffect(() => {
         if (isMessagesLoaded) {
@@ -72,7 +77,7 @@ export default function Conversation() {
     }, []);
 
     useLayoutEffect(() => {
-        if (messages.length > 0) {
+        if (messages.length > 0 && prevScrollHeightRef.current === 0) {
             requestAnimationFrame(() => {
                 setTimeout(() => {
                     messagesEndRef.current?.scrollIntoView({ behavior: 'instant' });
@@ -80,6 +85,42 @@ export default function Conversation() {
             });
         }
     }, [messages]);
+
+    useLayoutEffect(() => {
+        const container = scrollContainerRef.current;
+        if (!container) return;
+
+        const newScrollHeight = container.scrollHeight;
+        const diff = newScrollHeight - prevScrollHeightRef.current;
+        if (diff > 0 && prevScrollHeightRef.current > 0) {
+            container.scrollTop += diff;
+        }
+        prevScrollHeightRef.current = newScrollHeight;
+    }, [messages]);
+
+    useEffect(() => {
+        const container = scrollContainerRef.current;
+        if (!container) return;
+
+        let debounceTimer: ReturnType<typeof setTimeout>;
+
+        const handleScroll = () => {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => {
+                const threshold = container.scrollHeight * 0.25;
+                if (container.scrollTop < threshold && hasMore && !isLoading) {
+                    prevScrollHeightRef.current = container.scrollHeight;
+                    loadMore();
+                }
+            }, 200);
+        };
+
+        container.addEventListener('scroll', handleScroll);
+        return () => {
+            container.removeEventListener('scroll', handleScroll);
+            clearTimeout(debounceTimer);
+        };
+    }, [hasMore, isLoading, loadMore]);
 
     return (
         <div ref={conversationRef} className="flex-1 h-screen border-r border-outline flex flex-col">

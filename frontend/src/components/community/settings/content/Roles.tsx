@@ -1,7 +1,7 @@
 import Button from "../../../common/Button";
 import Input from "../../../common/Input";
 import { useEffect, useState } from "react";
-import PermissionsItem from "./Roles/Permissions/PermissionsItem";
+import PermissionItem from "./Roles/Permissions/PermissionItem";
 import PermissionsSection from "./Roles/Permissions/PermissionsSection";
 import { PERMISSIONS } from "../../../../constants/permissions";
 import { useParams } from "react-router-dom";
@@ -209,25 +209,25 @@ export default function RolesContent({ onChildModalChange }: RolesContentProps) 
             </div>
             <div className="rounded-lg flex flex-col overflow-y-auto max-h-[calc(100vh-200px)]">
                 <PermissionsSection title="GENERAL">
-                    <PermissionsItem
+                    <PermissionItem
                         onClick={() => togglePermission(PERMISSIONS.MANAGE_CHANNELS)}
                         active={selectedPermissions.includes(PERMISSIONS.MANAGE_CHANNELS)}
                         text="Manage Channels"
                         description="Allows members to create, edit, or delete channels."
                     />
-                    <PermissionsItem
+                    <PermissionItem
                         onClick={() => togglePermission(PERMISSIONS.MANAGE_ROLES)}
                         active={selectedPermissions.includes(PERMISSIONS.MANAGE_ROLES)}
                         text="Manage Roles"
                         description="Allows members to create, edit, or delete roles lower than their highest role."
                     />
-                    <PermissionsItem
+                    <PermissionItem
                         onClick={() => togglePermission(PERMISSIONS.MANAGE_COMMUNITY)}
                         active={selectedPermissions.includes(PERMISSIONS.MANAGE_COMMUNITY)}
                         text="Manage Community"
                         description="Allows members to edit community settings, such as the community name and description."
                     />
-                    <PermissionsItem
+                    <PermissionItem
                         onClick={() => togglePermission(PERMISSIONS.VIEW_LOGS)}
                         active={selectedPermissions.includes(PERMISSIONS.VIEW_LOGS)}
                         text="View Logs"
@@ -235,13 +235,13 @@ export default function RolesContent({ onChildModalChange }: RolesContentProps) 
                     />
                 </PermissionsSection>
                 <PermissionsSection title="MEMBERSHIP">
-                    <PermissionsItem
+                    <PermissionItem
                         onClick={() => togglePermission(PERMISSIONS.KICK)}
                         active={selectedPermissions.includes(PERMISSIONS.KICK)}
                         text="Kick"
                         description="Allows members to remove other members from the community."
                     />
-                    <PermissionsItem
+                    <PermissionItem
                         onClick={() => togglePermission(PERMISSIONS.BAN)}
                         active={selectedPermissions.includes(PERMISSIONS.BAN)}
                         text="Ban"
@@ -249,25 +249,25 @@ export default function RolesContent({ onChildModalChange }: RolesContentProps) 
                     />
                 </PermissionsSection>
                 <PermissionsSection title="TEXT CHANNEL">
-                    <PermissionsItem
+                    <PermissionItem
                         onClick={() => togglePermission(PERMISSIONS.SEND_MESSAGES)}
                         active={selectedPermissions.includes(PERMISSIONS.SEND_MESSAGES)}
                         text="Send Messages"
                         description="Allows members to send messages in text channels."
                     />
-                    <PermissionsItem
+                    <PermissionItem
                         onClick={() => togglePermission(PERMISSIONS.SEND_LINKS)}
                         active={selectedPermissions.includes(PERMISSIONS.SEND_LINKS)}
                         text="Send Links"
                         description="Allows members to send links that display embedded content."
                     />
-                    <PermissionsItem
+                    <PermissionItem
                         onClick={() => togglePermission(PERMISSIONS.ATTACH_FILES)}
                         active={selectedPermissions.includes(PERMISSIONS.ATTACH_FILES)}
                         text="Attach Files"
                         description="Allows members to upload files and media in text channels."
                     />
-                    <PermissionsItem
+                    <PermissionItem
                         onClick={() => togglePermission(PERMISSIONS.MANAGE_MESSAGES)}
                         active={selectedPermissions.includes(PERMISSIONS.MANAGE_MESSAGES)}
                         text="Manage Messages"
@@ -275,7 +275,7 @@ export default function RolesContent({ onChildModalChange }: RolesContentProps) 
                     />
                 </PermissionsSection>
                 <PermissionsSection title="ADVANCED">
-                    <PermissionsItem
+                    <PermissionItem
                         onClick={() => togglePermission(PERMISSIONS.ADMINISTRATOR)}
                         active={selectedPermissions.includes(PERMISSIONS.ADMINISTRATOR)}
                         text="Administrator"

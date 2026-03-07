@@ -676,7 +676,7 @@ async def send_message(request: Request, req: MessageRequest, user_id: str = Dep
 def get_messages(
     request: Request, 
     user_id: str,
-    limit: int = Query(30, ge=1, le=50),
+    limit: int = Query(50, ge=1, le=50),
     offset: int = Query(0, ge=0),
     current_user_id: str = Depends(get_user_id_from_token), 
     db: Session = Depends(get_db)

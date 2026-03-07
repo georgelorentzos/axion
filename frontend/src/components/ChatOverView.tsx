@@ -23,7 +23,8 @@ export default function ChatOverView() {
                     setDirectMessages(prev => {
                         const existing = prev.find(dm => dm.user.id === data.id);
                         if (existing) {
-                            return prev.map(dm => dm.user.id === data.id ? { ...dm, latestMessage: data.latestMessage } : dm);
+                            const updated = { ...existing, latestMessage: data.latestMessage };
+                            return [updated, ...prev.filter(dm => dm.user.id !== data.id)];
                         }
                         return [
                             {

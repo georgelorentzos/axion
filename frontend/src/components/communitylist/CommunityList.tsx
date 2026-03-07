@@ -29,15 +29,12 @@ export default function CommunityList() {
                     audioRef.current.play().catch(() => {});
                 }
                 setConversations(prev => {
-                    const existing = prev.some(c => c.id === data.id);
+                    const existing = prev.find(c => c.id === data.id);
                     if (existing) {
-                        return prev.map(c =>
-                            c.id === data.id
-                                ? { ...c, unreadCount: c.unreadCount + 1 }
-                                : c
-                        );
+                        const updated = { ...existing, unreadCount: existing.unreadCount + 1 };
+                        return [updated, ...prev.filter(c => c.id !== data.id)];
                     }
-                    return [...prev,
+                    return [
                     {
                         id: data.id,
                         username: data.username,
@@ -45,7 +42,8 @@ export default function CommunityList() {
                         isOnline: data.isOnline,
                         createdAt: data.createdAt,
                         unreadCount: 1,
-                    }];
+                    },
+                ...prev,];
                 });
             }
         };

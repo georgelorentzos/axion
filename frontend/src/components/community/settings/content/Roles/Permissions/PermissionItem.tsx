@@ -1,13 +1,13 @@
 import CheckBox from "../../../../../common/CheckBox";
 
-type PermissionsItemProps = {
+type PermissionItemProps = {
     text: string;
     description: string;
     onClick: () => void;
     active?: boolean;
 }
 
-export default function PermissionsItem({ text, description, onClick, active = false }: PermissionsItemProps) {
+export default function PermissionItem({ text, description, onClick, active = false }: PermissionItemProps) {
     return (
         <div className="flex py-1 justify-between">
             <div className="flex flex-col py-1">
