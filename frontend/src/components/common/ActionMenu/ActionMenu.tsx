@@ -5,7 +5,7 @@ type ActionMenuProps = {
   canOpen?: boolean;
   position: { x: number; y: number };
   onClose: () => void;
-  buttonRef: React.RefObject<HTMLButtonElement | null>;
+  buttonRef?: React.RefObject<HTMLButtonElement | null>;
   children: React.ReactNode;
 };
 
@@ -23,7 +23,7 @@ export default function ActionMenu({
   const [finalTop, setFinalTop] = useState(0);
 
   const updatePosition = useCallback(() => {
-    if (!actionMenuRef.current || !buttonRef.current) return false;
+    if (!actionMenuRef.current || !buttonRef?.current) return false;
 
     const menu = actionMenuRef.current;
     const menuWidth = menu.offsetWidth;

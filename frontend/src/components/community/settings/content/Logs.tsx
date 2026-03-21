@@ -1,5 +1,5 @@
 import SearchBar from "../../../common/SearchBar";
-import LogCard from "./Logs/LogCard";
+import UserCard from "../../../common/UserCard";
 import { useLogs } from "../../../../contexts/community/useLogs";
 import { useState } from "react";
 
@@ -31,12 +31,13 @@ export default function LogsContent() {
 
           <div className="flex-1 min-h-0 overflow-y-auto flex flex-col py-2">
             {filteredLogs.map((log, index) => (
-              <LogCard
+              <UserCard
                 key={index}
-                log={log.log}
+                title={log.log}
                 description={log.description}
-                createdAt={log.createdAt}
-                userImgUrl={log.userImgUrl}
+                imageUrl={log.userImgUrl}
+                joinedAtText={log.createdAt}
+                showStatus={false}
               />
             ))}
             {filteredLogs.length === 0 && searchQuery && (

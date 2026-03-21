@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { type Log } from "../../types/log";
+import { type Ban } from "../../types/ban";
 
 export function useBans() {
     const apiUrl = window.GLOBAL_ENV.API_ENDPOINT;
     const { communityId } = useParams();
     const token = localStorage.getItem("token");
-    const [bans, setBans] = useState<Log[]>([]);
+    const [bans, setBans] = useState<Ban[]>([]);
 
     useEffect(() => {
         if (!token) return;
@@ -34,7 +34,8 @@ export function useBans() {
             if (data.type === "newBan") {
                 setBans(prev => [
                     {
-                        log: data.log,
+                        id: data.id,
+                        username: data.username,
                         description: data.description,
                         createdAt: data.createdAt,
                         userImgUrl: data.userImgUrl,

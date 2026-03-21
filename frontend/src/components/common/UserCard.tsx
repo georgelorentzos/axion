@@ -19,17 +19,23 @@ type UserCardProps = {
     rejectPending?: boolean;
     invite?: boolean;
     deleteConversation?: boolean;
+    unban?: boolean;
   };
 
   onReject?: (id: string) => void;
   onAccept?: (id: string) => void;
   onInvite?: () => void;
+  onUnban?: () => void;
   onChildModalChange?: (isOpen: boolean) => void;
-  
+
   showStatus?: boolean;
   showLatestMessage?: boolean;
   latestMessage?: string;
   joinedAtText?: string;
+
+  title?: string;
+  description?: string;
+  imageUrl?: string;
 };
 
 type Pending = {
@@ -47,11 +53,15 @@ export default function UserCard({
   onReject,
   onAccept,
   onInvite,
+  onUnban,
   onChildModalChange,
   showStatus = true,
   showLatestMessage,
   latestMessage,
-  joinedAtText
+  joinedAtText,
+  title,
+  description,
+  imageUrl,
 }: UserCardProps) {
   const { currentUser } = useCurrentUser();
   const [loading, setLoading] = useState(false);
@@ -303,17 +313,22 @@ export default function UserCard({
   return (
     <>
     <div
-      onClick={currentUser?.id === user?.id ? () => {} : handleNavigateToChat}
-      className={` ${currentUser?.id === user?.id ? "cursor-default" : "cursor-pointer"} transition duration-300 py-2.5 px-4 flex justify-between items-center w-full rounded-lg ${
+      onClick={user ? (currentUser?.id === user?.id ? () => {} : handleNavigateToChat) : undefined}
+      className={` ${!user || currentUser?.id === user?.id ? "cursor-default" : "cursor-pointer"} transition duration-300 py-2.5 px-4 flex justify-between items-center w-full rounded-lg ${
     isSelected
       ? "bg-basalt"
       : "hover:bg-basalt"
   }`}
     >
       <div className="flex items-center gap-2">
-        <ImageProfile src={user?.image} online={user?.isOnline} showStatus={showStatus} />
+        <ImageProfile src={imageUrl ?? user?.image} online={user?.isOnline} showStatus={showStatus} />
         <div className="flex flex-col leading-none gap-1">
-          <div className="text-gray-100">{user?.username}</div>
+          <div className="text-gray-100">{title ?? user?.username}</div>
+          {description && (
+            <div className="text-gray-500 text-[12px] max-w-[600px]">
+              With Reason: {description}
+            </div>
+          )}
           {showLatestMessage ? (
           <div className="text-gray-500 text-[12px] truncate w-[200px]">
             {latestMessage}
@@ -480,6 +495,12 @@ export default function UserCard({
               isDanger
               isVisible={!!actions?.admin}
               onClick={() => {setIsBanUserModalOpen(true); setisActionMenuOpen(false);}}
+            />
+            <ActionMenuButton
+              text="Unban"
+              svgPaths={["M13.5 10.5V6.75a4.5 4.5 0 1 1 9 0v3.75M3.75 21.75h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H3.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z"]}
+              isVisible={!!actions?.unban}
+              onClick={() => { onUnban?.(); setisActionMenuOpen(false); }}
             />
           </ActionMenu>
           <Modal isOpen={isKickUserModalOpen} onClose={() => setIsKickUserModalOpen(false)} type="kickUser" user={user} />

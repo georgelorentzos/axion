@@ -1,17 +1,37 @@
 import SearchBar from "../../../common/SearchBar";
-import LogCard from "./Logs/LogCard";
+import UserCard from "../../../common/UserCard";
 import { useBans } from "../../../../contexts/community/useBans";
 import { useState } from "react";
+import { useParams } from "react-router-dom";
 
 export default function BansContent() {
-  const { bans } = useBans();
+  const { bans, setBans } = useBans();
   const [searchQuery, setSearchQuery] = useState("");
+  const token = localStorage.getItem('token');
+  const apiUrl = window.GLOBAL_ENV.API_ENDPOINT;
+  const { communityId } = useParams();
 
   const filteredBans = bans.filter(
-    (log) =>
-      log.log.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (log.description ?? "").toLowerCase().includes(searchQuery.toLowerCase())
+    (ban) =>
+      ban.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (ban.description ?? "").toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const handleUnBan = async (id: string) => {
+    if (!token || !communityId) return;
+    try {
+      const response = await fetch(`${apiUrl}/api/community/${communityId}/bans/${id}`, {
+        method: "DELETE",
+        headers: {"Authorization": `Bearer ${token}`}
+      });
+      const data = await response.json();
+      if (data.success) {
+        setBans(prev => prev.filter(ban => ban.id !== data.id));
+      }
+    } catch (error) {
+      console.log("failed to unban: ", error);
+    }
+  };
 
   return (
     <div className="flex gap-2 justify-start items-start h-full min-h-0">
@@ -32,22 +52,25 @@ export default function BansContent() {
           </div>
 
           <div className="flex-1 min-h-0 overflow-y-auto flex flex-col py-2">
-            {filteredBans.map((log, index) => (
-              <LogCard
+            {filteredBans.map((ban, index) => (
+              <UserCard
                 key={index}
-                log={log.log}
-                description={log.description}
-                createdAt={log.createdAt}
-                userImgUrl={log.userImgUrl}
+                title={ban.username}
+                description={ban.description}
+                imageUrl={ban.userImgUrl}
+                joinedAtText={ban.createdAt}
+                showStatus={false}
+                actions={{ options: true, unban: true }}
+                onUnban={() => handleUnBan(ban.id)}
               />
             ))}
            {filteredBans.length === 0 && searchQuery && (
-              <div className="text-gray-500 transition duration-300 py-2.5 px-4 flex justify-between items-center w-full rounded-lg hover:bg-basalt"> 
+              <div className="text-gray-500 transition duration-300 py-2.5 px-4 flex justify-between items-center w-full rounded-lg hover:bg-basalt">
                   No results found
               </div>
             )}
             {filteredBans.length === 0 && !searchQuery && (
-              <div className="text-gray-500 transition duration-300 py-2.5 px-4 flex justify-between items-center w-full rounded-lg hover:bg-basalt"> 
+              <div className="text-gray-500 transition duration-300 py-2.5 px-4 flex justify-between items-center w-full rounded-lg hover:bg-basalt">
                   No bans yet
               </div>
             )}
