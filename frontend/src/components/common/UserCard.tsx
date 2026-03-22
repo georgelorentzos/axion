@@ -5,6 +5,7 @@ import ActionMenuButton from "./actionmenu/ActionMenuButton";
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import Modal from "./modal/Modal";
+import MemberAction from "./modal/content/MemberAction";
 import { type User } from "../../types/user";
 
 type UserCardProps = {
@@ -503,8 +504,12 @@ export default function UserCard({
               onClick={() => { onUnban?.(); setisActionMenuOpen(false); }}
             />
           </ActionMenu>
-          <Modal isOpen={isKickUserModalOpen} onClose={() => setIsKickUserModalOpen(false)} type="kickUser" user={user} />
-          <Modal isOpen={isBanUserModalOpen} onClose={() => setIsBanUserModalOpen(false)} type="banUser" user={user} />
+          <Modal isOpen={isKickUserModalOpen} onClose={() => setIsKickUserModalOpen(false)}>
+            <MemberAction user={user} onClose={() => setIsKickUserModalOpen(false)} action="kick" />
+          </Modal>
+          <Modal isOpen={isBanUserModalOpen} onClose={() => setIsBanUserModalOpen(false)}>
+            <MemberAction user={user} onClose={() => setIsBanUserModalOpen(false)} action="ban" />
+          </Modal>
     </>
   );
 }

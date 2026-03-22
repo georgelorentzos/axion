@@ -2,6 +2,7 @@ import { useState } from "react";
 import ImageProfile from "../common/ImageProfile";
 import CommunityPreview from "../community/CommunityPreview";
 import Modal from "../common/modal/Modal";
+import LinkAlert from "../common/modal/content/LinkAlert";
 
 type MessageBubbleProps = {
   isCurrentUser: boolean;
@@ -102,9 +103,9 @@ export default function MessageBubble({
       <Modal
         isOpen={linkModal.isOpen}
         onClose={() => setLinkModal({ isOpen: false, link: "" })}
-        type="linkAlert"
-        link={linkModal.link}
-      />
+      >
+        <LinkAlert onClose={() => setLinkModal({ isOpen: false, link: "" })} link={linkModal.link} />
+      </Modal>
     </>
   );
 }

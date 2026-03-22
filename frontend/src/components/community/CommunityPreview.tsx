@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { useCommunities } from "../../contexts/community/useCommunities";
 import { type Community } from "../../types/community";
 import Modal from "../common/modal/Modal";
+import Alert from "../common/modal/content/Alert";
 
 type CommunityPreviewProps = {
   joinBtn?: boolean;
@@ -172,7 +173,9 @@ export default function CommunityPreview({ joinBtn, community: communityProp, sk
         <Button text="Join Community" isGreen onClick={() => id && joinCommunity(id)} bold />
       )}
     </div>
-      <Modal isOpen={isBannedModalOpen} onClose={() => setIsBannedModalOpen(false)} type="alert" text={`You have been banned from ${name} with reason: ${banReason}`} />
+      <Modal isOpen={isBannedModalOpen} onClose={() => setIsBannedModalOpen(false)}>
+        <Alert text={`You have been banned from ${name} with reason: ${banReason}`} />
+      </Modal>
     </>
   );
 }

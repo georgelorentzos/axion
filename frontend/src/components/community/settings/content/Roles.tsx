@@ -8,6 +8,7 @@ import { useParams } from "react-router-dom";
 import RoleCard from "./Roles/RoleCard";
 import UnsavedChangesBar from "../../../common/UnsavedChangesBar";
 import Modal from "../../../common/modal/Modal";
+import DeleteRole from "../../../common/modal/content/DeleteRole";
 import SearchBar from "../../../common/SearchBar";
 import { useRoles } from "../../../../contexts/community/useRoles";
 import { type Role } from "../../../../types/role";
@@ -329,7 +330,9 @@ export default function RolesContent({ onChildModalChange }: RolesContentProps) 
     return (
         <div className="flex gap-2 justify-start items-start">
             {isCreateRole ? createRoleContent : defaultContent}
-            <Modal isOpen={!!deletingRole} onClose={() => setDeletingRole(null)} type="deleteRole" role={deletingRole ?? undefined} />
+            <Modal isOpen={!!deletingRole} onClose={() => setDeletingRole(null)}>
+                <DeleteRole onClose={() => setDeletingRole(null)} role={deletingRole ?? undefined} />
+            </Modal>
         </div>
     );
 }

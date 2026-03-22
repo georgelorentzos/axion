@@ -18,6 +18,7 @@ uploads/
 # Local environment files
 *.local
 .env
+.*
 
 # IDE/editor specific files
 .vscode/*

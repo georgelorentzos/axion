@@ -12,6 +12,7 @@ type ActionMenuProps = {
 export default function ActionMenu({
   isActionMenuOpen,
   canOpen = true,
+  position,
   onClose,
   buttonRef,
   children,
@@ -23,32 +24,39 @@ export default function ActionMenu({
   const [finalTop, setFinalTop] = useState(0);
 
   const updatePosition = useCallback(() => {
-    if (!actionMenuRef.current || !buttonRef?.current) return false;
+    if (!actionMenuRef.current) return false;
 
     const menu = actionMenuRef.current;
     const menuWidth = menu.offsetWidth;
     const menuHeight = menu.offsetHeight;
     const padding = 8;
 
-    const rect = buttonRef.current.getBoundingClientRect();
-    if (rect.width === 0 && rect.height === 0) return false;
+    let left: number;
+    let top: number;
 
-    let left = rect.left;
-    let top = rect.bottom + 4;
+    if (buttonRef?.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      if (rect.width === 0 && rect.height === 0) return false;
+      left = rect.left;
+      top = rect.bottom + 4;
+    } else {
+      left = position.x;
+      top = position.y;
+    }
 
     if (left + menuWidth + padding > window.innerWidth) {
-      left = rect.right - menuWidth;
+      left = left - menuWidth;
     }
 
     if (top + menuHeight + padding > window.innerHeight) {
-      top = rect.top - menuHeight - 4;
+      top = top - menuHeight;
     }
 
     setFinalLeft(left);
     setFinalTop(top);
     setMeasured(true);
     return true;
-  }, [buttonRef]);
+  }, [buttonRef, position]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {

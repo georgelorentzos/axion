@@ -9,6 +9,8 @@ import ActionMenuButton from "../common/actionmenu/ActionMenuButton";
 import { useCommunities } from "../../contexts/community/useCommunities";
 import { useCommunity } from "../../contexts/community/useCommunity";
 import Modal from "../common/modal/Modal";
+import InviteFriend from "../common/modal/content/InviteFriend";
+import CreateItem from "../common/modal/content/CreateItem";
 import { type Community } from "../../types/community";
 interface LocationState {
   community?: Community;
@@ -125,7 +127,9 @@ export default function ChannelList() {
   return (
     <div className="w-[370px] h-screen border-r border-outline flex flex-col">
       <audio preload="auto" />
-      <Modal isOpen={isCommunityInviteModalOpen} onClose={() => setIsCommunityInviteModalOpen(false)} type="inviteFriend" />
+      <Modal isOpen={isCommunityInviteModalOpen} onClose={() => setIsCommunityInviteModalOpen(false)}>
+        <InviteFriend />
+      </Modal>
       <CommunitySettingsModal community={community} onCommunityUpdate={handleCommunityUpdate} isOpen={isCommunitySettingsModalOpen} onClose={() => setIsCommunitySettingsModalOpen(false)} />
       <div className="w-full h-[60px] border-b border-outline flex items-center justify-between px-6 gap-2 flex-shrink-0">
         <div className="flex gap-2">
@@ -227,8 +231,12 @@ export default function ChannelList() {
         </ActionMenu>
       </div>
 
-      <Modal isOpen={isCreateCategoryModalOpen} onClose={() => setIsCreateCategoryModalOpen(false)} type="createCategory" />
-      <Modal isOpen={isCreateChannelModalOpen} onClose={() => setIsCreateChannelModalOpen(false)} type="createChannel" />
+      <Modal isOpen={isCreateCategoryModalOpen} onClose={() => setIsCreateCategoryModalOpen(false)}>
+        <CreateItem item="category" />
+      </Modal>
+      <Modal isOpen={isCreateChannelModalOpen} onClose={() => setIsCreateChannelModalOpen(false)}>
+        <CreateItem item="channel" />
+      </Modal>
 
       <div className="px-2 h-[80px] flex items-center flex-shrink-0 justify-center">
         <CurrentUserCard />

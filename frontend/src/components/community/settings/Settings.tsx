@@ -8,6 +8,7 @@ import LogsContent from "./content/Logs";
 import BansContent from "./content/Bans";
 import ModalCloseButton from "../../common/modal/ModalCloseButton";
 import Modal from "../../common/modal/Modal";
+import DeleteCommunity from "../../common/modal/content/DeleteCommunity";
 import { type Community } from "../../../types/community";
 
 type CommunitySettingsModalProps = {
@@ -99,7 +100,9 @@ export default function CommunitySettingsModal(
                 <ModalCloseButton onClose={hasChildModalOpen ? () => {} : onClose} top="top-4" right="right-4" />
             </div>
 
-            <Modal isOpen={isDeleteCommunityModal} onClose={() => setIsDeleteCommunityModal(false)} type="deleteCommunity" community={community} />
+            <Modal isOpen={isDeleteCommunityModal} onClose={() => setIsDeleteCommunityModal(false)}>
+                <DeleteCommunity community={community} />
+            </Modal>
 
         </div>
     );
