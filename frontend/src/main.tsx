@@ -2,19 +2,19 @@ import { StrictMode, useEffect } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
-import Auth from "./pages/Auth";
-import NotFound from "./pages/NotFound";
-import MagicLink from "./pages/MagicLink";
-import Logout from "./pages/Logout";
-import FriendsPanel from "./components/friendspanel/FriendsPanel";
-import Conversation from "./components/chat/Conversation";
-import JoinCommunity from "./pages/JoinCommunity";
+import Auth from "./features/auth/pages/Auth";
+import NotFound from "./features/auth/pages/NotFound";
+import MagicLink from "./features/auth/pages/MagicLink";
+import Logout from "./features/auth/pages/Logout";
+import FriendsPanel from "./features/friends/components/FriendsPanel";
+import Conversation from "./features/chat/components/Conversation";
+import JoinCommunity from "./features/community/pages/JoinCommunity";
 
-import { ProtectedRoute, PublicRoute } from "./hooks/useRouteGuards";
-import { UserProvider } from "./contexts/useCurrentUser";
+import { ProtectedRoute, PublicRoute } from "./features/user/hooks/useRouteGuards";
+import { UserProvider } from "./features/user/contexts/useCurrentUser";
 import { MainLayout } from "./layouts/MainLayout";
 import { MainWithProviders } from "./layouts/Providers";
-import { CommunitiesProvider } from "./contexts/community/useCommunities";
+import { CommunitiesProvider } from "./features/community/contexts/useCommunities";
 
 function App() {
   useEffect(() => {

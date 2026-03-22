@@ -1,16 +1,16 @@
-import { UserProvider as CurrentUserProvider } from '../contexts/useCurrentUser';
-import { OnlineFriendsProvider } from "../contexts/friendspanel/useOnlineFriends";
-import { AllFriendsProvider } from '../contexts/friendspanel/useAllFriends';
-import { PendingProvider } from '../contexts/friendspanel/usePending';
-import { DirectMessagesProvider } from '../contexts/chatoverview/useDirectMessages';
-import { CommunitiesProvider } from '../contexts/community/useCommunities';
-import { MembersProvider } from '../contexts/community/useMembers';
-import { CommunityProvider } from '../contexts/community/useCommunity';
-import { RolesProvider } from '../contexts/community/useRoles';
-import { LogsProvider } from '../contexts/community/useLogs';
-import { BansProvider } from '../contexts/community/useBans';
-import { MessagesProvider } from '../contexts/conversation/useMessages';
-import { UserProvider as ConversationUserProvider } from '../contexts/conversation/useUser';
+import { UserProvider as CurrentUserProvider } from '../features/user/contexts/useCurrentUser';
+import { OnlineFriendsProvider } from "../features/friends/contexts/useOnlineFriends";
+import { AllFriendsProvider } from '../features/friends/contexts/useAllFriends';
+import { PendingProvider } from '../features/friends/contexts/usePending';
+import { DirectMessagesProvider } from '../features/chat/contexts/useDirectMessages';
+import { CommunitiesProvider } from '../features/community/contexts/useCommunities';
+import { MembersProvider } from '../features/community/contexts/useMembers';
+import { CommunityProvider } from '../features/community/contexts/useCommunity';
+import { RolesProvider } from '../features/community/contexts/useRoles';
+import { LogsProvider } from '../features/community/contexts/useLogs';
+import { BansProvider } from '../features/community/contexts/useBans';
+import { MessagesProvider } from '../features/chat/contexts/useMessages';
+import { UserProvider as ConversationUserProvider } from '../features/chat/contexts/useUser';
 
 export const MainWithProviders = ({ children }: { children: React.ReactNode }) => (
   <CurrentUserProvider>

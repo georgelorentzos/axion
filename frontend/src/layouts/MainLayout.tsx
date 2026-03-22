@@ -1,6 +1,6 @@
-import CommunityList from '../components/communitylist/CommunityList';
-import ChatOverView from '../components/ChatOverView';
-import ChannelList from '../components/community/ChannelList';
+import CommunityList from '../features/community/components/CommunityList';
+import ChatOverView from '../features/chat/components/ChatOverView';
+import ChannelList from '../features/community/components/ChannelList';
 import { useLocation } from 'react-router-dom';
 
 export const MainLayout = ({ children }: { children: React.ReactNode }) => {
