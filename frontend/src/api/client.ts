@@ -90,6 +90,8 @@ export const api = {
       request(`/api/community/${communityId}/leave`, { method: "DELETE" }),
     delete: (communityId: string, communityName: string) =>
       request(`/api/community/${communityId}?community_name=${encodeURIComponent(communityName)}`, { method: "DELETE" }),
+    getPermissions: (communityId: string) => 
+      request(`/api/community/${communityId}/permissions`, { method: "GET" }),
   },
 
   members: {
