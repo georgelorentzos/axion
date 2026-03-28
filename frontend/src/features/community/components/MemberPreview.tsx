@@ -2,15 +2,21 @@ import { useEffect, useState } from "react";
 import ImageProfile from "../../../ui/ImageProfile";
 import Button from "../../../ui/Button";
 import Input from "../../../ui/Input";
+import { api } from "../../../api/client";
+import { useCurrentUser } from "../../user/contexts/useCurrentUser";
+import { useNavigate } from "react-router-dom";
 
 type MemberPreviewProps = {
-    member: { username: string; image: string };
+    member: { id: string; username: string; image: string };
     isOpen: boolean;
 };
 
 export default function MemberPreview({ member, isOpen }: MemberPreviewProps) {
     const [showFade, setShowFade] = useState(false);
     const [isVisible, setIsVisible] = useState(false);
+    const [messageValue, setMessageValue] = useState<string>("");
+    const { currentUser } = useCurrentUser();
+    const navigate = useNavigate();
 
     useEffect(() => {
         if (isOpen) {
@@ -25,6 +31,17 @@ export default function MemberPreview({ member, isOpen }: MemberPreviewProps) {
     }, [isOpen]);
 
     if (!isVisible) return null;
+
+    const handleSendMessage = async () => {
+        if (!messageValue.trim() || !currentUser) return;
+        try {
+            await api.messages.send(currentUser.id, member.id, messageValue);
+            navigate(`/chat/${member.id}`);
+            setMessageValue("");
+        } catch (error) {
+            console.error("Failed to send message:", error);
+        }
+    };
 
     return (
         <div
@@ -43,11 +60,14 @@ export default function MemberPreview({ member, isOpen }: MemberPreviewProps) {
                 </div>
                 <Button text="+ Add Role" isGreen />
             </div>
-            <Input
-                svgD="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5"
-                placeholder={`Message ${member.username}`}
-                bg="bg-onyx"
-            />
+            {member.id !== currentUser?.id && (
+                <Input
+                    onChange={(e) => setMessageValue(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
+                    placeholder={`Message ${member.username}`}
+                    bg="bg-onyx"
+                />
+            )}
         </div>
     );
 }

@@ -1,12 +1,29 @@
 import { useMembers } from "../contexts/useMembers";
 import UserCard from "../../../ui/UserCard";
 import MemberPreview from "./MemberPreview";
-import { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import ActionMenu from "../../../ui/actionmenu/ActionMenu";
+import ActionMenuButton from "../../../ui/actionmenu/ActionMenuButton";
+import { useCurrentUser } from "../../user/contexts/useCurrentUser";
+import { useNavigate } from "react-router-dom";
+import { useAllFriends } from "../../friends/contexts/useAllFriends";
+import { api } from "../../../api/client";
+import { useCommunity } from "../contexts/useCommunity";
+import Modal from "../../../ui/modal/Modal";
+import MemberAction from "./MemberAction";
 
 export default function MemberList() {
     const { members } = useMembers();
     const [activeMemberId, setActiveMemberId] = useState<string | null>(null);
+    const [actionMenuMemberId, setActionMenuMemberId] = useState<string | null>(null);
     const memberRefs = useRef<Map<string, HTMLDivElement>>(new Map());
+    const [pos, setPos] = useState<{ x:number, y:number }>({ x:0, y:0 });
+    const { currentUser } = useCurrentUser();
+    const navigate = useNavigate();
+    const { allFriends, setAllFriends } = useAllFriends();
+    const { community } = useCommunity();
+    const [isKickConfirmationModalOpen, setIsKickConfirmationModalOpen] = useState(false);
+    const [isBanConfirmationModalOpen, setIsBanConfirmationModalOpen] = useState(false);
 
     useEffect(() => {
         const handleClickOutside = (e: MouseEvent) => {
@@ -61,11 +78,71 @@ export default function MemberList() {
                                     prev === member.id ? null : member.id
                                 );
                             }}
+                            onContextMenu={(e: React.MouseEvent) => {
+                                e.preventDefault();
+                                setActionMenuMemberId(member.id);
+                                setPos({ x: e.clientX, y: e.clientY });
+                            }}
                         />
                         <MemberPreview
                             member={member}
                             isOpen={activeMemberId === member.id}
                         />
+                        <ActionMenu isActionMenuOpen={actionMenuMemberId === member.id && member.id !== currentUser?.id} onClose={() => setActionMenuMemberId(null)} position={pos}>
+                            <ActionMenuButton 
+                            onClick={() => navigate(`/chat/${member.id}`)}
+                            text="Message"
+                            svgPaths={["M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5"]}
+                            />
+                           {!allFriends.some(friend => friend.id === member.id) ? (
+                            <ActionMenuButton 
+                            onClick={() => {
+                                if (!currentUser?.id) return;
+                                api.friends.sendRequest(currentUser.id, member.id);
+                                setActionMenuMemberId(null);
+                            }}
+                            text="Add Friend"
+                            svgPaths={["M18 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM3 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 9.374 21c-2.331 0-4.512-.645-6.374-1.766Z"]}
+                            />
+                            ) : (
+                            <ActionMenuButton
+                            onClick={() => {
+                                if (!currentUser?.id) return;
+                                api.friends.remove(currentUser?.id, member.id);
+                                setAllFriends(friends => friends.filter(friend => friend.id !== member.id));
+                                setActionMenuMemberId(null);
+                            }} 
+                            text="Unfriend"
+                            svgPaths={["M22 10.5h-6m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM4 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 10.374 21c-2.331 0-4.512-.645-6.374-1.766Z"]}
+                            />
+                            )}
+                            <ActionMenuButton 
+                            onClick={() => {
+                                setIsKickConfirmationModalOpen(true);
+                                setActionMenuMemberId(null);
+                            }}
+                            text={`Kick ${member.username}`}
+                            isDanger
+                            isVisible={member.id !== community?.ownerId}
+                            svgPaths={["M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l-3 3m0 0 3 3m-3-3h12.75"]}
+                            />
+                            <ActionMenuButton 
+                            onClick={() => {
+                                setIsBanConfirmationModalOpen(true);
+                                setActionMenuMemberId(null);
+                            }}
+                            text={`Ban ${member.username}`}
+                            isDanger
+                            isVisible={member.id !== community?.ownerId}
+                            svgPaths={["M18.364 18.364A9 9 0 0 0 5.636 5.636m12.728 12.728A9 9 0 0 1 5.636 5.636m12.728 12.728L5.636 5.636"]}
+                            />
+                        </ActionMenu>
+                        <Modal isOpen={isKickConfirmationModalOpen} onClose={() => setIsKickConfirmationModalOpen(false)}>
+                            <MemberAction user={member} onClose={() => setIsKickConfirmationModalOpen(false)} action="kick" />
+                        </Modal>
+                        <Modal isOpen={isBanConfirmationModalOpen} onClose={() => setIsBanConfirmationModalOpen(false)}>
+                            <MemberAction user={member} onClose={() => setIsBanConfirmationModalOpen(false)} action="ban" />
+                        </Modal>
                     </div>
                 ))}
             </div>

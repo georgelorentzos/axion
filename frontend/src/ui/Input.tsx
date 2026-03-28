@@ -1,6 +1,7 @@
 import type React from "react";
 type InputProps = {
     onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
     placeholder?: string;
     svgD?: string;
     value?: string;
@@ -9,7 +10,7 @@ type InputProps = {
     isLink?: boolean;
     bg?: string;
 }
-export default function Input({ onChange, placeholder, svgD, value, maxLength, readOnly, isLink, bg = "bg-basalt" } : InputProps) {
+export default function Input({ onChange, onKeyDown, placeholder, svgD, value, maxLength, readOnly, isLink, bg = "bg-basalt" } : InputProps) {
     return (
         <div className={`border border-outline flex items-center ${bg} px-2 rounded-lg gap-2 w-full`}>
             {svgD && (
@@ -21,6 +22,7 @@ export default function Input({ onChange, placeholder, svgD, value, maxLength, r
                 readOnly={readOnly}
                 value={value}
                 onChange={onChange}
+                onKeyDown={onKeyDown}
                 type="text" 
                 maxLength={maxLength}
                 className={`${isLink ? "text-blue-400 cursor-default pointer-events-none" : "text-gray-100"} ${bg} focus:outline-none h-[40px] border-outline flex justify-between items-center w-full`}

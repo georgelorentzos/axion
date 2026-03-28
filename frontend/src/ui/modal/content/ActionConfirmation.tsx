@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import Button from "../../Button";
-import { type Ban } from "../../../features/community/types/ban";
 
 type ActionConfirmationProps = {
-    data: | Ban;
+    data: {
+        username: string;
+    };
     action: {
         title: string,
         description: string;

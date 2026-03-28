@@ -30,6 +30,7 @@ type UserCardProps = {
   onUnban?: () => void;
   onChildModalChange?: (isOpen: boolean) => void;
   onClick?: (e: React.MouseEvent) => void;
+  onContextMenu?: (e: React.MouseEvent) => void;
 
   showStatus?: boolean;
   showLatestMessage?: boolean;
@@ -59,6 +60,7 @@ export default function UserCard({
   onUnban,
   onChildModalChange,
   onClick,
+  onContextMenu,
   showStatus = true,
   showLatestMessage,
   latestMessage,
@@ -269,6 +271,7 @@ export default function UserCard({
     <>
       <div
         onClick={handleClick}
+        onContextMenu={onContextMenu}
         className={`${isClickable ? "cursor-pointer" : "cursor-default"} transition duration-300 py-2.5 pl-2 pr-4 flex justify-between items-center w-full rounded-lg ${
           isSelected ? "bg-basalt" : "hover:bg-basalt"
         }`}

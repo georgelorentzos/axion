@@ -72,7 +72,7 @@ export function useAllFriends() {
         }
 
         if (data.type === 'allyRemoved') {
-          setAllFriends(prev => prev.filter(p => p.id !== data.requesterId));
+          setAllFriends(prev => prev.filter(p => p.id !== data.id));
         }
 
       } catch (error) {
@@ -87,5 +87,5 @@ export function useAllFriends() {
     }
   }, []);
 
-  return { allFriends, loading };
+  return { allFriends, setAllFriends, loading };
 }
