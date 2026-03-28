@@ -22,7 +22,7 @@ export default function FriendsPanel() {
     };
     return (
         <div className="flex-1 h-screen border-r border-outline flex flex-col">
-            <div className="w-full h-[60px] border-b border-outline flex items-center px-6 gap-2 flex-shrink-0">
+            <div className="w-full h-[60px] border-b border-outline flex items-center px-4 gap-2 flex-shrink-0">
                 <HeaderButton text="Online" selected={selectedTab === 'Online'} onClick={() => setSelectedTab('Online')} />
                 <HeaderButton text="All Friends" selected={selectedTab === 'All Friends'} onClick={() => setSelectedTab('All Friends')} />
                 <HeaderButton text="Pending" selected={selectedTab === 'Pending'} onClick={() => setSelectedTab('Pending')} />

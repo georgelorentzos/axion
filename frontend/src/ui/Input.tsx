@@ -1,5 +1,4 @@
 import type React from "react";
-
 type InputProps = {
     onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
     placeholder?: string;
@@ -8,25 +7,23 @@ type InputProps = {
     maxLength?: number;
     readOnly?: boolean;
     isLink?: boolean;
+    bg?: string;
 }
-
-export default function Input({ onChange, placeholder, svgD, value, maxLength, readOnly, isLink } : InputProps) {
+export default function Input({ onChange, placeholder, svgD, value, maxLength, readOnly, isLink, bg = "bg-basalt" } : InputProps) {
     return (
-        <div className='border border-outline flex items-center bg-basalt px-4 rounded-lg gap-2 w-full'>
-
+        <div className={`border border-outline flex items-center ${bg} px-2 rounded-lg gap-2 w-full`}>
             {svgD && (
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-5 text-gray-500 hover:text-gray-300 transition duration-300">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-5 text-gray-500">
                     <path strokeLinecap="round" strokeLinejoin="round" d={svgD} />
                 </svg>
             )}
-
             <input 
                 readOnly={readOnly}
                 value={value}
                 onChange={onChange}
                 type="text" 
                 maxLength={maxLength}
-                className={` ${isLink ? "text-blue-400 cursor-default pointer-events-none" : "text-gray-100"} bg-basalt focus:outline-none h-[40px] border-outline flex justify-between items-center w-full`}
+                className={`${isLink ? "text-blue-400 cursor-default pointer-events-none" : "text-gray-100"} ${bg} focus:outline-none h-[40px] border-outline flex justify-between items-center w-full`}
                 placeholder={placeholder} 
             />
         </div>

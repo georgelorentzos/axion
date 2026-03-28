@@ -124,7 +124,7 @@ export default function Conversation() {
 
     return (
         <div ref={conversationRef} className="flex-1 h-screen border-r border-outline flex flex-col">
-            <div className="h-[60px] border-b border-outline flex items-center px-6 gap-2 flex-shrink-0">
+            <div className="h-[60px] border-b border-outline flex items-center px-4 gap-2 flex-shrink-0">
                 <div className="flex justify-between items-center w-full">
                     <div className="flex items-center gap-2">
                         <ImageProfile
@@ -141,7 +141,7 @@ export default function Conversation() {
                 </div>
             </div>
 
-            <div ref={scrollContainerRef} className={`flex-1 w-full min-h-0 p-6 pb-3 space-y-3 ${showMessages ? "overflow-y-auto" : "overflow-hidden"}`}>
+            <div ref={scrollContainerRef} className={`flex-1 w-full min-h-0 p-4 pb-3 space-y-3 ${showMessages ? "overflow-y-auto" : "overflow-hidden"}`}>
                 <div className={`transition duration-300 ${showMessages ? "opacity-100" : "opacity-0 invisible"}`}>
                     {messages.map((message) => (
                         <div

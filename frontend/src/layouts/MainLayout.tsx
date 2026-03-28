@@ -1,7 +1,7 @@
 import CommunityList from '../features/community/components/CommunityList';
 import ChatOverView from '../features/chat/components/ChatOverView';
-import ChannelList from '../features/community/components/ChannelList';
 import { useLocation } from 'react-router-dom';
+import CommunityLayout from '../features/community/components/CommunityLayout';
 
 export const MainLayout = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
@@ -12,7 +12,12 @@ export const MainLayout = ({ children }: { children: React.ReactNode }) => {
     <div className="h-screen w-full flex items-center">
       <CommunityList />
 
-      {isCommunityPage ? <ChannelList/> : <ChatOverView/>}
+      {isCommunityPage ? 
+      <CommunityLayout/> 
+
+      : 
+      <ChatOverView/>
+      }
 
       {children}
     </div>

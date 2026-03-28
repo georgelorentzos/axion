@@ -48,6 +48,7 @@ export function useCurrentUser(): UseCurrentUserReturn {
                         permissions: data.permissions || []
                     };
                 });
+                console.log("Permissions: ", data.permissions);
             } catch (error) {
                 setCurrentUser(prev => prev ? { ...prev, permissions: [] } : null);
             }

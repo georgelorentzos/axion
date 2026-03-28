@@ -126,7 +126,7 @@ export default function ChannelList() {
         <InviteFriend />
       </Modal>
       <CommunitySettingsModal community={community} onCommunityUpdate={handleCommunityUpdate} isOpen={isCommunitySettingsModalOpen} onClose={() => setIsCommunitySettingsModalOpen(false)} />
-      <div className="w-full h-[60px] border-b border-outline flex items-center justify-between px-6 gap-2 flex-shrink-0">
+      <div className="w-full h-[60px] border-b border-outline flex items-center justify-between px-4 gap-2 flex-shrink-0">
         <div className="flex gap-2">
           <svg
             xmlns="http://www.w3.org/2000/svg"
