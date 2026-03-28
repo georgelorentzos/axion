@@ -5,7 +5,6 @@ export type User = {
   isOnline: boolean;
   createdAt?: string;
   permissions?: {
-    id: string;
     permission: string;
   }[];
 };

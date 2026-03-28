@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { type User } from '../types/user';
 import { api } from '../../../api/client';
 import { useParams } from 'react-router-dom';
@@ -10,12 +10,12 @@ interface UseCurrentUserReturn {
 export function useCurrentUser(): UseCurrentUserReturn {
     const [currentUser, setCurrentUser] = useState<User | null>(null);
     const { communityId } = useParams();
+    const fetchedPermissionsFor = useRef<string | null>(null);
 
     useEffect(() => {
         const fetchUser = async () => {
             try {
                 const { data } = await api.users.me();
-
                 if (data.success) {
                     setCurrentUser({
                         id: data.id,
@@ -29,16 +29,17 @@ export function useCurrentUser(): UseCurrentUserReturn {
                 setCurrentUser(null);
             }
         };
-
         fetchUser();
     }, []);
 
     useEffect(() => {
-        if (!communityId) return;
-        if (!currentUser) return;
+        if (!communityId || !currentUser) return;
+        if (fetchedPermissionsFor.current === communityId) return;
+
+        fetchedPermissionsFor.current = communityId;
 
         const fetchCommunityPermissions = async () => {
-            try {   
+            try {
                 const { data } = await api.communities.getPermissions(communityId);
                 setCurrentUser(prev => {
                     if (!prev) return null;
