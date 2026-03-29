@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import Button from "../../../ui/Button";
-import { useRoles } from "../contexts/useRoles";
-import { type Role } from "../types/role";
+import { useRoles } from "../../../features/community/contexts/useRoles";
+import { type Role } from "../../../features/community/types/role";
 import { api } from "../../../api/client";
 
 type DeleteRoleProps = {

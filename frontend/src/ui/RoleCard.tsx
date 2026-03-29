@@ -3,25 +3,24 @@ type RoleCardProps = {
   name: string;
   onDelete?: (id: string) => void;
   onClick?: () => void;
+  hover?: string;
 };
-
 export default function RoleCard({
   id,
   name,
   onDelete,
   onClick,
+  hover = "hover:bg-basalt",
 }: RoleCardProps) {
-
   const handleDelete = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!id) return;
     onDelete?.(id);
   };
-
   return (
     <div
       onClick={onClick}
-      className="cursor-pointer transition duration-300 h-[60px] px-4 flex justify-between items-center w-full rounded-lg hover:bg-basalt"
+      className={`shrink-0 cursor-pointer transition duration-300 h-[60px] px-4 flex justify-between items-center w-full rounded-lg ${hover}`}
     >
       <div className="flex items-center gap-2">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-5 text-gray-500">
@@ -31,7 +30,7 @@ export default function RoleCard({
           <div className="text-gray-100">{name}</div>
         </div>
       </div>
-
+      {onDelete && (
       <div className="flex items-center gap-1">
         <button onClick={handleDelete}>
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-5 text-crimson hover:text-garnet transition duration-300">
@@ -39,6 +38,7 @@ export default function RoleCard({
           </svg>
         </button>
       </div>
+      )}
     </div>
   );
 }

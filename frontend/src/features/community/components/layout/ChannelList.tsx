@@ -1,18 +1,18 @@
-import CurrentUserCard from "../../../ui/CurrentUserCard";
+import CurrentUserCard from "../../../../ui/CurrentUserCard";
 import { useLocation, useParams } from "react-router-dom";
 import React, { useState, useRef, useEffect } from "react";
-import CommunitySettingsModal from "./settings/Settings";
+import CommunitySettingsModal from ".././settings/Settings";
 import { useNavigate } from "react-router-dom";
-import { useCurrentUser } from "../../user/contexts/useCurrentUser";
-import ActionMenu from "../../../ui/actionmenu/ActionMenu";
-import ActionMenuButton from "../../../ui/actionmenu/ActionMenuButton";
-import { useCommunities } from "../contexts/useCommunities";
-import { useCommunity } from "../contexts/useCommunity";
-import Modal from "../../../ui/modal/Modal";
-import InviteFriend from "../../chat/components/InviteFriend";
-import CreateItem from "../../../ui/modal/content/CreateItem";
-import { type Community } from "../types/community";
-import { api } from "../../../api/client";
+import { useCurrentUser } from "../../../user/contexts/useCurrentUser";
+import ActionMenu from "../../../../ui/actionmenu/ActionMenu";
+import ActionMenuButton from "../../../../ui/actionmenu/ActionMenuButton";
+import { useCommunities } from "../../contexts/useCommunities";
+import { useCommunity } from "../../contexts/useCommunity";
+import Modal from "../../../../ui/modal/Modal";
+import InviteFriend from "../../../../ui/modal/content/InviteFriend";
+import CreateItem from "../../../../ui/modal/content/CreateItem";
+import { type Community } from "../../types/community";
+import { api } from "../../../../api/client";
 interface LocationState {
   community?: Community;
 }

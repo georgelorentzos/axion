@@ -1,4 +1,4 @@
-import { type Conversation } from "../../chat/types/conversation";
+import { type Conversation } from "../../../chat/types/conversation";
 import { useLocation } from 'react-router-dom';
 
 type ConversationButtonProps = {

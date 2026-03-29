@@ -6,7 +6,7 @@ import ActionMenuButton from "./actionmenu/ActionMenuButton";
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import Modal from "./modal/Modal";
-import MemberAction from "../features/community/components/MemberAction";
+import MemberAction from "./modal/content/MemberAction";
 import { type User } from "../features/user/types/user";
 
 type UserCardProps = {

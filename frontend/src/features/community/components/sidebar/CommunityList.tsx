@@ -1,11 +1,11 @@
 import CommunityButton from "./CommunityButton";
 import { useNavigate } from "react-router-dom";
-import { useCommunities } from "../contexts/useCommunities";
+import { useCommunities } from "../../contexts/useCommunities";
 import { useEffect, useState, useRef } from "react";
-import { type Conversation } from "../../chat/types/conversation";
+import { type Conversation } from "../../../chat/types/conversation";
 import ConversationButton from "./ConversationButton";
 import { useLocation } from "react-router-dom";
-import notificationSound from '../../../assets/sounds/notification.mp3';
+import notificationSound from '../../../../assets/sounds/notification.mp3';
 
 export default function CommunityList() {
     const navigate = useNavigate();

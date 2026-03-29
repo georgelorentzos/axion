@@ -1,9 +1,9 @@
 import { useState } from "react";
 import Button from "../../../ui/Button";
 import TextArea from "../../../ui/TextArea";
-import { type User } from "../../user/types/user";
+import { type User } from "../../../features/user/types/user";
 import { useParams } from "react-router-dom";
-import { useMembers } from "../contexts/useMembers";
+import { useMembers } from "../../../features/community/contexts/useMembers";
 import { api } from "../../../api/client";
 
 type MemberActionProps = {

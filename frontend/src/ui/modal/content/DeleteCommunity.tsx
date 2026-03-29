@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useCommunities } from "../contexts/useCommunities";
+import { useCommunities } from "../../../features/community/contexts/useCommunities";
 import Input from "../../../ui/Input";
 import Button from "../../../ui/Button";
-import { type Community } from "../types/community";
+import { type Community } from "../../../features/community/types/community";
 import { api } from "../../../api/client";
 
 type DeleteCommunityProps = {

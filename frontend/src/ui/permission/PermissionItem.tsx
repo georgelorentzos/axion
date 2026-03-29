@@ -1,4 +1,4 @@
-import CheckBox from "../../../../../../../ui/CheckBox";
+import CheckBox from "../CheckBox";
 
 type PermissionItemProps = {
     text: string;

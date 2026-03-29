@@ -1,16 +1,16 @@
-import { useMembers } from "../contexts/useMembers";
-import UserCard from "../../../ui/UserCard";
-import MemberPreview from "./MemberPreview";
+import { useMembers } from "../../contexts/useMembers";
+import UserCard from "../../../../ui/UserCard";
+import MemberPreview from ".././memberpreview/MemberPreview";
 import React, { useState, useEffect, useRef } from "react";
-import ActionMenu from "../../../ui/actionmenu/ActionMenu";
-import ActionMenuButton from "../../../ui/actionmenu/ActionMenuButton";
-import { useCurrentUser } from "../../user/contexts/useCurrentUser";
+import ActionMenu from "../../../../ui/actionmenu/ActionMenu";
+import ActionMenuButton from "../../../../ui/actionmenu/ActionMenuButton";
+import { useCurrentUser } from "../../../user/contexts/useCurrentUser";
 import { useNavigate } from "react-router-dom";
-import { useAllFriends } from "../../friends/contexts/useAllFriends";
-import { api } from "../../../api/client";
-import { useCommunity } from "../contexts/useCommunity";
-import Modal from "../../../ui/modal/Modal";
-import MemberAction from "./MemberAction";
+import { useAllFriends } from "../../../friends/contexts/useAllFriends";
+import { api } from "../../../../api/client";
+import { useCommunity } from "../../contexts/useCommunity";
+import Modal from "../../../../ui/modal/Modal";
+import MemberAction from "../../../../ui/modal/content/MemberAction";
 
 export default function MemberList() {
     const { members } = useMembers();
@@ -71,8 +71,7 @@ export default function MemberList() {
                         }}
                     >
                         <UserCard
-                            title={member.username}
-                            imageUrl={member.image}
+                            user={member}
                             onClick={() => {
                                 setActiveMemberId(prev =>
                                     prev === member.id ? null : member.id

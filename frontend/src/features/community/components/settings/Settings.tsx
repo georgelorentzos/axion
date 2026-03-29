@@ -8,7 +8,7 @@ import LogsContent from "./content/Logs";
 import BansContent from "./content/Bans";
 import ModalCloseButton from "../../../../ui/modal/ModalCloseButton";
 import Modal from "../../../../ui/modal/Modal";
-import DeleteCommunity from "../DeleteCommunity";
+import DeleteCommunity from "../../../../ui/modal/content/DeleteCommunity";
 import { type Community } from "../../types/community";
 
 type CommunitySettingsModalProps = {

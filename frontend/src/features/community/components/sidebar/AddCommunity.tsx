@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
-import Input from "../../../ui/Input";
-import Button from "../../../ui/Button";
-import UploadImageProfile from "../../../ui/UploadImageProfile";
-import { useCommunities } from "../contexts/useCommunities";
+import Input from "../../../../ui/Input";
+import Button from "../../../../ui/Button";
+import UploadImageProfile from "../../../../ui/UploadImageProfile";
+import { useCommunities } from "../../contexts/useCommunities";
 import { useNavigate } from "react-router-dom";
-import { api } from "../../../api/client";
+import { api } from "../../../../api/client";
 
 type AddCommunityProps = {
     onClose: () => void;

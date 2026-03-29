@@ -1,10 +1,10 @@
 import { useState } from "react";
-import { useAllFriends } from "../../friends/contexts/useAllFriends";
+import { useAllFriends } from "../../../features/friends/contexts/useAllFriends";
 import { useParams } from "react-router-dom";
 import UserCard from "../../../ui/UserCard";
 import Input from "../../../ui/Input";
 import Button from "../../../ui/Button";
-import { useCurrentUser } from "../../user/contexts/useCurrentUser";
+import { useCurrentUser } from "../../../features/user/contexts/useCurrentUser";
 import SearchBar from "../../../ui/SearchBar";
 import { api } from "../../../api/client";
 

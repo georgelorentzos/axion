@@ -1,14 +1,14 @@
 import Button from "../../../../../ui/Button";
 import Input from "../../../../../ui/Input";
 import { useEffect, useState } from "react";
-import PermissionItem from "./Roles/Permissions/PermissionItem";
-import PermissionsSection from "./Roles/Permissions/PermissionsSection";
+import PermissionItem from "../../../../../ui/permission/PermissionItem";
+import PermissionsSection from "../../../../../ui/permission/PermissionSection";
 import { PERMISSIONS } from "../../../../../constants/permissions";
 import { useParams } from "react-router-dom";
-import RoleCard from "./Roles/RoleCard";
+import RoleCard from "../../../../../ui/RoleCard";
 import UnsavedChangesBar from "../../../../../ui/UnsavedChangesBar";
 import Modal from "../../../../../ui/modal/Modal";
-import DeleteRole from "../../DeleteRole";
+import DeleteRole from "../../../../../ui/modal/content/DeleteRole";
 import SearchBar from "../../../../../ui/SearchBar";
 import { useRoles } from "../../../contexts/useRoles";
 import { type Role } from "../../../types/role";
