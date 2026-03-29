@@ -556,3 +556,92 @@ def fetch_current_user_permissions(
         "user_id": user.id,
         "permissions": list(all_permissions)
     }
+
+@router.post("/community/{community_id}/members/{user_id}/roles/{role_id}", response_model=Dict[str, Any])
+@limiter.limit("120/minute")
+def manage_member_roles(
+    request: Request,
+    community_id: str,
+    user_id: str,
+    role_id: str,
+    current_user_id: str = Depends(get_user_id_from_token),
+    db: Session = Depends(get_db)
+) -> Dict[str, Any]:
+    user = db.query(User).filter(
+        User.id == current_user_id
+    ).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found.")
+    
+    community = db.query(Community).filter(
+        Community.id == community_id
+    ).first()
+    if not community:
+        raise HTTPException(status_code=404, detail="Community not found.")
+    
+    community_member = db.query(CommunityMember).filter(
+        CommunityMember.user_id == user_id,
+        CommunityMember.community_id == community_id
+    ).first()
+    if not community_member:
+        raise HTTPException(status_code=404, detail="Member not found.")
+    
+    community_role = db.query(CommunityRole).filter(
+        CommunityRole.id == role_id,
+        CommunityRole.community_id == community_id
+    ).first()
+    if not community_role:
+        raise HTTPException(status_code=404, detail="Community role not found.")
+    
+    if user.id != community.owner_id:
+        current_member = db.query(CommunityMember).filter(
+            CommunityMember.community_id == community_id,
+            CommunityMember.user_id == current_user_id
+        ).first()
+        if not current_member:
+            raise HTTPException(status_code=403, detail="You are not a member of this community.")
+
+        member_roles = db.query(CommunityRole).join(
+            MemberRole, MemberRole.role_id == CommunityRole.id
+        ).filter(
+            MemberRole.member_id == current_member.id
+        ).all()
+        
+        all_permissions = set()
+        for role in member_roles:
+            all_permissions.update(role.permissions)
+        
+        if PERMISSIONS.MANAGE_ROLES not in all_permissions and PERMISSIONS.ADMINISTRATOR not in all_permissions:
+            raise HTTPException(status_code=403, detail="You don't have permissions.")
+
+    try:
+        existing = db.query(MemberRole).filter(
+            MemberRole.member_id == community_member.id,
+            MemberRole.role_id == community_role.id
+        ).first()
+
+        if existing:
+            db.delete(existing)
+            db.commit()
+            return {
+                "success": True,
+                "action": "removed",
+                "member_id": community_member.id,
+                "role_id": community_role.id
+            }
+
+        new_member_role = MemberRole(
+            member_id=community_member.id,
+            role_id=community_role.id
+        )
+        db.add(new_member_role)
+        db.commit()
+        return {
+            "success": True,
+            "action": "added",
+            "member_id": community_member.id,
+            "role_id": community_role.id
+        }
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Failed to manage role due to an internal server error.")

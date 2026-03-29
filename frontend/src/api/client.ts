@@ -92,6 +92,8 @@ export const api = {
       request(`/api/community/${communityId}?community_name=${encodeURIComponent(communityName)}`, { method: "DELETE" }),
     getPermissions: (communityId: string) => 
       request(`/api/community/${communityId}/permissions`, { method: "GET" }),
+    manageMemberRole: (communityId: string, userId: string, roleId: string) =>
+      request(`/api/community/${communityId}/members/${userId}/roles/${roleId}`, { method: "POST" }),
   },
 
   members: {

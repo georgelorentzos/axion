@@ -66,7 +66,7 @@ export default function MemberPreview({ member, isOpen }: MemberPreviewProps) {
             </div>
 
 
-                <AddRole isOpen={isAddRoleOpen} />
+                <AddRole member={member} isOpen={isAddRoleOpen} onClose={() => setIsAddRoleOpen(false)} />
 
                 {member.id !== currentUser?.id && (
                     <Input
