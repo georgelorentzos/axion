@@ -7,6 +7,8 @@ import { useCurrentUser } from "../../../user/contexts/useCurrentUser";
 import { useNavigate } from "react-router-dom";
 import AddRole from "./AddRole";
 import { type User } from "../../../user/types/user";
+import RoleBadge from "./RoleBadge";
+import { type Role } from "../../types/role";
 
 type MemberPreviewProps = {
     member: User;
@@ -63,6 +65,13 @@ export default function MemberPreview({ member, isOpen }: MemberPreviewProps) {
                     <div className="font-bold">{member.username}</div>
                 </div>
                 <Button text="+ Add Role" isGreen onClick={() => setIsAddRoleOpen(prev => !prev)} />
+                {member.roles && member.roles.length > 0 && (
+                    <div className="flex  flex-wrap gap-2 w-full">
+                        {member.roles?.map((role: Role) => (
+                           <RoleBadge key={role.id} member={member} role={role} />
+                        ))}
+                    </div>
+                )}
             </div>
 
 

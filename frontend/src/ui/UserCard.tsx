@@ -282,7 +282,11 @@ export default function UserCard({
             <div className="text-gray-100">{title ?? user?.username}</div>
             {description && (
               <div className="text-gray-500 text-[12px] max-w-[600px]">
-                With Reason: {description}
+                {title && title.includes("created the role") ? (
+                  <span>With Permissions: {description}</span>
+                ) : (
+                  <span>With Reason: {description}</span>
+                )}
               </div>
             )}
             {showLatestMessage ? (

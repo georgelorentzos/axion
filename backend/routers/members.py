@@ -30,7 +30,10 @@ def get_community_members(request: Request,
 
     community_members = db.query(CommunityMember).filter(
         CommunityMember.community_id == community.id
-    ).options(joinedload(CommunityMember.user)).all()
+    ).options(
+        joinedload(CommunityMember.user),
+        joinedload(CommunityMember.member_roles).joinedload(MemberRole.role)
+    )
 
     return {
         "success": True,
@@ -41,6 +44,12 @@ def get_community_members(request: Request,
                 "image": community_member.user.profile_image,
                 "isOnline": community_member.user.is_online,
                 "createdAt": community_member.user.created_at.year,
+                "roles": [
+                    {
+                        "id": member_role.role.id,
+                        "name": member_role.role.role_name,
+                    } for member_role in community_member.member_roles
+                ]
             } for community_member in community_members
         ]
     }

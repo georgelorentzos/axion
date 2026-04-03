@@ -4,6 +4,10 @@ export type User = {
   image: string;
   isOnline: boolean;
   createdAt?: string;
+  roles?: {
+    id: string;
+    name: string;
+  }[];
   permissions?: {
     permission: string;
   }[];

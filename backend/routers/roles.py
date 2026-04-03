@@ -62,7 +62,7 @@ async def create_role(request: Request,
         db.flush()
         new_log = CommunityLog(
             log=f"{user.username} created the role {new_role.role_name}",
-            description=f"With permissions: {', '.join(req.permissions.split('|'))}" if req.permissions else "",
+            description=f"{', '.join(req.permissions.split('|'))}" if req.permissions else "",
             community_id=community.id,
             user_id=user.id
         )
@@ -90,7 +90,7 @@ async def create_role(request: Request,
             manager.broadcast_to_user(uid, {
                 "type": "newLog",
                 "log": new_log.log,
-                "description": f"With permissions: {', '.join(req.permissions.split('|'))}" if req.permissions else "",
+                "description": f"{', '.join(req.permissions.split('|'))}" if req.permissions else "",
                 "createdAt": new_log.created_at.strftime("%D %H:%M"),
                 "userImgUrl": user.profile_image
             })
