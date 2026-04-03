@@ -42,7 +42,6 @@ export default function MembersContent({ onChildModalChange }: MembersContentPro
                                 key={member.id}
                                 user={member}
                                 actions={{ options: member.id !== currentUser?.id && member.id !== community?.ownerId, admin: member.id !== currentUser?.id && member.id !== community?.ownerId }}
-                                showStatus={false}
                                 onChildModalChange={(isOpen) => {
                                     setManageUser(isOpen);
                                 }}

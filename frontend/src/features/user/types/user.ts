@@ -8,7 +8,5 @@ export type User = {
     id: string;
     name: string;
   }[];
-  permissions?: {
-    permission: string;
-  }[];
+  permissions?: string[];
 };

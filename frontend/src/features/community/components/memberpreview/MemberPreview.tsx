@@ -9,6 +9,8 @@ import AddRole from "./AddRole";
 import { type User } from "../../../user/types/user";
 import RoleBadge from "./RoleBadge";
 import { type Role } from "../../types/role";
+import { useCommunity } from "../../hooks/useCommunity";
+import { PERMISSIONS } from "../../../../constants/permissions";
 
 type MemberPreviewProps = {
     member: User;
@@ -22,6 +24,7 @@ export default function MemberPreview({ member, isOpen }: MemberPreviewProps) {
     const { currentUser } = useCurrentUser();
     const navigate = useNavigate();
     const [isAddRoleOpen, setIsAddRoleOpen] = useState(false);
+    const { community } = useCommunity();
 
     useEffect(() => {
         if (isOpen) {
@@ -64,7 +67,11 @@ export default function MemberPreview({ member, isOpen }: MemberPreviewProps) {
                     />
                     <div className="font-bold">{member.username}</div>
                 </div>
+                {(currentUser?.id === community?.ownerId ||
+                    currentUser?.permissions?.includes(PERMISSIONS.ADMINISTRATOR) ||
+                    currentUser?.permissions?.includes(PERMISSIONS.MANAGE_ROLES)) && (
                 <Button text="+ Add Role" isGreen onClick={() => setIsAddRoleOpen(prev => !prev)} />
+                )} 
                 {member.roles && member.roles.length > 0 && (
                     <div className="flex  flex-wrap gap-2 w-full">
                         {member.roles?.map((role: Role) => (
@@ -74,8 +81,11 @@ export default function MemberPreview({ member, isOpen }: MemberPreviewProps) {
                 )}
             </div>
 
-
-                <AddRole member={member} isOpen={isAddRoleOpen} onClose={() => setIsAddRoleOpen(false)} />
+              {(currentUser?.id === community?.ownerId ||
+                    currentUser?.permissions?.includes(PERMISSIONS.ADMINISTRATOR) ||
+                    currentUser?.permissions?.includes(PERMISSIONS.MANAGE_ROLES)) && (
+                    <AddRole member={member} isOpen={isAddRoleOpen} onClose={() => setIsAddRoleOpen(false)} />
+                )}           
 
                 {member.id !== currentUser?.id && (
                     <Input

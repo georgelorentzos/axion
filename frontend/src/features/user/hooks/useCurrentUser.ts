@@ -56,5 +56,23 @@ export function useCurrentUser(): UseCurrentUserReturn {
         fetchCommunityPermissions();
     }, [communityId, currentUser]);
 
+    useEffect(() => {
+        if (!currentUser) return;
+        const handleMessage = async (event: MessageEvent) => {
+            const data = JSON.parse(event.data);
+            if (data.type === "permissionsUpdated" && data.communityId === communityId) {
+                setCurrentUser(prev => {
+                    if (!prev) return null;
+                    return { ...prev, permissions: data.permissions };
+                });
+            }
+        };
+        const ws = window._ws?.ws;
+        if (ws) {
+            ws.addEventListener("message", handleMessage);
+            return () => ws.removeEventListener("message", handleMessage);
+        }
+    }, [currentUser, communityId]);
+
     return { currentUser };
 }

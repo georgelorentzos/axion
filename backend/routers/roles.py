@@ -96,6 +96,23 @@ async def create_role(request: Request,
             })
             for uid in log_user_ids
         ])
+
+        all_community_members = db.query(CommunityMember).filter(
+            CommunityMember.community_id == community.id,
+            CommunityMember.user_id != user.id
+        ).all()
+        await asyncio.gather(*[
+            manager.broadcast_to_user(m.user_id, {
+                "type": "roleCreated",
+                "role": {
+                    "id": new_role.id,
+                    "name": new_role.role_name,
+                    "permissions": new_role.permissions
+                }
+            })
+            for m in all_community_members
+        ])
+
         db.commit()
         return {
             "success": True,
@@ -159,6 +176,23 @@ async def update_role(request: Request,
     try:
         role.role_name = role_name
         role.permissions = req.permissions.split("|") if req.permissions else []
+
+        all_community_members = db.query(CommunityMember).filter(
+            CommunityMember.community_id == community.id,
+            CommunityMember.user_id != user.id
+        ).all()
+        await asyncio.gather(*[
+            manager.broadcast_to_user(m.user_id, {
+                "type": "roleUpdated",
+                "role": {
+                    "id": role.id,
+                    "name": role.role_name,
+                    "permissions": role.permissions
+                }
+            })
+            for m in all_community_members
+        ])
+
         db.commit()
         return {
             "success": True,
@@ -297,6 +331,19 @@ async def delete_role(request: Request,
             })
             for uid in log_user_ids
         ])
+
+        all_community_members = db.query(CommunityMember).filter(
+            CommunityMember.community_id == community.id,
+            CommunityMember.user_id != user.id
+        ).all()
+        await asyncio.gather(*[
+            manager.broadcast_to_user(m.user_id, {
+                "type": "roleDeleted",
+                "id": role.id
+            })
+            for m in all_community_members
+        ])
+
         db.delete(role)
         db.commit()
         return {
@@ -306,3 +353,123 @@ async def delete_role(request: Request,
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail="Failed to delete role due to an internal server error.")
+
+@router.post("/community/{community_id}/members/{user_id}/roles/{role_id}", response_model=Dict[str, Any])
+@limiter.limit("120/minute")
+async def manage_member_roles(
+    request: Request,
+    community_id: str,
+    user_id: str,
+    role_id: str,
+    current_user_id: str = Depends(get_user_id_from_token),
+    db: Session = Depends(get_db)
+) -> Dict[str, Any]:
+    user = db.query(User).filter(
+        User.id == current_user_id
+    ).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found.")
+    
+    community = db.query(Community).filter(
+        Community.id == community_id
+    ).first()
+    if not community:
+        raise HTTPException(status_code=404, detail="Community not found.")
+    
+    community_member = db.query(CommunityMember).filter(
+        CommunityMember.user_id == user_id,
+        CommunityMember.community_id == community_id
+    ).first()
+    if not community_member:
+        raise HTTPException(status_code=404, detail="Member not found.")
+    
+    community_role = db.query(CommunityRole).filter(
+        CommunityRole.id == role_id,
+        CommunityRole.community_id == community_id
+    ).first()
+    if not community_role:
+        raise HTTPException(status_code=404, detail="Community role not found.")
+    
+    if user.id != community.owner_id:
+        current_member = db.query(CommunityMember).filter(
+            CommunityMember.community_id == community_id,
+            CommunityMember.user_id == current_user_id
+        ).first()
+        if not current_member:
+            raise HTTPException(status_code=403, detail="You are not a member of this community.")
+
+        member_roles = db.query(CommunityRole).join(
+            MemberRole, MemberRole.role_id == CommunityRole.id
+        ).filter(
+            MemberRole.member_id == current_member.id
+        ).all()
+                
+        all_permissions = set()
+        for role in member_roles:
+            all_permissions.update(role.permissions)
+        
+        if PERMISSIONS.MANAGE_ROLES not in all_permissions and PERMISSIONS.ADMINISTRATOR not in all_permissions:
+            raise HTTPException(status_code=403, detail="You don't have permissions.")
+
+    try:
+        existing = db.query(MemberRole).filter(
+            MemberRole.member_id == community_member.id,
+            MemberRole.role_id == community_role.id
+        ).first()
+
+        if existing:
+            db.delete(existing)
+            action = "removed"
+        else:
+            new_member_role = MemberRole(
+                member_id=community_member.id,
+                role_id=community_role.id
+            )
+            db.add(new_member_role)
+            action = "added"
+
+        db.flush()
+
+        updated_roles = db.query(CommunityRole).join(
+            MemberRole, MemberRole.role_id == CommunityRole.id
+        ).filter(
+            MemberRole.member_id == community_member.id
+        ).all()
+
+        updated_permissions = set()
+        for r in updated_roles:
+            updated_permissions.update(r.permissions)
+
+        await manager.broadcast_to_user(community_member.user_id, {
+            "type": "permissionsUpdated",
+            "communityId": community_id,
+            "permissions": list(updated_permissions),
+        })
+
+        updated_role_list = [
+            {"id": r.id, "name": r.role_name}
+            for r in updated_roles
+        ]
+        all_community_members = db.query(CommunityMember).filter(
+            CommunityMember.community_id == community.id,
+            CommunityMember.user_id != user.id
+        ).all()
+        await asyncio.gather(*[
+            manager.broadcast_to_user(m.user_id, {
+                "type": "memberRolesUpdated",
+                "memberId": user_id,
+                "roles": updated_role_list,
+            })
+            for m in all_community_members
+        ])
+
+        db.commit()
+        return {
+            "success": True,
+            "action": action,
+            "member_id": community_member.id,
+            "role_id": community_role.id
+        }
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Failed to manage role due to an internal server error.")
