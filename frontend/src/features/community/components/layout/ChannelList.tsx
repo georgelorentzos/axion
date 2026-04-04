@@ -12,7 +12,9 @@ import Modal from "../../../../ui/modal/Modal";
 import InviteFriend from "../../../../ui/modal/content/InviteFriend";
 import CreateItem from "../../../../ui/modal/content/CreateItem";
 import { type Community } from "../../types/community";
-import { api } from "../../../../api/client";
+import { api } from "../../../../api/client"; 
+import { PERMISSIONS } from "../../../../constants/permissions";
+
 interface LocationState {
   community?: Community;
 }
@@ -180,7 +182,7 @@ export default function ChannelList() {
                 setIsCommunitySettingsModalOpen(true);
                 setIsServerOptionsMenuOpen(false);
               }}
-              isVisible={isOwner}
+              isVisible={isOwner || currentUser?.permissions?.some(p => Object.values(PERMISSIONS).includes(p))}
             />
             <ActionMenuButton
               text="Invite Friends"
@@ -211,7 +213,7 @@ export default function ChannelList() {
           isActionMenuOpen={isChannelListMenuOpen}
           onClose={() => setIsChannelListMenuOpen(false)}
           position={pos}
-          canOpen={isOwner}
+          canOpen={isOwner || currentUser?.permissions?.includes(PERMISSIONS.MANAGE_CHANNELS)}
         >
           <ActionMenuButton
             text="Create Category"

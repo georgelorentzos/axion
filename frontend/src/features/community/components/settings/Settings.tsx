@@ -10,6 +10,8 @@ import ModalCloseButton from "../../../../ui/modal/ModalCloseButton";
 import Modal from "../../../../ui/modal/Modal";
 import DeleteCommunity from "../../../../ui/modal/content/DeleteCommunity";
 import { type Community } from "../../types/community";
+import { useCurrentUser } from "../../../user/contexts/useCurrentUser";
+import { PERMISSIONS } from "../../../../constants/permissions";
 
 type CommunitySettingsModalProps = {
     isOpen: boolean;
@@ -26,6 +28,16 @@ export default function CommunitySettingsModal(
     const [selectedTab, setSelectedTab] = useState("Profile");
     const [isDeleteCommunityModal, setIsDeleteCommunityModal] = useState(false);
     const [childModalCount, setChildModalCount] = useState(0);
+    const { currentUser } = useCurrentUser();
+
+    const isOwner = currentUser?.id === community?.ownerId;
+    const isAdmin = currentUser?.permissions?.includes(PERMISSIONS.ADMINISTRATOR);
+    const canManageProfile = isOwner || isAdmin || currentUser?.permissions?.includes(PERMISSIONS.MANAGE_COMMUNITY);
+    const canManageRoles = isOwner || isAdmin || currentUser?.permissions?.includes(PERMISSIONS.MANAGE_ROLES);
+    const canKick = isOwner || isAdmin || currentUser?.permissions?.includes(PERMISSIONS.KICK);
+    const canBan = isOwner || isAdmin || currentUser?.permissions?.includes(PERMISSIONS.BAN);
+    const canViewLogs = isOwner || isAdmin || currentUser?.permissions?.includes(PERMISSIONS.VIEW_LOGS);
+    const canManageMembers = canKick || canBan;
 
     const hasChildModalOpen = isDeleteCommunityModal || childModalCount > 0;
 
@@ -45,9 +57,41 @@ export default function CommunitySettingsModal(
         }
     }, [isOpen]);
 
+    const getDefaultTab = useCallback(() => {
+        if (canManageProfile) return "Profile";
+        if (canManageRoles) return "Roles";
+        if (canManageMembers) return "Members";
+        if (canViewLogs) return "Logs";
+        if (canBan) return "Bans";
+        return "Profile";
+    }, [canManageProfile, canManageRoles, canManageMembers, canViewLogs, canBan]);
+
     useEffect(() => {
-        setTimeout(() => setSelectedTab("Profile"), 200);
-    }, [onClose]);
+        setTimeout(() => setSelectedTab(getDefaultTab()), 200);
+    }, [onClose, getDefaultTab]);
+
+    useEffect(() => {
+        if (!isOpen) return;
+        if (isOwner) return;
+
+        const hasAnyPermission = canManageProfile || canManageRoles || canManageMembers || canViewLogs || canBan;
+        if (!hasAnyPermission) {
+            onClose();
+            return;
+        }
+
+        const tabAccess: Record<string, boolean> = {
+            Profile: canManageProfile,
+            Roles: canManageRoles,
+            Members: canManageMembers,
+            Logs: canViewLogs,
+            Bans: canBan,
+        };
+
+        if (!tabAccess[selectedTab]) {
+            setSelectedTab(getDefaultTab());
+        }
+    }, [isOpen, isOwner, canManageProfile, canManageRoles, canManageMembers, canViewLogs, canBan]);
 
     const renderContent = () => {
         switch (selectedTab) {
@@ -74,23 +118,31 @@ export default function CommunitySettingsModal(
             <div className="w-[270px] shrink-0 border-r border-outline flex flex-col pt-16 overflow-y-auto">
 
                 <div className="flex flex-col gap-2">
-                    <SettingsSection title="COMMUNITY">
-                        <SettingsItem text="Profile" onClick={() => setSelectedTab("Profile")} isSelected={selectedTab === "Profile"} />
-                    </SettingsSection>
-                        
-                    <SettingsSection title="PEOPLE">
-                        <SettingsItem text="Roles" onClick={() => setSelectedTab("Roles")} isSelected={selectedTab === "Roles"} />
-                        <SettingsItem text="Members" onClick={() => setSelectedTab("Members")} isSelected={selectedTab === "Members"} />
-                    </SettingsSection>
+                    {canManageProfile && (
+                        <SettingsSection title="COMMUNITY">
+                            <SettingsItem text="Profile" onClick={() => setSelectedTab("Profile")} isSelected={selectedTab === "Profile"} />
+                        </SettingsSection>
+                    )}
 
-                    <SettingsSection title="MODERATION">
-                        <SettingsItem text="Logs" onClick={() => setSelectedTab("Logs")} isSelected={selectedTab === "Logs"} />
-                        <SettingsItem text="Bans" onClick={() => setSelectedTab("Bans")} isSelected={selectedTab === "Bans"} />
-                    </SettingsSection>
-                        
-                    <SettingsSection title="DANGER ZONE">
-                        <SettingsItem text="Delete Community" isDanger onClick={() => setIsDeleteCommunityModal(true)} />
-                    </SettingsSection>
+                    {(canManageRoles || canManageMembers) && (
+                        <SettingsSection title="PEOPLE">
+                            {canManageRoles && <SettingsItem text="Roles" onClick={() => setSelectedTab("Roles")} isSelected={selectedTab === "Roles"} />}
+                            {canManageMembers && <SettingsItem text="Members" onClick={() => setSelectedTab("Members")} isSelected={selectedTab === "Members"} />}
+                        </SettingsSection>
+                    )}
+
+                    {(canViewLogs || canBan) && (
+                        <SettingsSection title="MODERATION">
+                            {canViewLogs && <SettingsItem text="Logs" onClick={() => setSelectedTab("Logs")} isSelected={selectedTab === "Logs"} />}
+                            {canBan && <SettingsItem text="Bans" onClick={() => setSelectedTab("Bans")} isSelected={selectedTab === "Bans"} />}
+                        </SettingsSection>
+                    )}
+
+                    {isOwner && (
+                        <SettingsSection title="DANGER ZONE">
+                            <SettingsItem text="Delete Community" isDanger onClick={() => setIsDeleteCommunityModal(true)} />
+                        </SettingsSection>
+                    )}
                 </div>
             </div>
 

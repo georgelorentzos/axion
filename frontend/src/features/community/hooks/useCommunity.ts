@@ -9,6 +9,7 @@ export function useCommunity() {
 
   useEffect(() => {
     if (!communityId) return;
+    
     const fetchCommunityData = async () => {
       try {
         const { data } = await api.communities.get(communityId);

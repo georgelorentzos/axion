@@ -23,6 +23,8 @@ export function useMembers() {
     }, [communityId]);
 
     useEffect(() => {
+        if (!communityId) return;
+        
         const handleMessage = (event: MessageEvent) => {
             const data = JSON.parse(event.data);
             if (data.type === "userJoined") {
@@ -51,6 +53,16 @@ export function useMembers() {
                     ...m,
                     roles: m.roles?.filter(r => r.id !== data.id)
                 })));
+            }
+            if (data.type === "memberOnline") {
+                setMembers(prev => prev.map(m =>
+                    m.id === data.memberId ? { ...m, isOnline: true } : m
+                ));
+            }
+            if (data.type === "memberOffline") {
+                setMembers(prev => prev.map(m =>
+                    m.id === data.memberId ? { ...m, isOnline: false } : m
+                ));
             }
         };
 

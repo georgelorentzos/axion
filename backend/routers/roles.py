@@ -193,6 +193,27 @@ async def update_role(request: Request,
             for m in all_community_members
         ])
 
+        affected_members = db.query(CommunityMember).join(
+            MemberRole, MemberRole.member_id == CommunityMember.id
+        ).filter(
+            MemberRole.role_id == role.id
+        ).all()
+
+        for affected in affected_members:
+            member_roles = db.query(CommunityRole).join(
+                MemberRole, MemberRole.role_id == CommunityRole.id
+            ).filter(
+                MemberRole.member_id == affected.id
+            ).all()
+            updated_permissions = set()
+            for r in member_roles:
+                updated_permissions.update(r.permissions)
+            await manager.broadcast_to_user(affected.user_id, {
+                "type": "permissionsUpdated",
+                "communityId": community_id,
+                "permissions": list(updated_permissions),
+            })
+
         db.commit()
         return {
             "success": True,
@@ -225,21 +246,6 @@ def fetch_roles(request: Request,
     community_member = db.query(CommunityMember).filter(CommunityMember.community_id == community_id, CommunityMember.user_id == user.id).first()
     if not community_member:
         raise HTTPException(status_code=404, detail="Community member not found.")
-
-    if community.owner_id != user.id:
-        community_member_roles = db.query(CommunityRole).join(
-            MemberRole, MemberRole.role_id == CommunityRole.id
-        ).filter(
-            CommunityRole.community_id == community_id,
-            MemberRole.member_id == community_member.id
-        ).all()
-
-        all_permissions = []
-        for role in community_member_roles:
-            all_permissions.extend(role.permissions)
-
-        if PERMISSIONS.MANAGE_ROLES not in all_permissions and PERMISSIONS.ADMINISTRATOR not in all_permissions:
-            raise HTTPException(status_code=403, detail="You don't have permissions.")
 
     community_roles = db.query(CommunityRole).filter(
         CommunityRole.community_id == community.id
@@ -295,6 +301,13 @@ async def delete_role(request: Request,
             raise HTTPException(status_code=403, detail="You don't have permissions.")
 
     try:
+        affected_members = db.query(CommunityMember).join(
+            MemberRole, MemberRole.member_id == CommunityMember.id
+        ).filter(
+            MemberRole.role_id == role.id
+        ).all()
+        affected_member_ids = [(m.id, m.user_id) for m in affected_members]
+
         db.query(MemberRole).filter(MemberRole.role_id == role.id).delete()
         new_log = CommunityLog(
             log=f"{user.username} deleted the role {role.role_name}",
@@ -343,6 +356,21 @@ async def delete_role(request: Request,
             })
             for m in all_community_members
         ])
+
+        for member_id, member_user_id in affected_member_ids:
+            remaining_roles = db.query(CommunityRole).join(
+                MemberRole, MemberRole.role_id == CommunityRole.id
+            ).filter(
+                MemberRole.member_id == member_id
+            ).all()
+            updated_permissions = set()
+            for r in remaining_roles:
+                updated_permissions.update(r.permissions)
+            await manager.broadcast_to_user(member_user_id, {
+                "type": "permissionsUpdated",
+                "communityId": community_id,
+                "permissions": list(updated_permissions),
+            })
 
         db.delete(role)
         db.commit()

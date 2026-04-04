@@ -1,14 +1,28 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { type Ban } from "../types/ban";
 import { api } from "../../../api/client";
+import { useCurrentUser } from "../../user/contexts/useCurrentUser";
+import { PERMISSIONS } from "../../../constants/permissions";
+import { useCommunity } from "../contexts/useCommunity";
 
 export function useBans() {
     const { communityId } = useParams();
     const [bans, setBans] = useState<Ban[]>([]);
+    const { community } = useCommunity();
+    const { currentUser } = useCurrentUser();
+
+    const canView = useMemo(() => {
+        if (!currentUser || !community) return false;
+        if (currentUser.id === community.ownerId) return true;
+        if (currentUser.permissions?.includes(PERMISSIONS.BAN)) return true;
+        if (currentUser.permissions?.includes(PERMISSIONS.ADMINISTRATOR)) return true;
+        return false;
+    }, [currentUser, community]);
 
     useEffect(() => {
-        if (!communityId) return;
+        if (!communityId || !canView) return;
+
         const fetchBans = async () => {
             try{
                 const { data } = await api.bans.get(communityId);
@@ -20,9 +34,11 @@ export function useBans() {
             }
         };
         fetchBans();
-    }, [communityId]);
+    }, [communityId, canView]);
 
     useEffect(() => {
+        if (!communityId || !canView) return;
+
         const handleMessage = (event: MessageEvent) => {
             const data = JSON.parse(event.data);
             if (data.type === "newBan") {
@@ -43,7 +59,7 @@ export function useBans() {
             ws.addEventListener("message", handleMessage);
             return () => ws.removeEventListener("message", handleMessage);
         }
-    }, []);
+    }, [canView]);
 
-    return { bans, setBans };
+    return { bans, setBans, canView };
 }

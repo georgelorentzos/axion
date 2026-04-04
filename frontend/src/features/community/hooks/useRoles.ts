@@ -9,6 +9,7 @@ export function useRoles() {
 
     useEffect(() => {
         if (!communityId) return;
+        
         const handleFetchRoles = async () => {
             try {
                 const { response, data } = await api.roles.get(communityId);

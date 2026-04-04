@@ -37,8 +37,8 @@ class ConnectionManager:
 
     async def connect(self, websocket: WebSocket, user_id: str):
         from utils.database import Session as SessionLocal
-        from models import User, Friend
-        
+        from models import User, Friend, CommunityMember
+
         db = SessionLocal()
         try:
             user = db.query(User).filter(User.id == user_id).first()
@@ -46,11 +46,11 @@ class ConnectionManager:
                 user.is_online = True
                 user.last_seen = datetime.utcnow()
                 db.commit()
-            
+
             if not self.can_connect(user_id):
                 await websocket.close(code=1008)
                 return False
-            
+
             await websocket.accept()
 
             if user_id not in self.active_connections:
@@ -61,7 +61,7 @@ class ConnectionManager:
                 or_(Friend.addressee_id == user_id, Friend.requester_id == user_id),
                 Friend.status == "friends"
             ).all()
-            
+
             for friend in friends:
                 f_id = friend.addressee_id if friend.addressee_id != user_id else friend.requester_id
                 f_user = db.query(User).filter(User.id == f_id).first()
@@ -106,7 +106,21 @@ class ConnectionManager:
                             "image": p_user.profile_image,
                             "createdAt": p_user.created_at.year
                         }))
-            
+
+            user_communities = db.query(CommunityMember).filter(
+                CommunityMember.user_id == user_id
+            ).all()
+            for membership in user_communities:
+                community_members = db.query(CommunityMember).filter(
+                    CommunityMember.community_id == membership.community_id,
+                    CommunityMember.user_id != user_id
+                ).all()
+                for cm in community_members:
+                    asyncio.create_task(self.broadcast_to_user(cm.user_id, {
+                        "type": "memberOnline",
+                        "memberId": user_id,
+                    }))
+
             return True
         except Exception as e:
             print(f"[DB ERROR] connect: {e}")
@@ -120,13 +134,13 @@ class ConnectionManager:
 
     async def disconnect(self, websocket: WebSocket, user_id: str):
         from utils.database import Session as SessionLocal
-        from models import User, Friend
-        
+        from models import User, Friend, CommunityMember
+
         if user_id in self.active_connections:
             self.active_connections[user_id].discard(websocket)
             if not self.active_connections[user_id]:
                 del self.active_connections[user_id]
-                
+
                 db = SessionLocal()
                 try:
                     user = db.query(User).filter(User.id == user_id).first()
@@ -156,6 +170,20 @@ class ConnectionManager:
                                 "type": "pending_offline",
                                 "user_id": user.id
                             }))
+
+                        user_communities = db.query(CommunityMember).filter(
+                            CommunityMember.user_id == user_id
+                        ).all()
+                        for membership in user_communities:
+                            community_members = db.query(CommunityMember).filter(
+                                CommunityMember.community_id == membership.community_id,
+                                CommunityMember.user_id != user_id
+                            ).all()
+                            for cm in community_members:
+                                asyncio.create_task(self.broadcast_to_user(cm.user_id, {
+                                    "type": "memberOffline",
+                                    "memberId": user_id,
+                                }))
                 except Exception as e:
                     print(f"[DB ERROR] disconnect: {e}")
                 finally:

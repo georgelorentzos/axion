@@ -4,6 +4,7 @@ import { useMembers } from "../../../contexts/useMembers";
 import { useEffect, useState } from "react";
 import { useCommunity } from "../../../contexts/useCommunity";
 import { useCurrentUser } from "../../../../user/contexts/useCurrentUser";
+import { PERMISSIONS } from "../../../../../constants/permissions";
 
 type MembersContentProps = {
     onChildModalChange?: (isOpen: boolean) => void;
@@ -16,6 +17,12 @@ export default function MembersContent({ onChildModalChange }: MembersContentPro
     const { community } = useCommunity();
     const { currentUser } = useCurrentUser();
     const [manageUser, setManageUser] = useState(false);
+
+    const isOwner = currentUser?.id === community?.ownerId;
+    const isAdmin = currentUser?.permissions?.includes(PERMISSIONS.ADMINISTRATOR);
+    const canKick = isOwner || isAdmin || currentUser?.permissions?.includes(PERMISSIONS.KICK);
+    const canBan = isOwner || isAdmin || currentUser?.permissions?.includes(PERMISSIONS.BAN);
+    const canManage = canKick || canBan;
 
     useEffect(() => {
         onChildModalChange?.(manageUser);
@@ -37,18 +44,21 @@ export default function MembersContent({ onChildModalChange }: MembersContentPro
                             : `${members.length} Member`}
                     </div>
                     <div className="flex-1 min-h-0 overflow-y-auto flex flex-col py-2">
-                        {filteredMembers.map(member => (
-                            <UserCard
-                                key={member.id}
-                                user={member}
-                                actions={{ options: member.id !== currentUser?.id && member.id !== community?.ownerId, admin: member.id !== currentUser?.id && member.id !== community?.ownerId }}
-                                onChildModalChange={(isOpen) => {
-                                    setManageUser(isOpen);
-                                }}
-                            />
-                        ))}
+                        {filteredMembers.map(member => {
+                            const isTarget = member.id !== currentUser?.id && member.id !== community?.ownerId;
+                            return (
+                                <UserCard
+                                    key={member.id}
+                                    user={member}
+                                    actions={{ options: isTarget && canManage, admin: isTarget && canManage }}
+                                    onChildModalChange={(isOpen) => {
+                                        setManageUser(isOpen);
+                                    }}
+                                />
+                            );
+                        })}
                         {filteredMembers.length === 0 && searchQuery && (
-                            <div className="text-gray-500 transition duration-300 py-2.5 px-4 flex justify-between items-center w-full rounded-lg hover:bg-basalt"> 
+                            <div className="text-gray-500 transition duration-300 py-2.5 px-4 flex justify-between items-center w-full rounded-lg hover:bg-basalt">
                                 No results found
                             </div>
                         )}

@@ -277,46 +277,48 @@ export default function RolesContent({ onChildModalChange }: RolesContentProps) 
     );
 
     const defaultContent = (
-        <div className="px-6 flex flex-col gap-2 w-full">
+        <div className="px-6 flex flex-col gap-2 w-full h-full min-h-0">
             <div>Community Roles</div>
             <div className="text-[14px] w-[500px] text-gray-500">
                 Use roles to group your server members and assign permissions.
             </div>
-            <div className="w-full flex gap-2 items-center">
-                {roles && roles.length > 0 && (
-                    <SearchBar onSearch={(q) => setSearchQuery(q)} />
-                )}
-                <div className="w-[170.48px]">
-                    <Button text="Create Role" isGreen onClick={handleOpenCreateRole} />
-                </div>
-            </div>
-            <br />
-            {roles && roles.length > 0 && (
-                <>
-                    <div className="text-gray-500 text-[12px] border-b border-outline pb-2">{roles.length && roles.length > 1 ? `${roles.length} Roles` : `${roles.length} Role`}</div>
-                    <div className="rounded-lg flex flex-col overflow-y-auto max-h-[calc(100vh-200px)]">
-                        {filteredRoles.map((role) => (
-                            <RoleCard
-                                key={role.id}
-                                id={role.id}
-                                name={role.name}
-                                onClick={() => handleOpenEditRole(role)}
-                                onDelete={() => setDeletingRole(role)}
-                            />
-                        ))}
-                        {filteredRoles.length === 0 && searchQuery && (
-                            <div className="text-gray-500 transition duration-300 py-2.5 px-4 flex justify-between items-center w-full rounded-lg hover:bg-basalt"> 
-                                No results found
-                            </div>
-                        )}
+            <div className="flex flex-col flex-1 min-h-0">
+                <div className="w-full flex gap-2 items-center">
+                    {roles && roles.length > 0 && (
+                        <SearchBar onSearch={(q) => setSearchQuery(q)} />
+                    )}
+                    <div className="w-[170.48px]">
+                        <Button text="Create Role" isGreen onClick={handleOpenCreateRole} />
                     </div>
-                </>
-            )}
+                </div>
+                <br />
+                {roles && roles.length > 0 && (
+                    <>
+                        <div className="text-gray-500 text-[12px] border-b border-outline pb-2">{roles.length && roles.length > 1 ? `${roles.length} Roles` : `${roles.length} Role`}</div>
+                        <div className="flex-1 min-h-0 overflow-y-auto flex flex-col py-2">
+                            {filteredRoles.map((role) => (
+                                <RoleCard
+                                    key={role.id}
+                                    id={role.id}
+                                    name={role.name}
+                                    onClick={() => handleOpenEditRole(role)}
+                                    onDelete={() => setDeletingRole(role)}
+                                />
+                            ))}
+                            {filteredRoles.length === 0 && searchQuery && (
+                                <div className="text-gray-500 transition duration-300 py-2.5 px-4 flex justify-between items-center w-full rounded-lg hover:bg-basalt">
+                                    No results found
+                                </div>
+                            )}
+                        </div>
+                    </>
+                )}
+            </div>
         </div>
     );
 
     return (
-        <div className="flex gap-2 justify-start items-start">
+        <div className="flex gap-2 justify-start items-start h-full min-h-0">
             {isCreateRole ? createRoleContent : defaultContent}
             <Modal isOpen={!!deletingRole} onClose={() => setDeletingRole(null)}>
                 <DeleteRole onClose={() => setDeletingRole(null)} role={deletingRole ?? undefined} />

@@ -170,6 +170,12 @@ async def update_community(
             MemberRole.member_id == member.id
         ).all()
 
+        all_permissions = []
+        for r in roles:
+            all_permissions.extend(r.permissions)
+
+        has_permissions = PERMISSIONS.MANAGE_COMMUNITY in all_permissions or PERMISSIONS.ADMINISTRATOR in all_permissions
+
     if not is_owner and not has_permissions:
         raise HTTPException(status_code=403, detail="You don't have permission to make changes")
 
@@ -270,7 +276,7 @@ async def update_community(
 
         members_to_notify = db.query(CommunityMember).filter(
             CommunityMember.community_id == community_id,
-            CommunityMember.user_id != community.owner_id
+            CommunityMember.user_id != user.id
         ).all()
 
         await asyncio.gather(*[

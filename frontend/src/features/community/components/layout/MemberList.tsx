@@ -116,7 +116,7 @@ export default function MemberList() {
                         isDanger
                         isVisible={
                             member.id !== community?.ownerId &&
-                            (currentUser?.id === community?.ownerId || currentUser?.permissions?.includes(PERMISSIONS.KICK))
+                            (currentUser?.id === community?.ownerId || currentUser?.permissions?.includes(PERMISSIONS.KICK) || currentUser?.permissions?.includes(PERMISSIONS.ADMINISTRATOR))
                         }
                         svgPaths={["M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l-3 3m0 0 3 3m-3-3h12.75"]}
                     />
@@ -129,7 +129,7 @@ export default function MemberList() {
                         isDanger
                         isVisible={
                             member.id !== community?.ownerId &&
-                            (currentUser?.id === community?.ownerId || currentUser?.permissions?.includes(PERMISSIONS.BAN))
+                            (currentUser?.id === community?.ownerId || currentUser?.permissions?.includes(PERMISSIONS.BAN) || currentUser?.permissions?.includes(PERMISSIONS.ADMINISTRATOR))
                         }
                         svgPaths={["M18.364 18.364A9 9 0 0 0 5.636 5.636m12.728 12.728A9 9 0 0 1 5.636 5.636m12.728 12.728L5.636 5.636"]}
                     />
