@@ -9,7 +9,7 @@ import { useCommunity } from "../../hooks/useCommunity";
 
 type RoleBadgeProps = {
     member: User;
-    role: { id: string; name: string };
+    role: Role;
 };
 
 export default function RoleBadge({ member, role }: RoleBadgeProps) {

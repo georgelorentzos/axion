@@ -6,6 +6,7 @@ import { api } from "../../../api/client";
 export function useMembers() {
     const [members, setMembers] = useState<User[]>([]);
     const onlineMembers = members.filter(m => m.isOnline);
+    const offlineMembers = members.filter(m => !m.isOnline);
     const { communityId } = useParams();
 
     useEffect(() => {
@@ -45,6 +46,12 @@ export function useMembers() {
                     return { ...m, roles: data.roles };
                 }));
             }
+            if (data.type === "roleDeleted") {
+                setMembers(prev => prev.map(m => ({
+                    ...m,
+                    roles: m.roles?.filter(r => r.id !== data.id)
+                })));
+            }
         };
 
         const ws = window._ws?.ws;
@@ -54,5 +61,5 @@ export function useMembers() {
         }
     }, []);
 
-    return { members, setMembers, onlineMembers };
+    return { members, setMembers, onlineMembers, offlineMembers };
 }

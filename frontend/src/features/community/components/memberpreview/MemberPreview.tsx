@@ -73,7 +73,7 @@ export default function MemberPreview({ member, isOpen }: MemberPreviewProps) {
                 <Button text="+ Add Role" isGreen onClick={() => setIsAddRoleOpen(prev => !prev)} />
                 )} 
                 {member.roles && member.roles.length > 0 && (
-                    <div className="flex  flex-wrap gap-2 w-full">
+                    <div className="flex flex-wrap gap-2 w-full">
                         {member.roles?.map((role: Role) => (
                            <RoleBadge key={role.id} member={member} role={role} />
                         ))}
