@@ -132,4 +132,12 @@ export const api = {
     get: (communityId: string) =>
       request(`/api/community/${communityId}/categories`, { method: "GET" }),
   },
+
+  channels: {
+    get: ( communityId: string ) =>
+      request(`/api/community/${communityId}/channels`, { method: "GET" }),
+    create: ( communityId: string, channelName: string, categoryId?: string ) =>
+      request(`/api/community/${communityId}/channels`, { method: "POST", body: { channel_name: channelName, category_id: categoryId || null } }),
+  },
+
 };

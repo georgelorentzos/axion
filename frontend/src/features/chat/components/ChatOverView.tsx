@@ -91,11 +91,13 @@ export default function ChatOverView() {
                 </svg>
                 <div className="text-gray-100">Direct Messages</div>
             </div>
-
-            <div className="p-2 flex gap-2 flex-col flex-1">
-                {!loading && directMessages.length >= 1 && (
-                <SearchBar onSearch={(value: string) => setSearchQuery(value)} />
-                )}
+            
+            {!loading && directMessages.length >= 1 && (
+                <div className='px-2 pt-2'>
+                    <SearchBar onSearch={(value: string) => setSearchQuery(value)} />
+                </div>
+            )}
+            <div className="p-2 flex gap-2 flex-col flex-1 overflow-y-auto">
                 {searchQuery && filtered.length === 0 && (
                 <div className='flex-1 flex flex-col justify-center items-center mt-[22px]'>
                     <div className="text-gray-400 text-sm">No results found</div>

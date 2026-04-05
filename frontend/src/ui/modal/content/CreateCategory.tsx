@@ -5,7 +5,11 @@ import { useParams } from "react-router-dom";
 import { useState } from "react";
 import { useCategories } from "../../../features/community/contexts/useCategories";
 
-export default function CreateCategory({ onClose }: { onClose: () => void }) {
+type CreateCategoryProps = {
+  onClose: () => void;
+};
+
+export default function CreateCategory({ onClose }: CreateCategoryProps) {
   const { communityId } = useParams();
   const [name, setName] = useState("");
   const { setCategories } = useCategories();

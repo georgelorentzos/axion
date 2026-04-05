@@ -12,6 +12,7 @@ import { BansProvider } from '../features/community/contexts/useBans';
 import { MessagesProvider } from '../features/chat/contexts/useMessages';
 import { UserProvider as ConversationUserProvider } from '../features/chat/contexts/useUser';
 import { CategoriesProvider } from '../features/community/contexts/useCategories';
+import { ChannelsProvider } from '../features/community/contexts/useChannels';
 
 export const MainWithProviders = ({ children }: { children: React.ReactNode }) => (
   <CurrentUserProvider>
@@ -28,7 +29,9 @@ export const MainWithProviders = ({ children }: { children: React.ReactNode }) =
                         <MessagesProvider>
                           <ConversationUserProvider>
                             <CategoriesProvider>
-                              { children }
+                              <ChannelsProvider>
+                                { children }
+                              </ChannelsProvider>
                             </CategoriesProvider>
                           </ConversationUserProvider>
                         </MessagesProvider>

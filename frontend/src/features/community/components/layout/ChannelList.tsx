@@ -17,6 +17,8 @@ import { api } from "../../../../api/client";
 import { PERMISSIONS } from "../../../../constants/permissions";
 import { useCategories } from "../../contexts/useCategories";
 import Category from "../../../../ui/Category";
+import { useChannels } from "../../contexts/useChannels";
+import Channel from "../../../../ui/Channel";
 
 interface LocationState {
   community?: Community;
@@ -36,6 +38,7 @@ export default function ChannelList() {
   const { currentUser } = useCurrentUser();
   const [isOwner, setIsOwner] = useState(false);
   const { categories } = useCategories();
+  const { channels } = useChannels();
 
   useEffect(() => {
     setIsOwner(community?.ownerId === currentUser?.id);
@@ -57,7 +60,6 @@ export default function ChannelList() {
     }
   }, [location.state, communityId]);
 
-  const [channels, setChannels] = useState<Channel[]>([]);
   const [isChannelListMenuOpen, setIsChannelListMenuOpen] = useState(false);
   const [isServerOptionsMenuOpen, setIsServerOptionsMenuOpen] = useState(false);
   const [isCommunitySettingsModalOpen, setIsCommunitySettingsModalOpen] = useState(false);
@@ -206,10 +208,21 @@ export default function ChannelList() {
         </div>
       </div>
 
-      <div onContextMenu={handleContextMenu} className="relative p-2 flex flex-col flex-1">
-        {categories?.map(category => (
-          <Category category={category} />
-        ))}
+      <div onContextMenu={handleContextMenu} className="relative p-2 flex flex-col flex-1 overflow-y-auto">
+        
+        <div className="flex flex-col gap-1 flex-shrink-0">
+          {channels?.map(channel => channel.categoryId === null && (
+            <Channel channel={channel} />
+          ))}
+  
+          {categories?.map(category => (
+            <Category category={category}>
+              {channels?.map(channel => channel.categoryId === category.id && (
+                <Channel channel={channel} />
+              ))}
+            </Category>
+          ))}
+        </div>
 
         <ActionMenu
           isActionMenuOpen={isChannelListMenuOpen}
@@ -234,7 +247,7 @@ export default function ChannelList() {
         <CreateCategory onClose={() => setIsCreateCategoryModalOpen(false)} />
       </Modal>
       <Modal isOpen={isCreateChannelModalOpen} onClose={() => setIsCreateChannelModalOpen(false)}>
-        <CreateCategory onClose={() => setIsCreateCategoryModalOpen(false)} />
+        <CreateChannel onClose={() => setIsCreateChannelModalOpen(false)} />
       </Modal>
 
       <div className="px-2 h-[80px] flex items-center flex-shrink-0 justify-center">

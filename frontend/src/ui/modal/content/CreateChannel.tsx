@@ -1,16 +1,32 @@
 import Input from "../../Input";
 import Button from "../../Button";
-// import { api } from "../../../api/client";
+import { api } from "../../../api/client";
 import { useParams } from "react-router-dom";
 import { useState } from "react";
+import { useChannels } from "../../../features/community/contexts/useChannels";
 
-export default function CreateChannel({ onClose }: { onClose: () => void }) {
+type CreateChannelProps = {
+  onClose: () => void;
+  categoryId?: string;
+};
+
+export default function CreateChannel({ onClose, categoryId }: CreateChannelProps) {
   const { communityId } = useParams();
   const [name, setName] = useState("");
+  const { setChannels } = useChannels();
 
   const handleCreate = async () => {
     if (!communityId || !name.trim()) return;
-    // await api.channels.create(communityId, name);
+    const { data } = await api.channels.create(communityId, name, categoryId);
+    if (data.success) {
+      setChannels(prev => [
+        ...(prev || []),{
+          id: data.id,
+          name: data.name,
+          categoryId: data.categoryId
+        }
+      ]);
+    }
     onClose();
   };
 
