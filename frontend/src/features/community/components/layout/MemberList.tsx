@@ -16,7 +16,7 @@ import type { User } from "../../../user/types/user";
 import { PERMISSIONS } from "../../../../constants/permissions";
 
 export default function MemberList() {
-    const { onlineMembers, offlineMembers } = useMembers();
+    const { onlineMembers, offlineMembers, setMembers } = useMembers();
     const { roles } = useRoles();
     const [activeMemberId, setActiveMemberId] = useState<string | null>(null);
     const [actionMenuMemberId, setActionMenuMemberId] = useState<string | null>(null);
@@ -26,8 +26,9 @@ export default function MemberList() {
     const navigate = useNavigate();
     const { allFriends, setAllFriends } = useAllFriends();
     const { community } = useCommunity();
-    const [isKickConfirmationModalOpen, setIsKickConfirmationModalOpen] = useState(false);
-    const [isBanConfirmationModalOpen, setIsBanConfirmationModalOpen] = useState(false);
+    const [actionUser, setActionUser] = useState<User | null>(null);
+    const [isKickModalOpen, setIsKickModalOpen] = useState(false);
+    const [isBanModalOpen, setIsBanModalOpen] = useState(false);
 
     useEffect(() => {
         const handleClickOutside = (e: MouseEvent) => {
@@ -109,7 +110,8 @@ export default function MemberList() {
                     )}
                     <ActionMenuButton
                         onClick={() => {
-                            setIsKickConfirmationModalOpen(true);
+                            setActionUser(member);
+                            setIsKickModalOpen(true);
                             setActionMenuMemberId(null);
                         }}
                         text={`Kick ${member.username}`}
@@ -122,7 +124,8 @@ export default function MemberList() {
                     />
                     <ActionMenuButton
                         onClick={() => {
-                            setIsBanConfirmationModalOpen(true);
+                            setActionUser(member);
+                            setIsBanModalOpen(true);
                             setActionMenuMemberId(null);
                         }}
                         text={`Ban ${member.username}`}
@@ -134,12 +137,6 @@ export default function MemberList() {
                         svgPaths={["M18.364 18.364A9 9 0 0 0 5.636 5.636m12.728 12.728A9 9 0 0 1 5.636 5.636m12.728 12.728L5.636 5.636"]}
                     />
                 </ActionMenu>
-                <Modal isOpen={isKickConfirmationModalOpen} onClose={() => setIsKickConfirmationModalOpen(false)}>
-                    <MemberAction user={member} onClose={() => setIsKickConfirmationModalOpen(false)} action="kick" />
-                </Modal>
-                <Modal isOpen={isBanConfirmationModalOpen} onClose={() => setIsBanConfirmationModalOpen(false)}>
-                    <MemberAction user={member} onClose={() => setIsBanConfirmationModalOpen(false)} action="ban" />
-                </Modal>
             </>
         );
     };
@@ -155,7 +152,6 @@ export default function MemberList() {
             <div className="p-2">
                 {(() => {
                     const assignedMemberIds = new Set<string>();
-
                     return (
                         <>
                             {roles.map(role => {
@@ -163,11 +159,8 @@ export default function MemberList() {
                                     !assignedMemberIds.has(member.id) &&
                                     member.roles?.some(r => r.id === role.id)
                                 );
-
                                 roleMembers.forEach(m => assignedMemberIds.add(m.id));
-
                                 if (roleMembers.length === 0) return null;
-
                                 return (
                                     <div key={role.id}>
                                         <div className="text-gray-500 pl-2">
@@ -188,7 +181,6 @@ export default function MemberList() {
                                     </div>
                                 );
                             })}
-
                             {(() => {
                                 const onlineNoRole = onlineMembers.filter(m => !assignedMemberIds.has(m.id));
                                 if (onlineNoRole.length === 0) return null;
@@ -210,7 +202,6 @@ export default function MemberList() {
                                     </>
                                 );
                             })()}
-
                             {offlineMembers.length > 0 && (
                                 <>
                                     <div className="text-gray-500 pl-2">Offline — {offlineMembers.length}</div>
@@ -232,6 +223,12 @@ export default function MemberList() {
                     );
                 })()}
             </div>
+            <Modal isOpen={isKickModalOpen} onClose={() => setIsKickModalOpen(false)}>
+                <MemberAction user={actionUser ?? undefined} onClose={() => setIsKickModalOpen(false)} action="kick" />
+            </Modal>
+            <Modal isOpen={isBanModalOpen} onClose={() => setIsBanModalOpen(false)}>
+                <MemberAction user={actionUser ?? undefined} onClose={() => setIsBanModalOpen(false)} action="ban" />
+            </Modal>
         </div>
     );
 }

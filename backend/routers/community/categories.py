@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, Depends, Request
 from schemas.community.category import CategoryCreate
 from utils.database import get_db
 from sqlalchemy.orm import Session
-from models import User, Community, CommunityMember, CommunityCategory, CommunityRole, MemberRole
+from models import User, Community, CommunityMember, CommunityCategory, CommunityRole, MemberRole, CommunityChannel
 from dependencies import limiter, get_user_id_from_token
 from typing import Dict, Any
 from constants.permissions import PERMISSIONS
@@ -118,7 +118,7 @@ async def create_category(
     
 @router.delete("/community/{community_id}/categories/{category_id}", response_model=Dict[str, Any])
 @limiter.limit("120/minute")
-def delete_category(
+async def delete_category(
     request: Request,
     community_id: str,
     category_id: str,
@@ -160,13 +160,37 @@ def delete_category(
         
     try:
         existing = db.query(CommunityCategory).filter(
-            CommunityCategory.id == category_id
+            CommunityCategory.id == category_id,
+            CommunityCategory.community_id == community.id
         ).first()
-        if existing:
-            db.delete(existing)
-            db.commit()
+        if not existing:
+            raise HTTPException(status_code=404, detail="Category not found.")
+
+        category_id_to_return = existing.id
+
+        db.query(CommunityChannel).filter(
+            CommunityChannel.community_id == community.id,
+             CommunityChannel.category_id == existing.id
+        ).update({"category_id": None})
+        
+        db.delete(existing)
+        db.flush()
+
+        community_members = db.query(CommunityMember).filter(
+            CommunityMember.community_id == community_id,
+            CommunityMember.user_id != user.id
+        ).all()
+        await asyncio.gather(* [
+            manager.broadcast_to_user(m.user_id, {
+                "type": "categoryDeleted",
+                "id": category_id_to_return,
+            })
+            for m in community_members
+        ])
+        db.commit()
         return {
-            "success": True
+            "success": True,
+            "id": category_id_to_return
         }
     except Exception as e:
         db.rollback()

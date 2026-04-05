@@ -28,11 +28,11 @@ export const MainWithProviders = ({ children }: { children: React.ReactNode }) =
                       <BansProvider>
                         <MessagesProvider>
                           <ConversationUserProvider>
+                            <ChannelsProvider>
                             <CategoriesProvider>
-                              <ChannelsProvider>
                                 { children }
+                                </CategoriesProvider>
                               </ChannelsProvider>
-                            </CategoriesProvider>
                           </ConversationUserProvider>
                         </MessagesProvider>
                       </BansProvider>

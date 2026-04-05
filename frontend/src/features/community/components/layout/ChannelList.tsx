@@ -10,10 +10,9 @@ import { useCommunities } from "../../contexts/useCommunities";
 import { useCommunity } from "../../contexts/useCommunity";
 import Modal from "../../../../ui/modal/Modal";
 import InviteFriend from "../../../../ui/modal/content/InviteFriend";
-import CreateCategory from "../../../../ui/modal/content/CreateCategory";
-import CreateChannel from "../../../../ui/modal/content/CreateChannel";
+import Create from "../../../../ui/modal/content/Create";
 import { type Community } from "../../types/community";
-import { api } from "../../../../api/client"; 
+import { api } from "../../../../api/client";
 import { PERMISSIONS } from "../../../../constants/permissions";
 import { useCategories } from "../../contexts/useCategories";
 import Category from "../../../../ui/Category";
@@ -24,11 +23,6 @@ interface LocationState {
   community?: Community;
 }
 
-type Channel = {
-  channelId: string;
-  channelName: string;
-};
-
 export default function ChannelList() {
   const location = useLocation();
   const { communityId } = useParams();
@@ -37,8 +31,8 @@ export default function ChannelList() {
   const navigate = useNavigate();
   const { currentUser } = useCurrentUser();
   const [isOwner, setIsOwner] = useState(false);
-  const { categories } = useCategories();
-  const { channels } = useChannels();
+  const { categories, setCategories } = useCategories();
+  const { channels, setChannels } = useChannels();
 
   useEffect(() => {
     setIsOwner(community?.ownerId === currentUser?.id);
@@ -98,6 +92,24 @@ export default function ChannelList() {
     } catch (error) {
       console.log("error leaving community: ", error);
     }
+  };
+
+  const handleCreateCategory = async (name: string) => {
+    if (!communityId) return;
+    const { data } = await api.categories.create(communityId, name);
+    if (data.success) {
+      setCategories(prev => [...(prev || []), { id: data.id, name: data.name }]);
+    }
+    setIsCreateCategoryModalOpen(false);
+  };
+
+  const handleCreateChannel = async (name: string) => {
+    if (!communityId) return;
+    const { data } = await api.channels.create(communityId, name);
+    if (data.success) {
+      setChannels(prev => [...(prev || []), { id: data.id, name: data.name, categoryId: data.categoryId }]);
+    }
+    setIsCreateChannelModalOpen(false);
   };
 
   useEffect(() => {
@@ -174,7 +186,6 @@ export default function ChannelList() {
               />
             </svg>
           </button>
-
           <ActionMenu
             position={pos}
             isActionMenuOpen={isServerOptionsMenuOpen}
@@ -209,21 +220,18 @@ export default function ChannelList() {
       </div>
 
       <div onContextMenu={handleContextMenu} className="relative p-2 flex flex-col flex-1 overflow-y-auto">
-        
         <div className="flex flex-col gap-1 flex-shrink-0">
           {channels?.map(channel => channel.categoryId === null && (
-            <Channel channel={channel} />
+            <Channel key={channel.id} channel={channel} />
           ))}
-  
           {categories?.map(category => (
-            <Category category={category}>
+            <Category key={category.id} category={category}>
               {channels?.map(channel => channel.categoryId === category.id && (
-                <Channel channel={channel} />
+                <Channel key={channel.id} channel={channel} />
               ))}
             </Category>
           ))}
         </div>
-
         <ActionMenu
           isActionMenuOpen={isChannelListMenuOpen}
           onClose={() => setIsChannelListMenuOpen(false)}
@@ -244,10 +252,20 @@ export default function ChannelList() {
       </div>
 
       <Modal isOpen={isCreateCategoryModalOpen} onClose={() => setIsCreateCategoryModalOpen(false)}>
-        <CreateCategory onClose={() => setIsCreateCategoryModalOpen(false)} />
+        <Create
+          title="Create Category"
+          description="Categories help you group channels."
+          placeholder="Category Name"
+          onSubmit={handleCreateCategory}
+        />
       </Modal>
       <Modal isOpen={isCreateChannelModalOpen} onClose={() => setIsCreateChannelModalOpen(false)}>
-        <CreateChannel onClose={() => setIsCreateChannelModalOpen(false)} />
+        <Create
+          title="Create Channel"
+          description="Channels keep conversations organized."
+          placeholder="Channel Name"
+          onSubmit={handleCreateChannel}
+        />
       </Modal>
 
       <div className="px-2 h-[80px] flex items-center flex-shrink-0 justify-center">

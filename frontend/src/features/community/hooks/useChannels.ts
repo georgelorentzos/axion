@@ -33,6 +33,9 @@ export function useChannels() {
                     }
                 ]);
             }
+            if (data.type === "channelDeleted") {
+                setChannels(prev => prev?.filter(c => c.id !== data.id) || null);
+            }
         };
         const ws = window._ws?.ws;
         if (ws) {

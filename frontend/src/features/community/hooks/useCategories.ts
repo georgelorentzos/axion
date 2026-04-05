@@ -2,10 +2,12 @@ import { useEffect, useState } from "react";
 import { type Category } from "../types/category";
 import { useParams } from "react-router-dom";
 import { api } from "../../../api/client";
+import { useChannels } from "../contexts/useChannels";
 
 export function useCategories() {
     const [categories, setCategories] = useState<Category[] | null>(null);
     const { communityId } = useParams();
+    const { setChannels } = useChannels();
 
     useEffect(() => {
         if (!communityId) return;
@@ -31,6 +33,12 @@ export function useCategories() {
                         name: data.name
                     }
                 ]);
+            }
+            if (data.type === "categoryDeleted") {
+                setCategories(prev => prev?.filter(c => c.id !== data.id) || null);
+                setChannels(prev => prev?.map(
+                    c => c.categoryId === data.id ? { ...c, categoryId: null } : c 
+                ) || null);
             }
         };
         const ws = window._ws?.ws;

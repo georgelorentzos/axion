@@ -8,10 +8,13 @@ import LogsContent from "./content/Logs";
 import BansContent from "./content/Bans";
 import ModalCloseButton from "../../../../ui/modal/ModalCloseButton";
 import Modal from "../../../../ui/modal/Modal";
-import DeleteCommunity from "../../../../ui/modal/content/DeleteCommunity";
+import Delete from "../../../../ui/modal/content/Delete";
 import { type Community } from "../../types/community";
 import { useCurrentUser } from "../../../user/contexts/useCurrentUser";
 import { PERMISSIONS } from "../../../../constants/permissions";
+import { useNavigate } from "react-router-dom";
+import { useCommunities } from "../../contexts/useCommunities";
+import { api } from "../../../../api/client";
 
 type CommunitySettingsModalProps = {
     isOpen: boolean;
@@ -29,7 +32,8 @@ export default function CommunitySettingsModal(
     const [isDeleteCommunityModal, setIsDeleteCommunityModal] = useState(false);
     const [childModalCount, setChildModalCount] = useState(0);
     const { currentUser } = useCurrentUser();
-
+    const navigate = useNavigate();
+    const { setCommunities } = useCommunities();
     const isOwner = currentUser?.id === community?.ownerId;
     const isAdmin = currentUser?.permissions?.includes(PERMISSIONS.ADMINISTRATOR);
     const canManageProfile = isOwner || isAdmin || currentUser?.permissions?.includes(PERMISSIONS.MANAGE_COMMUNITY);
@@ -108,6 +112,21 @@ export default function CommunitySettingsModal(
         }
     }
 
+    const handleDeleteCommunity = async () => {
+        if (!community?.id) return;
+        try {
+            const { response, data } = await api.communities.delete(community.id, community.name);
+            if (response.ok) {
+                navigate("/");
+                setCommunities(prev => prev?.filter(c => c.id !== data.id) || null);
+                setIsDeleteCommunityModal(false);
+                onClose();
+            }
+        } catch (error) {
+            console.log("Error deleting community: ", error);
+        }
+    };
+
     if (!isVisible) return null;
 
     return (
@@ -153,7 +172,11 @@ export default function CommunitySettingsModal(
             </div>
 
             <Modal isOpen={isDeleteCommunityModal} onClose={() => setIsDeleteCommunityModal(false)}>
-                <DeleteCommunity community={community} />
+                <Delete
+                  title={`Delete ${community?.name}`}
+                  confirmText={community?.name}
+                  onConfirm={handleDeleteCommunity}
+                />
             </Modal>
 
         </div>

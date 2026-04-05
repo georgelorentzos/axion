@@ -8,7 +8,7 @@ import { useParams } from "react-router-dom";
 import RoleCard from "../../../../../ui/RoleCard";
 import UnsavedChangesBar from "../../../../../ui/UnsavedChangesBar";
 import Modal from "../../../../../ui/modal/Modal";
-import DeleteRole from "../../../../../ui/modal/content/DeleteRole";
+import Delete from "../../../../../ui/modal/content/Delete";
 import SearchBar from "../../../../../ui/SearchBar";
 import { useRoles } from "../../../contexts/useRoles";
 import { type Role } from "../../../types/role";
@@ -321,7 +321,15 @@ export default function RolesContent({ onChildModalChange }: RolesContentProps) 
         <div className="flex gap-2 justify-start items-start h-full min-h-0">
             {isCreateRole ? createRoleContent : defaultContent}
             <Modal isOpen={!!deletingRole} onClose={() => setDeletingRole(null)}>
-                <DeleteRole onClose={() => setDeletingRole(null)} role={deletingRole ?? undefined} />
+                <Delete 
+                title={`Delete ${deletingRole?.name}`}
+                onConfirm={async () => {
+                  if (!deletingRole?.id || !communityId) return;
+                  const { data } = await api.roles.delete(communityId, deletingRole.id);
+                  setRoles(prev => prev.filter(r => r.id !== data.id));
+                  setDeletingRole(null);
+                }}
+                />
             </Modal>
         </div>
     );

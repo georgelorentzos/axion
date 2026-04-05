@@ -113,3 +113,75 @@ async def create_channel(
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail="Failed to create channel due to internal server error.")
+    
+@router.delete("/community/{community_id}/channels/{channel_id}", response_model=Dict[str, Any])
+@limiter.limit("120/minute")
+async def delete_channel(
+    request: Request,
+    community_id: str,
+    channel_id: str,
+    current_user_id: str = Depends(get_user_id_from_token),
+    db: Session = Depends(get_db)
+) -> Dict[str, Any]:
+    user = db.query(User).filter(
+        User.id == current_user_id
+    ).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found.")
+    
+    community = db.query(Community).filter(
+        Community.id == community_id
+    ).first()
+    if not community:
+        raise HTTPException(status_code=404, detail="Community not found.")
+    
+    community_member = db.query(CommunityMember).filter(
+        CommunityMember.community_id == community.id,
+        CommunityMember.user_id == user.id
+    ).first()
+    if not community_member:
+        raise HTTPException(status_code=404, detail="Community member not found.")
+    
+    if community_member.user_id != community.owner_id:
+        member_roles = db.query(CommunityRole).join(
+            MemberRole, MemberRole.role_id == CommunityRole.id
+        ).filter(
+            MemberRole.member_id == community_member.id
+        ).all()
+
+        all_permissions = {p for role in member_roles for p in role.permissions}
+
+        if not (PERMISSIONS.ADMINISTRATOR in all_permissions or PERMISSIONS.MANAGE_CHANNELS in all_permissions):
+            raise HTTPException(status_code=403, detail="You don't have permissions.")
+    
+    community_channel = db.query(CommunityChannel).filter(
+        CommunityChannel.community_id == community_id,
+        CommunityChannel.id == channel_id
+    ).first()
+    if not community_channel:
+        raise HTTPException(status_code=404, detail="Channel not found.")
+
+    channel_id_to_return = community_channel.id
+
+    try:
+        db.delete(community_channel)
+        db.flush()
+        community_members = db.query(CommunityMember).filter(
+            CommunityMember.community_id == community_id,
+            CommunityMember.user_id != user.id
+        ).all()
+        await asyncio.gather(*[
+            manager.broadcast_to_user(m.user_id, {
+                "type": "channelDeleted",
+                "id": channel_id_to_return,
+            })
+            for m in community_members
+        ])
+        db.commit()
+        return {
+            "success": True,
+            "id": channel_id_to_return,
+        }
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Failed to delete channel due to internal server error.")
