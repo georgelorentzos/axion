@@ -39,11 +39,11 @@ export default function BansContent() {
           <SearchBar onSearch={(value: string) => setSearchQuery(value)} />
           <br />
           <div className="text-gray-500 text-[12px] border-b border-outline pb-2">
-          {bans.length === 0
-            ? '0 Bans'
-            : bans.length > 1
-                ? `${bans.length} Bans`
-                : `${bans.length} Ban`}
+            {bans.length === 0
+              ? '0 Bans'
+              : bans.length > 1
+                  ? `${bans.length} Bans`
+                  : `${bans.length} Ban`}
           </div>
 
           <div className="flex-1 min-h-0 overflow-y-auto flex flex-col py-2">
@@ -55,18 +55,23 @@ export default function BansContent() {
                 imageUrl={ban.userImgUrl}
                 joinedAtText={ban.createdAt}
                 showStatus={false}
-                actions={{ options: true, unban: true }}
-                onUnban={() => handleUnBan(ban.id)}
-              />
+              >
+                <button
+                  onClick={() => handleUnBan(ban.id)}
+                  className="text-gray-500 hover:text-gray-300 text-sm transition duration-300"
+                >
+                  Unban
+                </button>
+              </UserCard>
             ))}
-           {filteredBans.length === 0 && searchQuery && (
+            {filteredBans.length === 0 && searchQuery && (
               <div className="text-gray-500 transition duration-300 py-2.5 px-4 flex justify-between items-center w-full rounded-lg hover:bg-basalt">
-                  No results found
+                No results found
               </div>
             )}
             {filteredBans.length === 0 && !searchQuery && (
               <div className="text-gray-500 transition duration-300 py-2.5 px-4 flex justify-between items-center w-full rounded-lg hover:bg-basalt">
-                  No bans yet
+                No bans yet
               </div>
             )}
           </div>

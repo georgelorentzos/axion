@@ -30,13 +30,18 @@ export default function ChannelList() {
   const { community, setCommunity } = useCommunity();
   const navigate = useNavigate();
   const { currentUser } = useCurrentUser();
-  const [isOwner, setIsOwner] = useState(false);
   const { categories, setCategories } = useCategories();
   const { channels, setChannels } = useChannels();
 
-  useEffect(() => {
-    setIsOwner(community?.ownerId === currentUser?.id);
-  }, [community, currentUser]);
+  const isOwner = community?.ownerId === currentUser?.id;
+  const isAdmin = currentUser?.permissions?.includes(PERMISSIONS.ADMINISTRATOR);
+  const canManageCommunity = isOwner || isAdmin || currentUser?.permissions?.includes(PERMISSIONS.MANAGE_COMMUNITY);
+  const canManageRoles = isOwner || isAdmin || currentUser?.permissions?.includes(PERMISSIONS.MANAGE_ROLES);
+  const canManageChannels = isOwner || isAdmin || currentUser?.permissions?.includes(PERMISSIONS.MANAGE_CHANNELS);
+  const canKick = isOwner || isAdmin || currentUser?.permissions?.includes(PERMISSIONS.KICK);
+  const canBan = isOwner || isAdmin || currentUser?.permissions?.includes(PERMISSIONS.BAN);
+  const canViewLogs = isOwner || isAdmin || currentUser?.permissions?.includes(PERMISSIONS.VIEW_LOGS);
+  const canAccessSettings = canManageCommunity || canManageRoles || canKick || canBan || canViewLogs;
 
   useEffect(() => {
     if (loading) return;
@@ -199,7 +204,7 @@ export default function ChannelList() {
                 setIsCommunitySettingsModalOpen(true);
                 setIsServerOptionsMenuOpen(false);
               }}
-              isVisible={isOwner || currentUser?.permissions?.includes(PERMISSIONS.ADMINISTRATOR || PERMISSIONS.MANAGE_COMMUNITY)}
+              isVisible={canAccessSettings}
             />
             <ActionMenuButton
               text="Invite Friends"
@@ -236,7 +241,7 @@ export default function ChannelList() {
           isActionMenuOpen={isChannelListMenuOpen}
           onClose={() => setIsChannelListMenuOpen(false)}
           position={pos}
-          canOpen={isOwner || currentUser?.permissions?.includes(PERMISSIONS.MANAGE_CHANNELS)}
+          canOpen={canManageChannels}
         >
           <ActionMenuButton
             text="Create Category"

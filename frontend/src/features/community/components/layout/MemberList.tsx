@@ -16,7 +16,7 @@ import type { User } from "../../../user/types/user";
 import { PERMISSIONS } from "../../../../constants/permissions";
 
 export default function MemberList() {
-    const { onlineMembers, offlineMembers, setMembers } = useMembers();
+    const { onlineMembers, offlineMembers } = useMembers();
     const { roles } = useRoles();
     const [activeMemberId, setActiveMemberId] = useState<string | null>(null);
     const [actionMenuMemberId, setActionMenuMemberId] = useState<string | null>(null);
@@ -29,6 +29,11 @@ export default function MemberList() {
     const [actionUser, setActionUser] = useState<User | null>(null);
     const [isKickModalOpen, setIsKickModalOpen] = useState(false);
     const [isBanModalOpen, setIsBanModalOpen] = useState(false);
+
+    const isOwner = currentUser?.id === community?.ownerId;
+    const isAdmin = currentUser?.permissions?.includes(PERMISSIONS.ADMINISTRATOR);
+    const canKick = isOwner || isAdmin || currentUser?.permissions?.includes(PERMISSIONS.KICK);
+    const canBan = isOwner || isAdmin || currentUser?.permissions?.includes(PERMISSIONS.BAN);
 
     useEffect(() => {
         const handleClickOutside = (e: MouseEvent) => {
@@ -56,7 +61,14 @@ export default function MemberList() {
         return () => document.removeEventListener("keydown", handleEscape);
     }, []);
 
+    const isMemberTargetable = (member: User) => {
+        return member.id !== currentUser?.id && member.id !== community?.ownerId;
+    };
+
     const renderUserCardActionContent = (member: User) => {
+        const isFriend = allFriends.some(friend => friend.id === member.id);
+        const isTargetable = isMemberTargetable(member);
+
         return (
             <>
                 <UserCard
@@ -86,7 +98,7 @@ export default function MemberList() {
                         text="Message"
                         svgPaths={["M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5"]}
                     />
-                    {!allFriends.some(friend => friend.id === member.id) ? (
+                    {!isFriend ? (
                         <ActionMenuButton
                             onClick={() => {
                                 if (!currentUser?.id) return;
@@ -100,7 +112,7 @@ export default function MemberList() {
                         <ActionMenuButton
                             onClick={() => {
                                 if (!currentUser?.id) return;
-                                api.friends.remove(currentUser?.id, member.id);
+                                api.friends.remove(currentUser.id, member.id);
                                 setAllFriends(friends => friends.filter(friend => friend.id !== member.id));
                                 setActionMenuMemberId(null);
                             }}
@@ -116,10 +128,7 @@ export default function MemberList() {
                         }}
                         text={`Kick ${member.username}`}
                         isDanger
-                        isVisible={
-                            member.id !== community?.ownerId &&
-                            (currentUser?.id === community?.ownerId || currentUser?.permissions?.includes(PERMISSIONS.KICK) || currentUser?.permissions?.includes(PERMISSIONS.ADMINISTRATOR))
-                        }
+                        isVisible={isTargetable && canKick}
                         svgPaths={["M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l-3 3m0 0 3 3m-3-3h12.75"]}
                     />
                     <ActionMenuButton
@@ -130,10 +139,7 @@ export default function MemberList() {
                         }}
                         text={`Ban ${member.username}`}
                         isDanger
-                        isVisible={
-                            member.id !== community?.ownerId &&
-                            (currentUser?.id === community?.ownerId || currentUser?.permissions?.includes(PERMISSIONS.BAN) || currentUser?.permissions?.includes(PERMISSIONS.ADMINISTRATOR))
-                        }
+                        isVisible={isTargetable && canBan}
                         svgPaths={["M18.364 18.364A9 9 0 0 0 5.636 5.636m12.728 12.728A9 9 0 0 1 5.636 5.636m12.728 12.728L5.636 5.636"]}
                     />
                 </ActionMenu>
