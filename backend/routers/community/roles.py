@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, Depends, Request
-from schemas.community import RoleRequest
+from schemas.community.role import RoleRequest
 from utils.database import get_db
 from sqlalchemy import or_, cast, String
 from sqlalchemy.orm import Session
@@ -382,9 +382,9 @@ async def delete_role(request: Request,
         db.rollback()
         raise HTTPException(status_code=500, detail="Failed to delete role due to an internal server error.")
 
-@router.post("/community/{community_id}/members/{user_id}/roles/{role_id}", response_model=Dict[str, Any])
+@router.patch("/community/{community_id}/members/{user_id}/roles/{role_id}", response_model=Dict[str, Any])
 @limiter.limit("120/minute")
-async def manage_member_roles(
+async def toggle_role(
     request: Request,
     community_id: str,
     user_id: str,

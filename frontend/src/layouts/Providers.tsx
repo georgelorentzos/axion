@@ -11,6 +11,7 @@ import { LogsProvider } from '../features/community/contexts/useLogs';
 import { BansProvider } from '../features/community/contexts/useBans';
 import { MessagesProvider } from '../features/chat/contexts/useMessages';
 import { UserProvider as ConversationUserProvider } from '../features/chat/contexts/useUser';
+import { CategoriesProvider } from '../features/community/contexts/useCategories';
 
 export const MainWithProviders = ({ children }: { children: React.ReactNode }) => (
   <CurrentUserProvider>
@@ -26,7 +27,9 @@ export const MainWithProviders = ({ children }: { children: React.ReactNode }) =
                       <BansProvider>
                         <MessagesProvider>
                           <ConversationUserProvider>
-                            { children }
+                            <CategoriesProvider>
+                              { children }
+                            </CategoriesProvider>
                           </ConversationUserProvider>
                         </MessagesProvider>
                       </BansProvider>

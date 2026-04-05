@@ -40,7 +40,7 @@ export function useCurrentUser(): UseCurrentUserReturn {
 
         const fetchCommunityPermissions = async () => {
             try {
-                const { data } = await api.communities.getPermissions(communityId);
+                const { data } = await api.members.myPermissions(communityId);
                 setCurrentUser(prev => {
                     if (!prev) return null;
                     return {

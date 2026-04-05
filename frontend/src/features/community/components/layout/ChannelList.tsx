@@ -10,10 +10,13 @@ import { useCommunities } from "../../contexts/useCommunities";
 import { useCommunity } from "../../contexts/useCommunity";
 import Modal from "../../../../ui/modal/Modal";
 import InviteFriend from "../../../../ui/modal/content/InviteFriend";
-import CreateItem from "../../../../ui/modal/content/CreateItem";
+import CreateCategory from "../../../../ui/modal/content/CreateCategory";
+import CreateChannel from "../../../../ui/modal/content/CreateChannel";
 import { type Community } from "../../types/community";
 import { api } from "../../../../api/client"; 
 import { PERMISSIONS } from "../../../../constants/permissions";
+import { useCategories } from "../../contexts/useCategories";
+import Category from "../../../../ui/Category";
 
 interface LocationState {
   community?: Community;
@@ -32,6 +35,7 @@ export default function ChannelList() {
   const navigate = useNavigate();
   const { currentUser } = useCurrentUser();
   const [isOwner, setIsOwner] = useState(false);
+  const { categories } = useCategories();
 
   useEffect(() => {
     setIsOwner(community?.ownerId === currentUser?.id);
@@ -182,7 +186,7 @@ export default function ChannelList() {
                 setIsCommunitySettingsModalOpen(true);
                 setIsServerOptionsMenuOpen(false);
               }}
-              isVisible={isOwner || currentUser?.permissions?.some(p => Object.values(PERMISSIONS).includes(p))}
+              isVisible={isOwner || currentUser?.permissions?.includes(PERMISSIONS.ADMINISTRATOR || PERMISSIONS.MANAGE_COMMUNITY)}
             />
             <ActionMenuButton
               text="Invite Friends"
@@ -202,12 +206,10 @@ export default function ChannelList() {
         </div>
       </div>
 
-      <div onContextMenu={handleContextMenu} className="relative space-y-3 p-2 flex flex-col flex-1">
-        {channels.length === 0 && (
-          <div className="flex-1 flex flex-col justify-center items-center mt-[80px]">
-            <div className="text-gray-400 text-sm">No channels yet</div>
-          </div>
-        )}
+      <div onContextMenu={handleContextMenu} className="relative p-2 flex flex-col flex-1">
+        {categories?.map(category => (
+          <Category category={category} />
+        ))}
 
         <ActionMenu
           isActionMenuOpen={isChannelListMenuOpen}
@@ -229,10 +231,10 @@ export default function ChannelList() {
       </div>
 
       <Modal isOpen={isCreateCategoryModalOpen} onClose={() => setIsCreateCategoryModalOpen(false)}>
-        <CreateItem item="category" />
+        <CreateCategory onClose={() => setIsCreateCategoryModalOpen(false)} />
       </Modal>
       <Modal isOpen={isCreateChannelModalOpen} onClose={() => setIsCreateChannelModalOpen(false)}>
-        <CreateItem item="channel" />
+        <CreateCategory onClose={() => setIsCreateCategoryModalOpen(false)} />
       </Modal>
 
       <div className="px-2 h-[80px] flex items-center flex-shrink-0 justify-center">

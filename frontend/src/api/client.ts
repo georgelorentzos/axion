@@ -90,10 +90,6 @@ export const api = {
       request(`/api/community/${communityId}/leave`, { method: "DELETE" }),
     delete: (communityId: string, communityName: string) =>
       request(`/api/community/${communityId}?community_name=${encodeURIComponent(communityName)}`, { method: "DELETE" }),
-    getPermissions: (communityId: string) => 
-      request(`/api/community/${communityId}/permissions`, { method: "GET" }),
-    manageMemberRole: (communityId: string, userId: string, roleId: string) =>
-      request(`/api/community/${communityId}/members/${userId}/roles/${roleId}`, { method: "POST" }),
   },
 
   members: {
@@ -102,6 +98,10 @@ export const api = {
       request(`/api/community/${communityId}/members/${memberId}/kick`, { method: "DELETE", body: { reason: reason || "No Reason" } }),
     ban: (communityId: string, memberId: string, reason?: string) =>
       request(`/api/community/${communityId}/members/${memberId}/ban`, { method: "DELETE", body: { reason: reason || "No Reason" } }),
+    toggleRole: (communityId: string, userId: string, roleId: string) =>
+      request(`/api/community/${communityId}/members/${userId}/roles/${roleId}`, { method: "PATCH" }),
+    myPermissions: (communityId: string) =>
+      request(`/api/community/${communityId}/permissions`),
   },
 
   roles: {
@@ -126,6 +126,10 @@ export const api = {
 
   categories: {
     create: (communityId: string, categoryName: string) =>
-      request("/api/category/create", { method: "POST", body: { community_id: communityId, category_name: categoryName } }),
+      request(`/api/community/${communityId}/categories`, { method: "POST", body: { category_name: categoryName } }),
+    delete: (communityId: string, categoryId: string) =>
+      request(`/api/community/${communityId}/categories/${categoryId}`, { method: "DELETE" }),
+    get: (communityId: string) =>
+      request(`/api/community/${communityId}/categories`, { method: "GET" }),
   },
 };

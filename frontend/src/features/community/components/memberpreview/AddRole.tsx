@@ -27,7 +27,7 @@ export default function AddRole({ member, isOpen, onClose }: AddRoleProps) {
         if (!communityId) return;
         onClose();
         try {
-            await api.communities.manageMemberRole(communityId, member.id, role.id);
+            await api.members.toggleRole(communityId, member.id, role.id);
             setMembers(prev => prev.map(
                 m => {
                     if (m.id !== member.id) return m;

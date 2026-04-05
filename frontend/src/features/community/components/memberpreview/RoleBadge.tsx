@@ -21,7 +21,7 @@ export default function RoleBadge({ member, role }: RoleBadgeProps) {
     const handleRemoveRole = async (role: Role) => {
         if (!communityId) return;
         try {
-            await api.communities.manageMemberRole(communityId, member.id, role.id);
+            await api.members.toggleRole(communityId, member.id, role.id);
             setMembers(prev => prev.map(
                 m => {
                     if (m.id !== member.id) return m;

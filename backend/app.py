@@ -6,7 +6,8 @@ from dependencies import limiter
 from utils.websocket_manager import router as ws_router
 from schedulers.token_cleanup import token_cleanup_scheduler
 from schedulers.online_cleanup import forgotten_online_users_scheduler
-from routers import auth, users, friends, messages, communities, members, roles, bans, logs, categories, images
+from routers import auth, users, friends, messages, images
+from routers.community import community as communities, members, roles, bans, logs, categories, permissions
 
 app = FastAPI()
 app.state.limiter = limiter
@@ -40,4 +41,5 @@ app.include_router(roles.router)
 app.include_router(bans.router)
 app.include_router(logs.router)
 app.include_router(categories.router)
+app.include_router(permissions.router)
 app.include_router(images.router)
