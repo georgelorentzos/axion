@@ -45,7 +45,7 @@ class Friend(Base):
     addressee = relationship("User", foreign_keys=[addressee_id])
 
 class DirectMessage(Base):
-    __tablename__ = "directmessages"
+    __tablename__ = "direct_messages"
 
     id = Column(String, primary_key=True, default=lambda: generate(NUMERIC_ALPHABET, 20))
     sender_id = Column(String, ForeignKey("users.id"), nullable=False)
@@ -106,6 +106,18 @@ class CommunityChannel(Base):
     category_id = Column(String, ForeignKey("community_categories.id"), nullable=True)
     community = relationship("Community", back_populates="channels")
     category = relationship("CommunityCategory", back_populates="channels")
+
+class ChannelMessage(Base):
+    __tablename__ = "channel_messages"
+
+    id = Column(String, primary_key=True, default=lambda: generate(NUMERIC_ALPHABET, 20))
+    sender_id = Column(String, ForeignKey("users.id"), nullable=False)
+    channel_id = Column(String, ForeignKey("community_channels.id"), nullable=False)
+    community_id = Column(String, ForeignKey("communities.id"), nullable=False)
+    message = Column(String, nullable=False)
+    created_at = Column(DateTime, default=datetime.now)
+    sender = relationship("User", foreign_keys=[sender_id])
+    community = relationship("Community", foreign_keys=[community_id])
 
 class CommunityMember(Base):
     __tablename__ = "community_members"

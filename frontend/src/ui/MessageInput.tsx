@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
-import { useCurrentUser } from '../features/user/contexts/useCurrentUser';
 import { api } from '../api/client';
 import notificationSound from '../assets/sounds/notification.mp3';
+import { useParams } from 'react-router-dom';
 
 type MessageInputProps = {
     value?: string;
@@ -10,8 +10,8 @@ type MessageInputProps = {
 
 export default function MessageInput({ value: propValue, recipient_id }: MessageInputProps) {
     const [value, setValue] = useState(propValue || '');
-    const { currentUser } = useCurrentUser();
     const audioRef = useRef<HTMLAudioElement>(null);
+    const { communityId, channelId } = useParams();
 
     const playSendSound = () => {
         if (audioRef.current) {
@@ -24,13 +24,18 @@ export default function MessageInput({ value: propValue, recipient_id }: Message
         if (!message.trim()) return;
 
         try {
-            const { response } = await api.messages.send(currentUser?.id!, recipient_id, message);
-
-            if (response.ok) {
-                setValue('');
-                playSendSound();
+            if (communityId && channelId) {
+                const { data } = await api.channelMessages.send(communityId, channelId, message);
+                if (data.success) {
+                    setValue('');
+                    playSendSound();
+                }
             } else {
-                console.error('Failed to send message');
+                const { data } = await api.directMessages.send(recipient_id, message);
+                if (data.success) {
+                    setValue('');
+                    playSendSound();
+                }
             }
         } catch (error) {
             console.error('Error sending message:', error);

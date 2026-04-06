@@ -7,6 +7,7 @@ import { useAllFriends } from '../../contexts/useAllFriends';
 import { useCurrentUser } from '../../../user/contexts/useCurrentUser';
 import { type User } from '../../../user/types/user';
 import { api } from '../../../../api/client';
+import { useNavigate } from 'react-router-dom';
 
 function AddFriendButton({ userId }: { userId: string }) {
   const { currentUser } = useCurrentUser();
@@ -98,7 +99,7 @@ function FriendOptionsButton({ user }: { user: User }) {
   const [isOpen, setIsOpen] = useState(false);
   const [pos, setPos] = useState({ x: 0, y: 0 });
   const buttonRef = useRef<HTMLButtonElement>(null);
-
+  
   const handleUnfriend = async () => {
     if (!currentUser?.id || !user.id) return;
     try {
@@ -140,6 +141,7 @@ export default function AddFriendContent() {
   const [isLoading, setIsLoading] = useState(false);
   const debounceTimer = useRef<number | null>(null);
   const { allFriends } = useAllFriends();
+  const navigate = useNavigate();
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
@@ -182,7 +184,7 @@ export default function AddFriendContent() {
         {searchResults.map(user => {
           const isFriend = allFriends.some(f => f.id === user.id);
           return (
-            <UserCard key={user.id} user={user}>
+            <UserCard key={user.id} user={user} onClick={() => navigate(`/chat/${user.id}`, { state: { user: user } })}>
               {isFriend ? (
                 <FriendOptionsButton user={user} />
               ) : (

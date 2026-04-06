@@ -5,7 +5,7 @@ import { useParams } from "react-router-dom";
 import { useEffect, useLayoutEffect, useState, useRef } from 'react';
 import { useCurrentUser } from '../../user/contexts/useCurrentUser';
 import { useNavigate } from 'react-router-dom';
-import { useMessages } from '../contexts/useMessages';
+import { useDirectMessages } from '../contexts/useDirectMessages';
 import { useUser } from '../contexts/useUser';
 
 export default function Conversation() {
@@ -18,7 +18,7 @@ export default function Conversation() {
     const [showMessages, setShowMessages] = useState(false);
     const conversationRef = useRef<HTMLDivElement>(null);
     const prevScrollHeightRef = useRef(0);
-    const { messages, setMessages, isMessagesLoaded, hasMore, isLoading, loadMore } = useMessages();
+    const { messages, setMessages, isMessagesLoaded, hasMore, isLoading, loadMore } = useDirectMessages();
 
     useEffect(() => {
         prevScrollHeightRef.current = 0;
@@ -143,15 +143,16 @@ export default function Conversation() {
 
             <div ref={scrollContainerRef} className={`flex-1 w-full min-h-0 p-4 pb-3 space-y-3 ${showMessages ? "overflow-y-auto" : "overflow-hidden"}`}>
                 <div className={`transition duration-300 ${showMessages ? "opacity-100" : "opacity-0 invisible"}`}>
-                    {messages.map((message) => (
+                  {messages.map((message, index) => (
                         <div
                             key={message.id}
+                            ref={index === messages.length - 1 ? messagesEndRef : null}
                             className={`flex ${
                                 message.senderId === currentUser?.id
                                     ? "justify-end"
                                     : "justify-start"
                             }`}
-                        >
+                            >
                             <MessageBubble
                                 isCurrentUser={message.senderId === currentUser?.id}
                                 message={message.message}
@@ -170,7 +171,6 @@ export default function Conversation() {
                         </div>
                     ))}
                 </div>
-                <div ref={messagesEndRef} />
             </div>
 
             <div className="px-2 pb-2">

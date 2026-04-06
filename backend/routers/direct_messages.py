@@ -8,36 +8,43 @@ from utils.websocket_manager import manager
 from dependencies import limiter, get_user_id_from_token
 from datetime import datetime
 from typing import Dict, Any
+import asyncio
 
-router = APIRouter(prefix="/api", tags=["messages"])
+router = APIRouter(prefix="/api", tags=["direct_messages"])
 
-@router.post('/send/message', response_model=Dict[str, Any])
+@router.post('/send/message/{recipient_id}', response_model=Dict[str, Any])
 @limiter.limit("220/minute")
-async def send_message(request: Request, req: MessageRequest, user_id: str = Depends(get_user_id_from_token), db: Session = Depends(get_db)) -> Dict[str, Any]:
+async def send_message(
+    request: Request, 
+    recipient_id: str,
+    req: MessageRequest,
+    current_user_id: str = Depends(get_user_id_from_token), 
+    db: Session = Depends(get_db)) -> Dict[str, Any]:
 
-    if req.sender_id != user_id:
-        raise HTTPException(status_code=403, detail="Cannot send as another user.")
+    user = db.query(User).filter(
+        User.id == current_user_id
+    ).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found.")
 
-    recipient = db.query(User).filter(User.id == req.recipient_id).first()
+    if current_user_id == recipient_id:
+        raise HTTPException(status_code=400, detail="Cannot send message to yourself.")
+
+    recipient = db.query(User).filter(User.id == recipient_id).first()
     if not recipient:
-        raise HTTPException(status_code=404, detail="Recipient Not Found.")
-
-    if req.sender_id == req.recipient_id:
-        raise HTTPException(status_code=400, detail="Cannot send yourself.")
-
-    sender = db.query(User).filter(User.id == user_id).first()
+        raise HTTPException(status_code=404, detail="Recipient not found.")
 
     new_direct_message = DirectMessage(
-        sender_id=sender.id,
+        sender_id=user.id,
         recipient_id=recipient.id,
         message=req.message
     )
 
     existing_conversation = db.query(ConversationHistory).filter(
-        ((ConversationHistory.sender_id == sender.id) &
+        ((ConversationHistory.sender_id == user.id) &
          (ConversationHistory.recipient_id == recipient.id)) |
         ((ConversationHistory.sender_id == recipient.id) &
-         (ConversationHistory.recipient_id == sender.id))
+         (ConversationHistory.recipient_id == user.id))
     ).first()
 
     try:
@@ -45,7 +52,7 @@ async def send_message(request: Request, req: MessageRequest, user_id: str = Dep
 
         if not existing_conversation:
             new_conversation_history = ConversationHistory(
-                sender_id=sender.id,
+                sender_id=user.id,
                 recipient_id=recipient.id,
                 message=req.message
             )
@@ -57,42 +64,36 @@ async def send_message(request: Request, req: MessageRequest, user_id: str = Dep
 
         db.commit()
 
-        await manager.broadcast_to_user(user_id, {
+        message_data = {
             "type": "messageSent",
             "id": new_direct_message.id,
-            "senderId": user_id,
-            "recipientId": req.recipient_id,
+            "senderId": user.id,
+            "recipientId": recipient.id,
             "message": req.message,
             "createdAt": datetime.now().strftime("%H:%M"),
-        })
+        }
 
-        await manager.broadcast_to_user(req.recipient_id, {
-            "type": "newDirectMessage",
-            "id": sender.id,
-            "username": sender.username,
-            "image": sender.profile_image,
-            "isOnline": sender.is_online,
-            "latestMessage": req.message,
-            "createdAt": sender.created_at.year,
-        })
-
-        await manager.broadcast_to_user(req.recipient_id, {
-            "type": "messageSent",
-            "id": new_direct_message.id,
-            "senderId": user_id,
-            "recipientId": req.recipient_id,
-            "message": req.message,
-            "createdAt": datetime.now().strftime("%H:%M"),
-        })
+        await asyncio.gather(
+            manager.broadcast_to_user(user.id, message_data),
+            manager.broadcast_to_user(recipient.id, message_data),
+            manager.broadcast_to_user(recipient.id, {
+                "type": "newDirectMessage",
+                "id": user.id,
+                "username": user.username,
+                "image": user.profile_image,
+                "isOnline": user.is_online,
+                "latestMessage": req.message,
+                "createdAt": user.created_at.year,
+            }),
+        )
 
         return {
-            "success": True,
-            "message": "Message send successfuly!"
-            }
+            "success": True
+        }
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail="Failed to send message.")
-
+    
 @router.get('/messages/{user_id}', response_model=Dict[str, Any])
 @limiter.limit("220/minute")
 def get_messages(
@@ -162,7 +163,11 @@ def get_messages(
 
 @router.get('/my/conversations', response_model=Dict[str, Any])
 @limiter.limit('220/minute')
-def my_conversations(request: Request, user_id: str = Depends(get_user_id_from_token), db: Session = Depends(get_db)) -> Dict[str, Any]:
+def my_conversations(
+    request: Request, 
+    user_id: str = Depends(get_user_id_from_token), 
+    db: Session = Depends(get_db)
+) -> Dict[str, Any]:
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found.")
@@ -208,7 +213,12 @@ def my_conversations(request: Request, user_id: str = Depends(get_user_id_from_t
 
 @router.delete('/conversation/{user_id}', response_model=Dict[str, Any])
 @limiter.limit('220/minute')
-async def delete_conversation(request: Request, user_id: str, current_user_id: str = Depends(get_user_id_from_token), db: Session = Depends(get_db)) -> Dict[str, Any]:
+async def delete_conversation(
+    request: Request, 
+    user_id: str, 
+    current_user_id: str = Depends(get_user_id_from_token), 
+    db: Session = Depends(get_db)
+) -> Dict[str, Any]:
     other_user = db.query(User).filter(User.id == user_id).first()
     if not other_user:
         raise HTTPException(status_code=404, detail="User not found.")
@@ -263,7 +273,9 @@ async def delete_conversation(request: Request, user_id: str, current_user_id: s
             "conversationId": user_id
         })
 
-        return {"success": True, "message": "Conversation deleted."}
+        return {
+            "success": True
+        }
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail="Failed to delete conversation.")

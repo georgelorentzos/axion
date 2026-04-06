@@ -5,23 +5,22 @@ type AllFriendsProviderProps = {
     children: React.ReactNode;
 };
 
-const AllFriendsContext = createContext<ReturnType<typeof AllFriends> | null>(null);
+const useAllFriendsContext = createContext<ReturnType<typeof AllFriends> | null>(null);
 
 export function AllFriendsProvider({ children }: AllFriendsProviderProps) {
     const state = AllFriends();
 
     return (
-        <AllFriendsContext.Provider value={state}>
-            { children }
-        </AllFriendsContext.Provider>
+        <useAllFriendsContext.Provider value={state}>
+            {children}
+        </useAllFriendsContext.Provider>
     );
 }
 
 export function useAllFriends() {
-    const context = useContext(AllFriendsContext);
+    const context = useContext(useAllFriendsContext);
     if (!context) {
-        throw new Error('useAllFriends must be used inside UserProvider');
+        throw new Error('useAllFriends must be used inside AllFriendsProvider');
     }
     return context;
 }
-

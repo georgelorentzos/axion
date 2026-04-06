@@ -1,15 +1,21 @@
-import { useParams } from "react-router-dom";
-import { useLocation } from "react-router-dom";
-import { useState, useEffect, useRef } from "react";
+import { useParams, useLocation } from "react-router-dom";
+import { useState, useEffect, useLayoutEffect, useRef } from "react";
 import { api } from "../../../api/client";
+import { useCurrentUser } from "../../user/contexts/useCurrentUser";
+import { useChannelMessages } from "../contexts/useChannelMessages";
 import MessageInput from "../../../ui/MessageInput";
+import MessageBubble from "../../../ui/MessageBubble";
 
-export default function Conversation() {
+export default function ChannelConversation() {
     const { communityId, channelId } = useParams();
     const location = useLocation();
+    const { currentUser } = useCurrentUser();
     const [channel, setChannel] = useState(location.state?.channel || null);
+    const messagesEndRef = useRef<HTMLDivElement>(null);
     const scrollContainerRef = useRef<HTMLDivElement>(null);
     const [showMessages, setShowMessages] = useState(false);
+    const prevScrollHeightRef = useRef(0);
+    const { messages, setMessages, isMessagesLoaded, hasMore, isLoading, loadMore } = useChannelMessages();
 
     useEffect(() => {
         if (!channelId) {
@@ -28,7 +34,7 @@ export default function Conversation() {
             }
         };
         getChannel();
-    }, [channelId])
+    }, [channelId]);
 
     useEffect(() => {
         if (location.state?.channel) {
@@ -36,44 +42,154 @@ export default function Conversation() {
         }
     }, [channelId]);
 
-    return(
+    useLayoutEffect(() => {
+        prevScrollHeightRef.current = 0;
+        setShowMessages(false);
+    }, [channelId]);
+
+    useEffect(() => {
+        if (isMessagesLoaded) {
+            const timer = setTimeout(() => {
+                setShowMessages(true);
+            }, 10);
+            return () => clearTimeout(timer);
+        }
+        setShowMessages(false);
+    }, [isMessagesLoaded]);
+
+    useEffect(() => {
+        const handleMessage = (event: MessageEvent) => {
+            try {
+                const data = JSON.parse(event.data);
+                if (data.type === 'newChannelMessage' && data.channelId === channelId) {
+                    setMessages(currentMessages => {
+                        return [
+                            ...currentMessages,
+                            {
+                                id: data.id,
+                                senderId: data.senderId,
+                                channelId: data.channelId,
+                                message: data.message,
+                                createdAt: data.createdAt,
+                                senderUsername: data.senderUsername,
+                                senderImage: data.senderImage,
+                            },
+                        ];
+                    });
+                }
+            } catch (error) {
+                console.error('Error parsing WebSocket message:', error);
+            }
+        };
+
+        const ws = window._ws?.ws;
+        if (ws) {
+            ws.addEventListener('message', handleMessage);
+            return () => ws.removeEventListener('message', handleMessage);
+        }
+    }, [channelId]);
+
+    useLayoutEffect(() => {
+        if (messages.length > 0 && prevScrollHeightRef.current === 0) {
+            requestAnimationFrame(() => {
+                setTimeout(() => {
+                    messagesEndRef.current?.scrollIntoView({ behavior: 'instant' });
+                }, 100);
+            });
+        }
+    }, [messages, channelId]);
+
+    useLayoutEffect(() => {
+        const container = scrollContainerRef.current;
+        if (!container) return;
+
+        const newScrollHeight = container.scrollHeight;
+        const diff = newScrollHeight - prevScrollHeightRef.current;
+        if (diff > 0 && prevScrollHeightRef.current > 0) {
+            container.scrollTop += diff;
+        }
+        prevScrollHeightRef.current = newScrollHeight;
+    }, [messages]);
+
+    useEffect(() => {
+        const container = scrollContainerRef.current;
+        if (!container) return;
+
+        let debounceTimer: ReturnType<typeof setTimeout>;
+
+        const handleScroll = () => {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => {
+                const threshold = container.scrollHeight * 0.25;
+                if (container.scrollTop < threshold && hasMore && !isLoading) {
+                    prevScrollHeightRef.current = container.scrollHeight;
+                    loadMore();
+                }
+            }, 200);
+        };
+
+        container.addEventListener('scroll', handleScroll);
+        return () => {
+            container.removeEventListener('scroll', handleScroll);
+            clearTimeout(debounceTimer);
+        };
+    }, [hasMore, isLoading, loadMore]);
+
+    return (
         <>
-        {channelId && (
-            <div className="flex-1 h-screen flex flex-col">
-                <div className="w-full h-[60px] border-b border-outline flex items-center px-4 gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-5 text-gray-500">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M5.25 8.25h15m-16.5 7.5h15m-1.8-13.5-3.9 19.5m-2.1-19.5-3.9 19.5" />
-                    </svg>
-                    {channel?.name}
-                </div>
+            {channelId && (
+                <div className="flex-1 h-screen flex flex-col">
+                    <div className="w-full h-[60px] border-b border-outline flex items-center px-4 gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-5 text-gray-500">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M5.25 8.25h15m-16.5 7.5h15m-1.8-13.5-3.9 19.5m-2.1-19.5-3.9 19.5" />
+                        </svg>
+                        {channel?.name}
+                    </div>
 
-                <div ref={scrollContainerRef} className={`flex-1 w-full min-h-0 p-4 pb-3 space-y-3 ${showMessages ? "overflow-y-auto" : "overflow-hidden"}`}>
-                    <div className={`transition duration-300 ${showMessages ? "opacity-100" : "opacity-0 invisible"}`}>
+                    <div ref={scrollContainerRef} className={`flex-1 w-full min-h-0 p-4 pb-3 space-y-3 ${showMessages ? "overflow-y-auto" : "overflow-hidden"}`}>
+                        <div className={`transition duration-300 ${showMessages ? "opacity-100" : "opacity-0 invisible"}`}>
+                            {messages.map((message, index) => (
+                                <div
+                                    key={message.id}
+                                    ref={index === messages.length - 1 ? messagesEndRef : null}
+                                    className={`flex ${
+                                        message.senderId === currentUser?.id
+                                            ? "justify-end"
+                                            : "justify-start"
+                                    }`}
+                                >
+                                    <MessageBubble
+                                        isCurrentUser={message.senderId === currentUser?.id}
+                                        message={message.message}
+                                        senderUsername={message.senderUsername || ""}
+                                        createdAt={message.createdAt}
+                                        senderProfileImage={message.senderImage || ""}
+                                    />
+                                </div>
+                            ))}
+                        </div>
+                    </div>
 
+                    <div className="px-2 pb-2">
+                        <MessageInput
+                            recipient_id={channel?.id || ''}
+                        />
                     </div>
                 </div>
-
-                <div className="px-2 pb-2">
-                    <MessageInput
-                        recipient_id={channel?.id || ''}
-                    />
+            )}
+            {!channelId && (
+                <div className="flex-1 flex items-center justify-center">
+                    <div className="mt-[20px] flex flex-col items-center text-center max-w-[440px]">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-10 text-gray-500">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M5.25 8.25h15m-16.5 7.5h15m-1.8-13.5-3.9 19.5m-2.1-19.5-3.9 19.5" />
+                        </svg>
+                        <div className="text-gray-500 font-bold text-[18px]">NO TEXT CHANNELS</div>
+                        <div className="text-gray-500">
+                            You find yourself in a strange place. You dont have access to any text channels, or there are none in this server.
+                        </div>
+                    </div>
                 </div>
-            </div>
-        )}
-        {!channelId && (
-            <div className="flex-1 flex items-center justify-center">
-                <div className="mt-[20px] flex flex-col items-center text-center max-w-[440px]">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-10 text-gray-500">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M5.25 8.25h15m-16.5 7.5h15m-1.8-13.5-3.9 19.5m-2.1-19.5-3.9 19.5" />
-                </svg>
-
-                <div className="text-gray-500 font-bold text-[18px]">NO TEXT CHANNELS</div>
-                <div className="text-gray-500">
-                    You find yourself in a strange place. You dont have access to any text channels, or there are none in this server.
-                </div>
-                </div>
-            </div>
-        )}
+            )}
         </>
     );
 }

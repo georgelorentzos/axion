@@ -1,7 +1,7 @@
 import { useCurrentUser } from '../../user/contexts/useCurrentUser'
 import UserCard from '../../../ui/UserCard'
 import SearchBar from '../../../ui/SearchBar'
-import { useDirectMessages } from '../contexts/useDirectMessages';
+import { useConversations } from '../contexts/useConversations';
 import { useNavigate } from "react-router-dom";
 import { useEffect, useRef, useState } from 'react';
 import notificationSound from '../../../assets/sounds/notification.mp3';
@@ -10,15 +10,15 @@ import { api } from '../../../api/client';
 
 export default function ChatOverView() {
     const { currentUser } = useCurrentUser();
-    const { directMessages, setDirectMessages, loading } = useDirectMessages();
+    const { conversations, setConversations, loading } = useConversations();
     const [searchQuery, setSearchQuery] = useState('');
-    const filtered = directMessages.filter(dm => dm.user.username.toLowerCase().startsWith(searchQuery.toLowerCase()));
+    const filtered = conversations.filter(dm => dm.user.username.toLowerCase().startsWith(searchQuery.toLowerCase()));
     const navigate = useNavigate();
     const audioRef = useRef<HTMLAudioElement>(null);
 
     const handleDeleteConversation = async (userId: string) => {
         try {
-            const { response } = await api.messages.deleteConversation(userId);
+            const { response } = await api.directMessages.deleteConversation(userId);
             if (!response.ok) throw new Error(`Failed to delete conversation (${response.status})`);
         } catch (error) {
             console.error("Error deleting conversation:", error);
@@ -30,7 +30,7 @@ export default function ChatOverView() {
             try {
                 const data = JSON.parse(event.data);
                 if (data.type === 'newDirectMessage') {
-                    setDirectMessages(prev => {
+                    setConversations(prev => {
                         const existing = prev.find(dm => dm.user.id === data.id);
                         if (existing) {
                             const updated = { ...existing, latestMessage: data.latestMessage };
@@ -52,7 +52,7 @@ export default function ChatOverView() {
                     });
                 }
                 if (data.type === 'conversationDeleted') {
-                    setDirectMessages(prev => prev.filter(dm => dm.user.id !== data.id));
+                    setConversations(prev => prev.filter(dm => dm.user.id !== data.id));
                     navigate('/');
                 }
                 if (data.type === 'messageSent') {
@@ -62,14 +62,14 @@ export default function ChatOverView() {
                     }
                 }
                 if (data.type === 'userOnline') {
-                    setDirectMessages(prev =>
+                    setConversations(prev =>
                         prev.map(dm =>
                             dm.user.id === data.id ? { ...dm, user: { ...dm.user, isOnline: true } } : dm
                         )
                     );
                 }
                 if (data.type === 'userOffline') {
-                    setDirectMessages(prev =>
+                    setConversations(prev =>
                         prev.map(dm =>
                             dm.user.id === data.id ? { ...dm, user: { ...dm.user, isOnline: false } } : dm
                         )
@@ -96,7 +96,7 @@ export default function ChatOverView() {
                 <div className="text-gray-100">Direct Messages</div>
             </div>
 
-            {!loading && directMessages.length >= 1 && (
+            {!loading && conversations.length >= 1 && (
                 <div className='px-2 pt-2'>
                     <SearchBar onSearch={(value: string) => setSearchQuery(value)} />
                 </div>
@@ -107,7 +107,7 @@ export default function ChatOverView() {
                         <div className="text-gray-400 text-sm">No results found</div>
                     </div>
                 )}
-                {!loading && !searchQuery && directMessages.length === 0 && (
+                {!loading && !searchQuery && conversations.length === 0 && (
                     <div className='flex-1 flex flex-col justify-center items-center mt-[80px]'>
                         <div className="text-gray-400 text-sm">No messages yet</div>
                     </div>

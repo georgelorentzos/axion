@@ -3,24 +3,24 @@ import { usePending as Pending } from "../hooks/usePending";
 
 type PendingProviderProps = {
     children: React.ReactNode;
-}
+};
 
-const PendingContext = createContext<ReturnType<typeof Pending> | null>(null);
+const usePendingContext = createContext<ReturnType<typeof Pending> | null>(null);
 
 export function PendingProvider({ children }: PendingProviderProps) {
     const state = Pending();
 
     return (
-        <PendingContext.Provider value={state}>
-            { children }
-        </PendingContext.Provider>
+        <usePendingContext.Provider value={state}>
+            {children}
+        </usePendingContext.Provider>
     );
 }
 
 export function usePending() {
-    const context = useContext(PendingContext);
+    const context = useContext(usePendingContext);
     if (!context) {
-        throw new Error('usePending must be used inside UserProvider');
+        throw new Error('usePending must be used inside PendingProvider');
     }
     return context;
 }

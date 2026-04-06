@@ -7,15 +7,15 @@ type ConversationItem = {
     latestMessage: string;
 };
 
-export function useDirectMessages() {
-    const [directMessages, setDirectMessages] = useState<ConversationItem[]>([]);
+export function useConversations() {
+    const [conversations, setConversations] = useState<ConversationItem[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const loadDirectMessages = async () => {
+        const loadConversations = async () => {
             try {
-                const { data } = await api.messages.conversations();
-                setDirectMessages(
+                const { data } = await api.directMessages.conversations();
+                setConversations(
                     (data.conversations || []).map((c: any) => ({
                         user: {
                             id: c.id,
@@ -28,13 +28,13 @@ export function useDirectMessages() {
                     }))
                 );
             } catch (error) {
-                console.error('Fetch direct messages error:', error);
-                setDirectMessages([]);
+                console.error('Fetch conversations error:', error);
+                setConversations([]);
             } finally {
                 setLoading(false);
             }
         };
-        loadDirectMessages();
+        loadConversations();
     }, []);
 
     useEffect(() => {
@@ -42,12 +42,12 @@ export function useDirectMessages() {
             try {
                 const data = JSON.parse(e.data);
                 if (data.type === "conversationDeleted") {
-                    setDirectMessages(prev =>
+                    setConversations(prev =>
                         prev.filter(dm => dm.user.id !== data.conversationId)
                     );
                 }
                 if (data.type === "newDirectMessage") {
-                    setDirectMessages(prev => {
+                    setConversations(prev => {
                         const exists = prev.some(dm => dm.user.id === data.id);
                         if (exists) {
                             return prev.map(dm =>
@@ -79,5 +79,5 @@ export function useDirectMessages() {
         }
     }, []);
 
-    return { directMessages, setDirectMessages, loading };
+    return { conversations, setConversations, loading };
 }

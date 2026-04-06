@@ -210,11 +210,11 @@ async def delete_channel(
             CommunityMember.user_id != user.id
         ).all()
         await asyncio.gather(*[
-            manager.broadcast_to_user(m.user_id, {
+            manager.broadcast_to_user(community_member.user_id, {
                 "type": "channelDeleted",
                 "id": channel_id_to_return,
             })
-            for m in community_members
+            for community_member in community_members
         ])
         db.commit()
         return {

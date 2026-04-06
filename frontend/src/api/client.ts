@@ -67,14 +67,21 @@ export const api = {
     online: () => request("/api/my/friends/online"),
   },
 
-  messages: {
-    send: (senderId: string, recipientId: string, message: string) =>
-      request("/api/send/message", { method: "POST", body: { sender_id: senderId, recipient_id: recipientId, message } }),
+  directMessages: {
+    send: (recipientId: string, message: string) =>
+      request(`/api/send/message/${recipientId}`, { method: "POST", body: { message } }),
     get: (userId: string, limit = 50, offset = 0) =>
       request(`/api/messages/${userId}?limit=${limit}&offset=${offset}`),
     conversations: () => request("/api/my/conversations"),
     deleteConversation: (userId: string) =>
       request(`/api/conversation/${userId}`, { method: "DELETE" }),
+  },
+
+  channelMessages: {
+    send: (communityId: string, channelId: string, message: string) =>
+      request(`/api/community/${communityId}/channels/${channelId}/messages`, { method: "POST", body: { message } }),
+    get: (communityId: string, channelId: string, limit = 50, offset = 0) =>
+      request(`/api/community/${communityId}/channels/${channelId}/messages?limit=${limit}&offset=${offset}`),
   },
 
   communities: {
