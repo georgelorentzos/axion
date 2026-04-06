@@ -1,19 +1,19 @@
-import { useMembers } from "../../contexts/useMembers";
-import UserCard from "../../../../ui/UserCard";
-import MemberPreview from ".././memberpreview/MemberPreview";
+import { useMembers } from "../contexts/useMembers";
+import UserCard from "../../../ui/UserCard";
+import MemberPreview from "./memberpreview/MemberPreview";
 import React, { useState, useEffect, useRef } from "react";
-import ActionMenu from "../../../../ui/actionmenu/ActionMenu";
-import ActionMenuButton from "../../../../ui/actionmenu/ActionMenuButton";
-import { useCurrentUser } from "../../../user/contexts/useCurrentUser";
+import ActionMenu from "../../../ui/actionmenu/ActionMenu";
+import ActionMenuButton from "../../../ui/actionmenu/ActionMenuButton";
+import { useCurrentUser } from "../../user/contexts/useCurrentUser";
 import { useNavigate } from "react-router-dom";
-import { useAllFriends } from "../../../friends/contexts/useAllFriends";
-import { api } from "../../../../api/client";
-import { useCommunity } from "../../contexts/useCommunity";
-import Modal from "../../../../ui/modal/Modal";
-import MemberAction from "../../../../ui/modal/content/MemberAction";
-import { useRoles } from "../../contexts/useRoles";
-import type { User } from "../../../user/types/user";
-import { PERMISSIONS } from "../../../../constants/permissions";
+import { useAllFriends } from "../../home/contexts/useAllFriends";
+import { api } from "../../../api/client";
+import { useCommunity } from "../contexts/useCommunity";
+import Modal from "../../../ui/modal/Modal";
+import MemberAction from "../../../ui/modal/content/MemberAction";
+import { useRoles } from "../contexts/useRoles";
+import type { User } from "../../user/types/user";
+import { PERMISSIONS } from "../../../constants/permissions";
 
 export default function MemberList() {
     const { onlineMembers, offlineMembers } = useMembers();

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useAllFriends } from "../../../features/friends/contexts/useAllFriends";
+import { useAllFriends } from "../../../features/home/contexts/useAllFriends";
 import { useParams } from "react-router-dom";
 import UserCard from "../../../ui/UserCard";
 import Input from "../../../ui/Input";

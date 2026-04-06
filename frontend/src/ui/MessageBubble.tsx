@@ -1,8 +1,8 @@
 import { useState } from "react";
-import ImageProfile from "../../../ui/ImageProfile";
-import CommunityPreview from "../../community/components/CommunityPreview";
-import Modal from "../../../ui/modal/Modal";
-import LinkAlert from "../../../ui/modal/content/LinkAlert";
+import ImageProfile from "./ImageProfile";
+import CommunityPreview from "../features/community/components/CommunityPreview";
+import Modal from "./modal/Modal";
+import LinkAlert from "./modal/content/LinkAlert";
 
 type MessageBubbleProps = {
   isCurrentUser: boolean;

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import Button from "../../../ui/Button";
-import { api } from "../../../api/client";
+import Button from "../../ui/Button";
+import { api } from "../../api/client";
 
 export default function MagicLink() {
     const token = window.location.hash.substring(1);

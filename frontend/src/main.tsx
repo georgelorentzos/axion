@@ -2,19 +2,20 @@ import { StrictMode, useEffect } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
-import Auth from "./features/auth/pages/Auth";
-import NotFound from "./features/auth/pages/NotFound";
-import MagicLink from "./features/auth/pages/MagicLink";
-import Logout from "./features/auth/pages/Logout";
-import FriendsPanel from "./features/friends/components/FriendsPanel";
-import Conversation from "./features/chat/components/Conversation";
+import Auth from "./features/auth/Auth";
+import NotFound from "./features/auth/NotFound";
+import MagicLink from "./features/auth/MagicLink";
+import Logout from "./features/auth/Logout";
+import FriendsPanel from "./features/home/components/FriendsPanel";
+import Conversation from "./features/direct-message/components/Conversation";
 import JoinCommunity from "./features/community/pages/JoinCommunity";
 
 import { ProtectedRoute, PublicRoute } from "./features/user/hooks/useRouteGuards";
 import { UserProvider } from "./features/user/contexts/useCurrentUser";
-import { MainLayout } from "./layouts/MainLayout";
+import { HomeLayout } from "./layouts/HomeLayout";
+import { CommunityLayout } from "./layouts/CommunityLayout";
 import { MainWithProviders } from "./layouts/Providers";
-import { CommunitiesProvider } from "./features/community/contexts/useCommunities";
+import { CommunitiesProvider } from "./ui/sidebar/contexts/useCommunities";
 
 function App() {
   useEffect(() => {
@@ -47,42 +48,31 @@ function App() {
             </PublicRoute>
           }
         />
+
         <Route
-          path="/"
           element={
             <ProtectedRoute>
               <MainWithProviders>
-                <MainLayout>
-                  <FriendsPanel />
-                </MainLayout>
+                <HomeLayout />
+              </MainWithProviders>
+            </ProtectedRoute>
+          }
+        >
+          <Route path="/" element={<FriendsPanel />} />
+          <Route path="/chat/:userId" element={<Conversation />} />
+        </Route>
+
+        <Route
+          path="/community/:communityId/:channelId?"
+          element={
+            <ProtectedRoute>
+              <MainWithProviders>
+                <CommunityLayout />
               </MainWithProviders>
             </ProtectedRoute>
           }
         />
-        <Route
-          path="/chat/:userId"
-          element={
-            <ProtectedRoute>
-              <MainWithProviders>
-                <MainLayout>
-                  <Conversation />
-                </MainLayout>
-              </MainWithProviders>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/community/:communityId"
-          element={
-            <ProtectedRoute>
-              <MainWithProviders>
-                <MainLayout>
-                  <></>
-                </MainLayout>
-              </MainWithProviders>
-            </ProtectedRoute>
-          }
-        />
+
         <Route
           path="/logout"
           element={
@@ -93,14 +83,15 @@ function App() {
             </ProtectedRoute>
           }
         />
-        <Route path="*" element={<NotFound />} />
         <Route
-        path="/join/:communityId"
-        element={
-          <CommunitiesProvider>
-            <JoinCommunity />
-          </CommunitiesProvider>
-        }/>
+          path="/join/:communityId"
+          element={
+            <CommunitiesProvider>
+              <JoinCommunity />
+            </CommunitiesProvider>
+          }
+        />
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
   );

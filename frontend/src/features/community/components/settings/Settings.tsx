@@ -11,7 +11,7 @@ import Modal from "../../../../ui/modal/Modal";
 import Delete from "../../../../ui/modal/content/Delete";
 import { type Community } from "../../types/community";
 import { useNavigate } from "react-router-dom";
-import { useCommunities } from "../../contexts/useCommunities";
+import { useCommunities } from "../../../../ui/sidebar/contexts/useCommunities";
 import { api } from "../../../../api/client";
 import { useCurrentUser } from "../../../user/contexts/useCurrentUser";
 import { PERMISSIONS } from "../../../../constants/permissions";

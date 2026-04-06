@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
-import { useCurrentUser } from '../../user/contexts/useCurrentUser';
-import { api } from '../../../api/client';
-import notificationSound from '../../../assets/sounds/notification.mp3';
+import { useCurrentUser } from '../features/user/contexts/useCurrentUser';
+import { api } from '../api/client';
+import notificationSound from '../assets/sounds/notification.mp3';
 
 type MessageInputProps = {
     value?: string;

@@ -1,6 +1,6 @@
 import ImageProfile from '../../../ui/ImageProfile';
-import MessageInput from './MessageInput';
-import MessageBubble from './MessageBubble';
+import MessageInput from '../../../ui/MessageInput';
+import MessageBubble from '../../../ui/MessageBubble';
 import { useParams } from "react-router-dom";
 import { useEffect, useLayoutEffect, useState, useRef } from 'react';
 import { useCurrentUser } from '../../user/contexts/useCurrentUser';

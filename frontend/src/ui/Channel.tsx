@@ -10,6 +10,7 @@ import Delete from "./modal/content/Delete";
 import { useCurrentUser } from "../features/user/contexts/useCurrentUser";
 import { PERMISSIONS } from "../constants/permissions";
 import { useCommunity } from "../features/community/contexts/useCommunity";
+import { useNavigate } from "react-router-dom";
 
 type ChannelProps = {
     channel: Channel;
@@ -19,10 +20,11 @@ export default function Channel({ channel }: ChannelProps) {
     const [isActionMenuOpen, setIsActionMenuOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [pos, setPos] = useState<{ x: number, y: number }>({ x: 0, y: 0 });
-    const { communityId } = useParams();
+    const { communityId, channelId } = useParams();
     const { setChannels } = useChannels();
     const { currentUser } = useCurrentUser();
     const { community } = useCommunity();
+    const navigate = useNavigate();
 
     const handleContextMenu = (e: React.MouseEvent) => {
         e.preventDefault();
@@ -40,7 +42,9 @@ export default function Channel({ channel }: ChannelProps) {
 
     return (
         <>
-            <button onContextMenu={handleContextMenu} className="rounded-lg w-full h-[40px] pl-2 pr-4 text-gray-500 flex gap-2 items-center hover:bg-basalt hover:text-gray-100 transition duration-200">
+            <button onClick={() => navigate(`/community/${community?.id}/${channel.id}`, {
+                state: { channel: channel }
+            })} onContextMenu={handleContextMenu} className={` ${channelId === channel.id ? `bg-basalt text-gray-100` : `text-gray-500 hover:bg-basalt hover:text-gray-100`} rounded-lg w-full h-[40px] pl-2 pr-4 flex gap-2 items-center transition duration-200`}>
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-5 text-gray-500">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M5.25 8.25h15m-16.5 7.5h15m-1.8-13.5-3.9 19.5m-2.1-19.5-3.9 19.5" />
                 </svg>

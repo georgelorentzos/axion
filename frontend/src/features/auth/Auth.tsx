@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
-import Input from "../../../ui/Input";
-import Button from "../../../ui/Button";
-import { api } from "../../../api/client";
+import Input from "../../ui/Input";
+import Button from "../../ui/Button";
+import { api } from "../../api/client";
 
 export default function Auth() {
     const [email, setEmail] = useState('');

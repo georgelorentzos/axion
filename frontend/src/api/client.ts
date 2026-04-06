@@ -134,12 +134,14 @@ export const api = {
   },
 
   channels: {
-    get: ( communityId: string ) =>
-      request(`/api/community/${communityId}/channels`, { method: "GET" }),
-    create: ( communityId: string, channelName: string, categoryId?: string ) =>
-      request(`/api/community/${communityId}/channels`, { method: "POST", body: { channel_name: channelName, category_id: categoryId || null } }),
-    delete: ( communityId: string, channelId: string ) =>
-      request(`/api/community/${communityId}/channels/${channelId}`, { method: "DELETE" }),
+      get: (communityId: string) =>
+        request(`/api/community/${communityId}/channels`, { method: "GET" }),
+      getOne: (communityId: string, channelId: string) =>
+        request(`/api/community/${communityId}/channels/${channelId}`, { method: "GET" }),
+      create: (communityId: string, channelName: string, categoryId?: string) =>
+        request(`/api/community/${communityId}/channels`, { method: "POST", body: { channel_name: channelName, category_id: categoryId || null } }),
+      delete: (communityId: string, channelId: string) =>
+        request(`/api/community/${communityId}/channels/${channelId}`, { method: "DELETE" }),
   },
 
 };

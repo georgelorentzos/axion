@@ -12,6 +12,45 @@ from utils.websocket_manager import manager
 
 router = APIRouter(prefix="/api", tags=["channels"])
 
+@router.get("/community/{community_id}/channels/{channel_id}", response_model=Dict[str, Any])
+@limiter.limit("120/minute")
+def fetch_channel(
+    request: Request,
+    community_id: str,
+    channel_id: str,
+    current_user_id: str = Depends(get_user_id_from_token),
+    db: Session = Depends(get_db)
+) -> Dict[str, Any]:
+    user = db.query(User).filter(
+        User.id == current_user_id
+    ).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found.")
+    
+    community = db.query(Community).filter(
+        Community.id == community_id
+    ).first()
+    if not community:
+        raise HTTPException(status_code=404, detail="Community not found.")
+    
+    community_member = db.query(CommunityMember).filter(
+        CommunityMember.community_id == community.id,
+        CommunityMember.user_id == user.id
+    ).first()
+    if not community_member:
+        raise HTTPException(status_code=404, detail="Community member not found.")
+
+    community_channel = db.query(CommunityChannel).filter(
+        CommunityChannel.community_id == community.id,
+        CommunityChannel.id == channel_id
+    ).first()
+
+    return {
+        "success": True,
+        "id": community_channel.id,
+        "name": community_channel.channel_name
+    }
+
 @router.get("/community/{community_id}/channels", response_model=Dict[str, Any])
 @limiter.limit("120/minute")
 def fetch_channels(

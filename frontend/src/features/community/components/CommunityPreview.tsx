@@ -2,7 +2,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import CommunityProfile from "./CommunityProfile";
 import Button from "../../../ui/Button";
 import { useEffect, useState } from "react";
-import { useCommunities } from "../contexts/useCommunities";
+import { useCommunities } from "../../../ui/sidebar/contexts/useCommunities";
 import { type Community } from "../types/community";
 import Modal from "../../../ui/modal/Modal";
 import Alert from "../../../ui/modal/content/Alert";

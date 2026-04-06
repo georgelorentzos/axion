@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { type Community } from "../types/community";
+import { type Community } from "../../../features/community/types/community";
 import { api } from "../../../api/client";
 
 export function useCommunities() {

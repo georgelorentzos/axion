@@ -3,7 +3,7 @@ import Input from "../../../../../ui/Input";
 import CommunityPreview from "../../CommunityPreview";
 import Button from "../../../../../ui/Button";
 import UnsavedChangesBar from "../../../../../ui/UnsavedChangesBar";
-import { useCommunities } from "../../../contexts/useCommunities";
+import { useCommunities } from "../../../../../ui/sidebar/contexts/useCommunities";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useMembers } from "../../../contexts/useMembers";
 import { type Community } from "../../../types/community";
