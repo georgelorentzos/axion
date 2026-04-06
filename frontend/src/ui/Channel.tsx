@@ -40,11 +40,17 @@ export default function Channel({ channel }: ChannelProps) {
         setIsDeleteModalOpen(false);
     };
 
+    const handleClick = () => { 
+        const stored = JSON.parse(localStorage.getItem("communities") || "[]");
+        const filtered = stored.filter((item: { communityId: string }) => item.communityId !== community?.id);
+        filtered.push({ communityId: community?.id, channelId: channel.id });
+        localStorage.setItem("communities", JSON.stringify(filtered));
+        navigate(`/community/${community?.id}/${channel.id}`, { state: { channel: channel } });
+    };
+
     return (
         <>
-            <button onClick={() => navigate(`/community/${community?.id}/${channel.id}`, {
-                state: { channel: channel }
-            })} onContextMenu={handleContextMenu} className={` ${channelId === channel.id ? `bg-basalt text-gray-100` : `text-gray-500 hover:bg-basalt hover:text-gray-100`} rounded-lg w-full h-[40px] pl-2 pr-4 flex gap-2 items-center transition duration-200`}>
+            <button onClick={handleClick} onContextMenu={handleContextMenu} className={` ${channelId === channel.id ? `bg-basalt text-gray-100` : `text-gray-500 hover:bg-basalt hover:text-gray-100`} rounded-lg w-full h-[40px] pl-2 pr-4 flex gap-2 items-center transition duration-200`}>
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-5 text-gray-500">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M5.25 8.25h15m-16.5 7.5h15m-1.8-13.5-3.9 19.5m-2.1-19.5-3.9 19.5" />
                 </svg>

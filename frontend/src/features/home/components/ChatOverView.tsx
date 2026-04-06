@@ -129,7 +129,7 @@ export default function ChatOverView() {
                 ))}
             </div>
 
-            <div className="px-2 h-[80px] flex items-center flex-shrink-0 justify-center">
+            <div className="px-2 pb-2">
                 <CurrentUserCard />
             </div>
         </div>

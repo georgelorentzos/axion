@@ -10,9 +10,6 @@ type UserCardProps = {
   showLatestMessage?: boolean;
   latestMessage?: string;
   joinedAtText?: string;
-  title?: string;
-  description?: string;
-  imageUrl?: string;
   children?: React.ReactNode;
 };
 
@@ -24,9 +21,6 @@ export default function UserCard({
   showLatestMessage,
   latestMessage,
   joinedAtText,
-  title,
-  description,
-  imageUrl,
   children,
 }: UserCardProps) {
   const location = useLocation();
@@ -45,18 +39,9 @@ export default function UserCard({
       }`}
     >
       <div className="flex items-center gap-2">
-        <ImageProfile src={imageUrl ?? user?.image} online={user?.isOnline} showStatus={showStatus} />
+        <ImageProfile src={user?.image} online={user?.isOnline} showStatus={showStatus} />
         <div className="flex flex-col leading-none gap-1">
-          <div className="text-gray-100">{title ?? user?.username}</div>
-          {description && (
-            <div className="text-gray-500 text-[12px] max-w-[600px]">
-              {title?.includes("created the role") ? (
-                <span>With Permissions: {description}</span>
-              ) : (
-                <span>With Reason: {description}</span>
-              )}
-            </div>
-          )}
+          <div className="text-gray-100">{user?.username}</div>
           {showLatestMessage ? (
             <div className="text-gray-500 text-[12px] truncate w-[200px]">{latestMessage}</div>
           ) : (

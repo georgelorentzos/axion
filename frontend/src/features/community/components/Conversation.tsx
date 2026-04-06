@@ -1,12 +1,15 @@
 import { useParams } from "react-router-dom";
 import { useLocation } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { api } from "../../../api/client";
+import MessageInput from "../../../ui/MessageInput";
 
-export default function ChannelConversation() {
+export default function Conversation() {
     const { communityId, channelId } = useParams();
     const location = useLocation();
     const [channel, setChannel] = useState(location.state?.channel || null);
+    const scrollContainerRef = useRef<HTMLDivElement>(null);
+    const [showMessages, setShowMessages] = useState(false);
 
     useEffect(() => {
         if (!channelId) {
@@ -36,12 +39,24 @@ export default function ChannelConversation() {
     return(
         <>
         {channelId && (
-            <div className="flex-1 h-full">
+            <div className="flex-1 h-screen flex flex-col">
                 <div className="w-full h-[60px] border-b border-outline flex items-center px-4 gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-5 text-gray-500">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M5.25 8.25h15m-16.5 7.5h15m-1.8-13.5-3.9 19.5m-2.1-19.5-3.9 19.5" />
                     </svg>
                     {channel?.name}
+                </div>
+
+                <div ref={scrollContainerRef} className={`flex-1 w-full min-h-0 p-4 pb-3 space-y-3 ${showMessages ? "overflow-y-auto" : "overflow-hidden"}`}>
+                    <div className={`transition duration-300 ${showMessages ? "opacity-100" : "opacity-0 invisible"}`}>
+
+                    </div>
+                </div>
+
+                <div className="px-2 pb-2">
+                    <MessageInput
+                        recipient_id={channel?.id || ''}
+                    />
                 </div>
             </div>
         )}

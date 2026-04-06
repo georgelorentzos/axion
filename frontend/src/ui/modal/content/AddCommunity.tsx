@@ -63,6 +63,7 @@ export default function AddCommunity({ onClose }: AddCommunityProps) {
                 },
             ]);
             onClose();
+            navigate(`/community/${data.id}`);
             setCommunityImage(null);
 
         } catch (error) {

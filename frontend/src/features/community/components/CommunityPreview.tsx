@@ -74,7 +74,13 @@ export default function CommunityPreview({ joinBtn, community: communityProp, sk
           },
         ];
       });
-      navigate(`/community/${id}`, { state: { community: navData } });
+      const stored = JSON.parse(localStorage.getItem("communities") || "[]");
+      const match = stored.find(( item: { communityId: string} ) => item.communityId === id);
+      navigate(match?.channelId
+        ? `/community/${id}/${match.channelId}`
+        : `/community/${id}`
+        , { state: { community: navData } }
+      );
     } catch (error) {
       console.error("Join community error:", error);
     }

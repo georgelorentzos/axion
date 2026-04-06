@@ -80,9 +80,14 @@ export default function CommunityList() {
                             createdAt: c.createdAt,
                             ownerId: c.ownerId,
                         }
-                        navigate(`/community/${c.id}`, { 
-                            state: { community }
-                        })
+                        const stored = JSON.parse(localStorage.getItem("communities") || "[]");
+                        const match = stored.find((item: { communityId: string }) => item.communityId === c.id);
+
+                        navigate(match?.channelId 
+                            ? `/community/${c.id}/${match.channelId}` 
+                            : `/community/${c.id}`, 
+                            { state: { community } }
+                        );
                     }} 
                     key={c.id}
                     isCommunity

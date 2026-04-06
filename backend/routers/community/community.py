@@ -12,6 +12,7 @@ import asyncio
 import uuid
 import shutil
 import os
+from constants.channel_types import CHANNEL_TYPES
 
 router = APIRouter(prefix="/api", tags=["communities"])
 
@@ -67,6 +68,22 @@ def create_community(
         db.add(new_log)
         db.flush()
         db.refresh(new_log)
+
+        new_category = CommunityCategory(
+            category_name="Text Channels",
+            community_id=new_community.id
+        )
+        db.add(new_category)
+        db.flush()
+        
+        new_channel = CommunityChannel(
+            channel_name="general",
+            type=CHANNEL_TYPES.TEXT,
+            community_id=new_community.id,
+            category_id=new_category.id
+        )
+        db.add(new_channel)
+        db.flush()
 
         db.commit()
         return {"success": True,
