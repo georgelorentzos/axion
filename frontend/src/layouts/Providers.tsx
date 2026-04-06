@@ -28,7 +28,6 @@ export const MainWithProviders = ({ children }: { children: React.ReactNode }) =
                   <RolesProvider>
                     <LogsProvider>
                       <BansProvider>
-                        
                           <ConversationUserProvider>
                             <ChannelsProvider>
                             <CategoriesProvider>
@@ -38,7 +37,6 @@ export const MainWithProviders = ({ children }: { children: React.ReactNode }) =
                                 </CategoriesProvider>
                               </ChannelsProvider>
                           </ConversationUserProvider>
-                        
                       </BansProvider>
                     </LogsProvider>
                   </RolesProvider>
