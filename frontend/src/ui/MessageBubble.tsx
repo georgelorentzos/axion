@@ -45,7 +45,7 @@ export default function MessageBubble({
 
   if (isInviteLink) {
     return (
-      <div className={` ${isLastInGroup && `mb-4`} py-1 px-4 flex items-start flex-row hover:bg-basalt group transition duration-200`}>
+      <div className={`rounded-tr rounded-br ${isLastInGroup && `mb-4`} py-1 px-4 flex items-start flex-row hover:bg-basalt group transition duration-200`}>
         {isFirstInGroup ? (
         <div className="flex-shrink-0">
           <ImageProfile src={senderProfileImage} showStatus={false} />
@@ -70,7 +70,7 @@ export default function MessageBubble({
 
   return (
     <>
-      <div className={` ${isLastInGroup && `mb-4`} px-4 flex items-center flex-row hover:bg-basalt group transition duration-200`}>
+      <div className={`rounded-tr rounded-br ${isLastInGroup && `mb-4`} px-4 flex items-center flex-row hover:bg-basalt group transition duration-200`}>
         {isFirstInGroup ? (
         <div className="flex-shrink-0">
           <ImageProfile src={senderProfileImage} showStatus={false} />
@@ -101,9 +101,6 @@ export default function MessageBubble({
               {message}
             </p>
           )}
-          {/* <p className="text-[10px] mt-1 text-zinc-500 text-right">
-            {createdAt}
-          </p> */}
         </div>
       </div>
 
