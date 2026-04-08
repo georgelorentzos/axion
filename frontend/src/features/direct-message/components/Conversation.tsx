@@ -141,7 +141,7 @@ export default function Conversation() {
                 </div>
             </div>
 
-            <div ref={scrollContainerRef} className={`flex-1 w-full min-h-0 pr-3 pt-3 pb-3 space-y-3 ${showMessages ? "overflow-y-auto" : "overflow-hidden"}`}>
+            <div ref={scrollContainerRef} className={`flex-1 w-full min-h-0 pr-3 pt-3 space-y-3 ${showMessages ? "overflow-y-auto" : "overflow-hidden"}`}>
                 <div className={`transition duration-300 ${showMessages ? "opacity-100" : "opacity-0 invisible"}`}>
                   {messages.map((message, index) => {
                     const prevMessage = messages[index - 1];
