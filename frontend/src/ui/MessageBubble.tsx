@@ -5,19 +5,21 @@ import Modal from "./modal/Modal";
 import LinkAlert from "./modal/content/LinkAlert";
 
 type MessageBubbleProps = {
-  isCurrentUser: boolean;
   message: string;
   senderUsername: string;
   createdAt: string;
   senderProfileImage: string;
+  isFirstInGroup: boolean;
+  isLastInGroup: boolean;
 };
 
 export default function MessageBubble({
-  isCurrentUser,
   message,
   senderUsername,
   createdAt,
   senderProfileImage,
+  isFirstInGroup,
+  isLastInGroup
 }: MessageBubbleProps) {
   const joinPattern = /\/join\/[\w-]+/;
   const isInviteLink = joinPattern.test(message);
@@ -43,39 +45,48 @@ export default function MessageBubble({
 
   if (isInviteLink) {
     return (
-      <div
-        className={`flex gap-2 items-end mb-2 ${
-          isCurrentUser ? "flex-row-reverse" : "flex-row"
-        }`}
-      >
+      <div className={` ${isLastInGroup && `mb-4`} py-1 px-4 flex items-start flex-row hover:bg-basalt group transition duration-200`}>
+        {isFirstInGroup ? (
         <div className="flex-shrink-0">
           <ImageProfile src={senderProfileImage} showStatus={false} />
         </div>
-        <CommunityPreview joinBtn community={communityData} />
+        ): (
+          <div className="min-w-[40px] max-w-[40px]">
+          </div>
+        )}
+
+        <div className="relative w-full min-w-[120px] px-3 py-1 rounded-2xl">
+          {isFirstInGroup && (
+          <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-emerald-400 mb-0.5">
+            <div>{senderUsername}</div>
+            <div className="text-gray-500 text-xs">{createdAt}</div>
+          </div>
+          )}
+          <CommunityPreview joinBtn community={communityData} />
+        </div>
       </div>
     );
   }
 
   return (
     <>
-      <div
-        className={`flex gap-2 items-end mb-2 ${
-          isCurrentUser ? "flex-row-reverse" : "flex-row"
-        }`}
-      >
+      <div className={` ${isLastInGroup && `mb-4`} px-4 flex items-center flex-row hover:bg-basalt group transition duration-200`}>
+        {isFirstInGroup ? (
         <div className="flex-shrink-0">
           <ImageProfile src={senderProfileImage} showStatus={false} />
         </div>
+        ): (
+          <div className="min-w-[40px] max-w-[40px] flex justify-center">
+            <div className="opacity-0 group-hover:opacity-100 text-xs text-gray-300 transition duration-200">{createdAt}</div>
+          </div>
+        )}
 
-        <div
-          className={`relative max-w-[320px] min-w-[120px] px-3 py-2 rounded-2xl ${
-            isCurrentUser ? "bg-forestgreen" : "bg-zinc-800"
-          }`}
-        >
-          {!isCurrentUser && (
-            <p className="text-[11px] font-semibold text-emerald-400 mb-0.5">
-              {senderUsername}
-            </p>
+        <div className="relative w-full min-w-[120px] px-3 py-1 rounded-2xl">
+          {isFirstInGroup && (
+          <div className="flex items-center gap-2 text-sm font-semibold text-emerald-400 mb-0.5">
+            <div>{senderUsername}</div>
+            <div className="text-gray-500 text-xs">{createdAt}</div>
+          </div>
           )}
           {isLink ? (
             <a
@@ -90,13 +101,9 @@ export default function MessageBubble({
               {message}
             </p>
           )}
-          <p
-            className={`text-[10px] mt-1 ${
-              isCurrentUser ? "text-green-300" : "text-zinc-500"
-            } text-right`}
-          >
+          {/* <p className="text-[10px] mt-1 text-zinc-500 text-right">
             {createdAt}
-          </p>
+          </p> */}
         </div>
       </div>
 

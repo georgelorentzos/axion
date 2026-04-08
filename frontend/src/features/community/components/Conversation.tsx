@@ -146,28 +146,27 @@ export default function ChannelConversation() {
                         {channel?.name}
                     </div>
 
-                    <div ref={scrollContainerRef} className={`flex-1 w-full min-h-0 p-4 pb-3 space-y-3 ${showMessages ? "overflow-y-auto" : "overflow-hidden"}`}>
+                    <div ref={scrollContainerRef} className={`flex-1 w-full min-h-0 pr-3 pb-3 pt-3 ${showMessages ? "overflow-y-auto" : "overflow-hidden"}`}>
                         <div className={`transition duration-300 ${showMessages ? "opacity-100" : "opacity-0 invisible"}`}>
-                            {messages.map((message, index) => (
-                                <div
-                                    key={message.id}
-                                    ref={index === messages.length - 1 ? messagesEndRef : null}
-                                    className={`flex ${
-                                        message.senderId === currentUser?.id
-                                            ? "justify-end"
-                                            : "justify-start"
-                                    }`}
-                                >
+                            {messages.map((message, index) => {
+                                const prevMessage = messages[index - 1];
+                                const nextMessage = messages[index + 1];
+                                const isFirstInGroup = !prevMessage || prevMessage.senderId !== message.senderId;
+                                const isLastInGroup = !nextMessage || nextMessage.senderId !== message.senderId;
+
+                                return (
                                     <MessageBubble
-                                        isCurrentUser={message.senderId === currentUser?.id}
+                                        key={message.id}
                                         message={message.message}
                                         senderUsername={message.senderUsername || ""}
                                         createdAt={message.createdAt}
                                         senderProfileImage={message.senderImage || ""}
+                                        isFirstInGroup={isFirstInGroup}
+                                        isLastInGroup={isLastInGroup}
                                     />
-                                </div>
-                            ))}
-                        </div>
+                                );
+                            })}
+                            </div>
                     </div>
 
                     <div className="px-2 pb-2">
