@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 
 type ActionMenuProps = {
-  isActionMenuOpen: boolean;
+  isOpen: boolean;
   canOpen?: boolean;
   position: { x: number; y: number };
   onClose: () => void;
@@ -10,7 +10,7 @@ type ActionMenuProps = {
 };
 
 export default function ActionMenu({
-  isActionMenuOpen,
+  isOpen,
   canOpen = true,
   position,
   onClose,
@@ -68,14 +68,14 @@ export default function ActionMenu({
         onClose();
       }
     };
-    if (isActionMenuOpen) {
+    if (isOpen) {
       document.addEventListener("mousedown", handleClickOutside);
     }
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [isActionMenuOpen, onClose, buttonRef]);
+  }, [isOpen, onClose, buttonRef]);
 
   useEffect(() => {
-    if (isActionMenuOpen) {
+    if (isOpen) {
       setIsVisible(true);
       setMeasured(false);
     } else {
@@ -83,10 +83,10 @@ export default function ActionMenu({
       const timer = setTimeout(() => setIsVisible(false), 200);
       return () => clearTimeout(timer);
     }
-  }, [isActionMenuOpen]);
+  }, [isOpen]);
 
   useEffect(() => {
-    if (!isActionMenuOpen || !isVisible) return;
+    if (!isOpen || !isVisible) return;
 
     if (updatePosition()) return;
 
@@ -100,10 +100,10 @@ export default function ActionMenu({
     }, 50);
 
     return () => clearInterval(intervalId);
-  }, [isActionMenuOpen, isVisible, updatePosition]);
+  }, [isOpen, isVisible, updatePosition]);
 
   useEffect(() => {
-    if (!isActionMenuOpen || !measured) return;
+    if (!isOpen || !measured) return;
 
     const handleReposition = () => updatePosition();
 
@@ -114,7 +114,7 @@ export default function ActionMenu({
       window.removeEventListener("resize", handleReposition);
       window.removeEventListener("scroll", handleReposition, true);
     };
-  }, [isActionMenuOpen, measured, updatePosition]);
+  }, [isOpen, measured, updatePosition]);
 
   if (!isVisible) return null;
   if (!canOpen) return null;
@@ -126,7 +126,7 @@ export default function ActionMenu({
       style={{
         left: measured ? finalLeft : -9999,
         top: measured ? finalTop : -9999,
-        opacity: measured && isActionMenuOpen ? 1 : 0,
+        opacity: measured && isOpen ? 1 : 0,
       }}
     >
       {children}

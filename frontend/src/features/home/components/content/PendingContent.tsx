@@ -5,6 +5,8 @@ import { useCurrentUser } from '../../../user/contexts/useCurrentUser';
 import { useState } from 'react';
 import { type User } from '../../../user/types/user';
 import { api } from '../../../../api/client';
+import { icons } from '../../../../constants/Icons';
+import Icon from '../../../../ui/Icon';
 
 function PendingActions({ user, onRemove }: { user: User; onRemove: (id: string) => void }) {
     const { currentUser } = useCurrentUser();
@@ -41,14 +43,10 @@ function PendingActions({ user, onRemove }: { user: User; onRemove: (id: string)
     return (
         <>
             <button onClick={handleAccept} disabled={loading}>
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-5 text-gray-500 hover:text-gray-300 transition duration-300">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-                </svg>
+                <Icon svgPaths={icons.accept} className="size-5 text-emerald hover:text-forestgreen transition duration-300" />
             </button>
             <button onClick={handleReject} disabled={loading}>
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-5 text-gray-500 hover:text-gray-300 transition duration-300">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
-                </svg>
+                <Icon svgPaths={icons.x} className="size-5 text-gray-500 hover:text-gray-300 transition duration-300" />
             </button>
         </>
     );

@@ -1,6 +1,6 @@
 import ImageProfile from '../../../ui/ImageProfile';
 import MessageInput from '../../../ui/MessageInput';
-import MessageBubble from '../../../ui/MessageBubble';
+import Message from '../../../ui/Message';
 import { useParams } from "react-router-dom";
 import { useEffect, useLayoutEffect, useState, useRef } from 'react';
 import { useCurrentUser } from '../../user/contexts/useCurrentUser';
@@ -8,7 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import { useDirectMessages } from '../contexts/useDirectMessages';
 import { useUser } from '../contexts/useUser';
 
-export default function Conversation() {
+export default function DirectMessageConversation() {
     const { userId } = useParams();
     const { currentUser } = useCurrentUser();
     const { user, setUser } = useUser();
@@ -151,7 +151,7 @@ export default function Conversation() {
                     const isLastInGroup = !nextMessage || nextMessage.senderId !== message.senderId;
 
                     return (
-                            <MessageBubble
+                            <Message
                                 key={message.id}
                                 message={message.message}
                                 senderUsername={

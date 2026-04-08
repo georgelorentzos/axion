@@ -1,22 +1,22 @@
 import type React from "react";
+import Icon from "./Icon";
+
 type InputProps = {
     onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
     onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
     placeholder?: string;
-    svgD?: string;
+    svgPaths?: string[];
     value?: string;
     maxLength?: number;
     readOnly?: boolean;
     isLink?: boolean;
     bg?: string;
 }
-export default function Input({ onChange, onKeyDown, placeholder, svgD, value, maxLength, readOnly, isLink, bg = "bg-basalt" } : InputProps) {
+export default function Input({ onChange, onKeyDown, placeholder, svgPaths, value, maxLength, readOnly, isLink, bg = "bg-basalt" } : InputProps) {
     return (
         <div className={`border border-outline flex items-center ${bg} px-2 rounded-lg gap-2 w-full`}>
-            {svgD && (
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-5 text-gray-500">
-                    <path strokeLinecap="round" strokeLinejoin="round" d={svgD} />
-                </svg>
+            {svgPaths && (
+                <Icon svgPaths={svgPaths} className="size-5 text-gray-500" />
             )}
             <input 
                 readOnly={readOnly}

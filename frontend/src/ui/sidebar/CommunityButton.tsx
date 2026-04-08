@@ -3,6 +3,8 @@ import Modal from '../modal/Modal';
 import AddCommunity from '../modal/content/AddCommunity';
 import { useState } from 'react';
 import CommunityProfile from '../../features/community/components/CommunityProfile';
+import { icons } from '../../constants/Icons';
+import Icon from '../Icon';
 
 type CommunityButtonProps = {
     onClick?: () => void;
@@ -49,20 +51,7 @@ export default function CommunityButton({
                     }`}
                     onClick={onClick}
                 >
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        strokeWidth="1.5"
-                        stroke="currentColor"
-                        className="size-5"
-                    >
-                        <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"
-                        />
-                    </svg>
+                    <Icon svgPaths={icons.home} className="size-5" />
                 </button>
             </div>
         );
@@ -75,20 +64,7 @@ export default function CommunityButton({
                     className="transition duration-300 bg-basalt hover:bg-basalt h-[50px] w-[50px] rounded-2xl flex justify-center items-center text-gray-500 hover:text-gray-300"
                     onClick={handleCreateCommunityModal}
                 >
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        strokeWidth="1.5"
-                        stroke="currentColor"
-                        className="size-5"
-                    >
-                        <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M12 4.5v15m7.5-7.5h-15"
-                        />
-                    </svg>
+                    <Icon svgPaths={icons.add} className="size-5" />
                 </button>
 
                 <Modal isOpen={createModalIsOpen} onClose={() => setCreateModalIsOpen(false)}>

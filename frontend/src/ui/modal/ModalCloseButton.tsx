@@ -1,4 +1,6 @@
 import { useEffect } from "react";
+import { icons } from "../../constants/Icons";
+import Icon from "../Icon";
 
 type ModalCloseButtonProps = {
     onClose: () => void;
@@ -25,10 +27,7 @@ export default function ModalCloseButton({ onClose, top = "-top-2", right = "-ri
             onClick={onClose}
             className="flex items-center justify-center w-8 h-8 border border-outline bg-onyx hover:bg-basalt transition duration-200 rounded-full text-white"
         >
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-              strokeWidth="1.5" stroke="currentColor" className="size-5 text-gray-100">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
-            </svg>
+            <Icon svgPaths={icons.x} className="size-5 text-gray-100" />
         </button>
         <div className="text-gray-100 text-[12px] border border-outline bg-onyx px-2 rounded-full">ESC</div>
         </div>

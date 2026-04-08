@@ -10,6 +10,8 @@ import { useCommunity } from "../../../contexts/useCommunity";
 import { useCurrentUser } from "../../../../user/contexts/useCurrentUser";
 import { PERMISSIONS } from "../../../../../constants/permissions";
 import type { User } from "../../../../user/types/user";
+import { icons } from "../../../../../constants/Icons";
+import Icon from "../../../../../ui/Icon";
 
 type MembersContentProps = {
     onChildModalChange?: (isOpen: boolean) => void;
@@ -48,16 +50,14 @@ function MemberOptionsButton({
                     setIsMenuOpen(prev => !prev);
                 }}
             >
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-5 text-gray-500 hover:text-gray-300 transition duration-300">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 12.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 18.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5Z" />
-                </svg>
+                <Icon svgPaths={icons.verticalDots} className="size-5 text-gray-500 hover:text-gray-300 transition duration-300" />
             </button>
-            <ActionMenu isActionMenuOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} buttonRef={buttonRef} position={pos}>
+            <ActionMenu isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} buttonRef={buttonRef} position={pos}>
                 {canKick && (
                     <ActionMenuButton
                         text={`Kick ${member.username}`}
                         isDanger
-                        svgPaths={["M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l-3 3m0 0 3 3m-3-3h12.75"]}
+                        svgPaths={icons.kick}
                         onClick={() => { setIsKickModalOpen(true); setIsMenuOpen(false); handleModalChange(true); }}
                     />
                 )}
@@ -65,7 +65,7 @@ function MemberOptionsButton({
                     <ActionMenuButton
                         text={`Ban ${member.username}`}
                         isDanger
-                        svgPaths={["M18.364 18.364A9 9 0 0 0 5.636 5.636m12.728 12.728A9 9 0 0 1 5.636 5.636m12.728 12.728L5.636 5.636"]}
+                        svgPaths={icons.ban}
                         onClick={() => { setIsBanModalOpen(true); setIsMenuOpen(false); handleModalChange(true); }}
                     />
                 )}

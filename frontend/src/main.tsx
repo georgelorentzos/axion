@@ -7,7 +7,7 @@ import NotFound from "./features/auth/NotFound";
 import MagicLink from "./features/auth/MagicLink";
 import Logout from "./features/auth/Logout";
 import FriendsPanel from "./features/home/components/FriendsPanel";
-import Conversation from "./features/direct-message/components/Conversation";
+import DirectMessageConversation from "./features/direct-message/components/DirectMessageConversation";
 import JoinCommunity from "./features/community/pages/JoinCommunity";
 
 import { ProtectedRoute, PublicRoute } from "./features/user/hooks/useRouteGuards";
@@ -59,7 +59,7 @@ function App() {
           }
         >
           <Route path="/" element={<FriendsPanel />} />
-          <Route path="/chat/:userId" element={<Conversation />} />
+          <Route path="/chat/:userId" element={<DirectMessageConversation />} />
         </Route>
 
         <Route

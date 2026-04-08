@@ -7,6 +7,8 @@ import { type Community } from "../types/community";
 import Modal from "../../../ui/modal/Modal";
 import Alert from "../../../ui/modal/content/Alert";
 import { api } from "../../../api/client";
+import { icons } from "../../../constants/Icons";
+import Icon from "../../../ui/Icon";
 
 type CommunityPreviewProps = {
   joinBtn?: boolean;
@@ -133,9 +135,7 @@ export default function CommunityPreview({ joinBtn, community: communityProp, sk
     return (
       <div className="bg-onyx border border-outline flex gap-2 flex-col justify-center items-start rounded-2xl w-[300px] p-4">
         <div className="flex gap-2 items-center">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-[50px] h-[50px] text-gray-500">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
-          </svg>
+          <Icon svgPaths={icons.alertCircle} className="w-[50px] h-[50px] text-red-700" />
           <div className="font-bold text-gray-500">Community doesn't exist</div>
         </div>
       </div>

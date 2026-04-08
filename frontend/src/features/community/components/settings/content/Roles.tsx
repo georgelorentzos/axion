@@ -13,6 +13,8 @@ import SearchBar from "../../../../../ui/SearchBar";
 import { useRoles } from "../../../contexts/useRoles";
 import { type Role } from "../../../types/role";
 import { api } from "../../../../../api/client";
+import Icon from "../../../../../ui/Icon";
+import { icons } from "../../../../../constants/Icons";
 
 interface RolesContentProps {
     onChildModalChange?: (isOpen: boolean) => void;
@@ -170,20 +172,7 @@ export default function RolesContent({ onChildModalChange }: RolesContentProps) 
                     onClick={handleBack}
                     className="text-gray-500 hover:text-gray-100 transition duration-200 flex items-center"
                 >
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        strokeWidth="1.5"
-                        stroke="currentColor"
-                        className="size-5"
-                    >
-                        <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M15.75 19.5 8.25 12l7.5-7.5"
-                        />
-                    </svg>
+                    <Icon svgPaths={icons.arrowLeft} className="size-5" />
                     Back
                 </button>
             </div>

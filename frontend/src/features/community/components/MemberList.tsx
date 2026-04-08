@@ -14,6 +14,7 @@ import MemberAction from "../../../ui/modal/content/MemberAction";
 import { useRoles } from "../contexts/useRoles";
 import type { User } from "../../user/types/user";
 import { PERMISSIONS } from "../../../constants/permissions";
+import { icons } from "../../../constants/Icons";
 
 export default function MemberList() {
     const { onlineMembers, offlineMembers } = useMembers();
@@ -89,14 +90,14 @@ export default function MemberList() {
                     isOpen={activeMemberId === member.id}
                 />
                 <ActionMenu
-                    isActionMenuOpen={actionMenuMemberId === member.id && member.id !== currentUser?.id}
+                    isOpen={actionMenuMemberId === member.id && member.id !== currentUser?.id}
                     onClose={() => setActionMenuMemberId(null)}
                     position={pos}
                 >
                     <ActionMenuButton
                         onClick={() => navigate(`/chat/${member.id}`)}
                         text="Message"
-                        svgPaths={["M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5"]}
+                        svgPaths={icons.send}
                     />
                     {!isFriend ? (
                         <ActionMenuButton
@@ -106,7 +107,7 @@ export default function MemberList() {
                                 setActionMenuMemberId(null);
                             }}
                             text="Add Friend"
-                            svgPaths={["M18 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM3 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 9.374 21c-2.331 0-4.512-.645-6.374-1.766Z"]}
+                            svgPaths={icons.addFriend}
                         />
                     ) : (
                         <ActionMenuButton
@@ -117,7 +118,7 @@ export default function MemberList() {
                                 setActionMenuMemberId(null);
                             }}
                             text="Unfriend"
-                            svgPaths={["M22 10.5h-6m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM4 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 10.374 21c-2.331 0-4.512-.645-6.374-1.766Z"]}
+                            svgPaths={icons.unfriend}
                         />
                     )}
                     <ActionMenuButton
@@ -129,7 +130,7 @@ export default function MemberList() {
                         text={`Kick ${member.username}`}
                         isDanger
                         isVisible={isTargetable && canKick}
-                        svgPaths={["M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l-3 3m0 0 3 3m-3-3h12.75"]}
+                        svgPaths={icons.kick}
                     />
                     <ActionMenuButton
                         onClick={() => {
@@ -140,7 +141,7 @@ export default function MemberList() {
                         text={`Ban ${member.username}`}
                         isDanger
                         isVisible={isTargetable && canBan}
-                        svgPaths={["M18.364 18.364A9 9 0 0 0 5.636 5.636m12.728 12.728A9 9 0 0 1 5.636 5.636m12.728 12.728L5.636 5.636"]}
+                        svgPaths={icons.ban}
                     />
                 </ActionMenu>
             </>

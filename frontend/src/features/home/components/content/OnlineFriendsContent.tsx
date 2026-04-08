@@ -8,6 +8,8 @@ import { useNavigate } from 'react-router-dom';
 import { useState, useRef } from 'react';
 import { type User } from '../../../user/types/user';
 import { api } from '../../../../api/client';
+import { icons } from '../../../../constants/Icons';
+import Icon from '../../../../ui/Icon';
 
 function FriendOptionsButton({ user }: { user: User }) {
     const { currentUser } = useCurrentUser();
@@ -35,14 +37,12 @@ function FriendOptionsButton({ user }: { user: User }) {
                     setIsOpen(prev => !prev);
                 }}
             >
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-5 text-gray-500 hover:text-gray-300 transition duration-300">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 12.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 18.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5Z" />
-                </svg>
+                <Icon svgPaths={icons.verticalDots} className="size-5 text-gray-500 hover:text-gray-300 transition duration-300" />
             </button>
-            <ActionMenu isActionMenuOpen={isOpen} onClose={() => setIsOpen(false)} buttonRef={buttonRef} position={pos}>
+            <ActionMenu isOpen={isOpen} onClose={() => setIsOpen(false)} buttonRef={buttonRef} position={pos}>
                 <ActionMenuButton
                     text="Unfriend"
-                    svgPaths={["M22 10.5h-6m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM4 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 10.374 21c-2.331 0-4.512-.645-6.374-1.766Z"]}
+                    svgPaths={icons.unfriend}
                     onClick={handleUnfriend}
                 />
             </ActionMenu>
