@@ -26,12 +26,13 @@ export default function Conversation() {
 
     useEffect(() => {
         if (isMessagesLoaded) {
-            const timer = setTimeout(() => {
+            requestAnimationFrame(() => {
+                messagesEndRef.current?.scrollIntoView({ behavior: 'instant' });
                 setShowMessages(true);
-            }, 10);
-            return () => clearTimeout(timer);
+            });
+        } else {
+            setShowMessages(false);
         }
-        setShowMessages(false);
     }, [isMessagesLoaded]);
 
     useEffect(() => {
@@ -142,7 +143,7 @@ export default function Conversation() {
             </div>
 
             <div ref={scrollContainerRef} className={`flex-1 w-full min-h-0 pr-3 pt-3 space-y-3 ${showMessages ? "overflow-y-auto" : "overflow-hidden"}`}>
-                <div className={`transition duration-300 ${showMessages ? "opacity-100" : "opacity-0 invisible"}`}>
+                <div className={showMessages ? "visible" : "invisible"}>
                   {messages.map((message, index) => {
                     const prevMessage = messages[index - 1];
                     const nextMessage = messages[index + 1];
@@ -169,6 +170,7 @@ export default function Conversation() {
                             />
                         );
                     })}
+                    <div ref={messagesEndRef} />
                 </div>
             </div>
 

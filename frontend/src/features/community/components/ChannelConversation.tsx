@@ -51,12 +51,13 @@ export default function ChannelConversation() {
 
     useEffect(() => {
         if (isMessagesLoaded) {
-            const timer = setTimeout(() => {
+            requestAnimationFrame(() => {
+                messagesEndRef.current?.scrollIntoView({ behavior: 'instant' });
                 setShowMessages(true);
-            }, 10);
-            return () => clearTimeout(timer);
+            });
+        } else {
+            setShowMessages(false);
         }
-        setShowMessages(false);
     }, [isMessagesLoaded]);
 
     useEffect(() => {
@@ -160,7 +161,7 @@ export default function ChannelConversation() {
                     <div className="flex flex-1 min-h-0">
                         <div className="flex-1 flex flex-col min-w-0">
                             <div ref={scrollContainerRef} className={`flex-1 min-h-0 pr-3 pt-3 ${showMessages ? "overflow-y-auto" : "overflow-hidden"}`}>
-                                <div className={`transition duration-300 ${showMessages ? "opacity-100" : "opacity-0 invisible"}`}>
+                                <div className={showMessages ? "visible" : "invisible"}>
                                     {messages.map((message, index) => {
                                         const prevMessage = messages[index - 1];
                                         const nextMessage = messages[index + 1];
