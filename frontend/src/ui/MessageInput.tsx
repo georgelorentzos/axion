@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useRef, useState } from 'react';
 import { api } from '../api/client';
 import notificationSound from '../assets/sounds/notification.mp3';
 import { useParams } from 'react-router-dom';
@@ -12,7 +12,8 @@ type MessageInputProps = {
 };
 
 export default function MessageInput({ value: propValue, recipient_id }: MessageInputProps) {
-    const [value, setValue] = useState(propValue || '');
+    const valueRef = useRef(propValue || '');
+    const [clearCount, setClearCount] = useState(0);
     const audioRef = useRef<HTMLAudioElement>(null);
     const { communityId, channelId } = useParams();
 
@@ -30,13 +31,15 @@ export default function MessageInput({ value: propValue, recipient_id }: Message
             if (communityId && channelId) {
                 const { data } = await api.channelMessages.send(communityId, channelId, message);
                 if (data.success) {
-                    setValue('');
+                    valueRef.current = '';
+                    setClearCount(c => c + 1);
                     playSendSound();
                 }
             } else {
                 const { data } = await api.directMessages.send(recipient_id, message);
                 if (data.success) {
-                    setValue('');
+                    valueRef.current = '';
+                    setClearCount(c => c + 1);
                     playSendSound();
                 }
             }
@@ -46,13 +49,13 @@ export default function MessageInput({ value: propValue, recipient_id }: Message
     };
 
     const handleKeyPressEnter = (event: React.KeyboardEvent<HTMLDivElement>) => {
-        if (event.key === 'Enter' && value.trim()) {
-            sendMessage(value);
+        if (event.key === 'Enter' && !event.shiftKey && valueRef.current.trim()) {
+            sendMessage(valueRef.current);
         }
     };
 
     const handleSendClick = () => {
-        sendMessage(value);
+        sendMessage(valueRef.current);
     };
 
     return (
@@ -61,12 +64,12 @@ export default function MessageInput({ value: propValue, recipient_id }: Message
             <button>
                 <Icon svgPaths={icons.add} className="size-5 text-gray-500 hover:text-gray-300 transition duration-300" />
             </button>
-            <TextArea 
-            maxLength={2000}
-            placeholder='Message' 
-            value={value}
-            onChange={(text) => setValue(text)}
-            onKeyDown={handleKeyPressEnter}
+            <TextArea
+                maxLength={2000}
+                placeholder='Message'
+                clearSignal={clearCount}
+                onChange={(text) => { valueRef.current = text; }}
+                onKeyDown={handleKeyPressEnter}
             />
             <button onClick={handleSendClick}>
                 <Icon svgPaths={icons.send} className="size-5 text-gray-500 hover:text-gray-300 transition duration-300" />

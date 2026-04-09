@@ -25,18 +25,24 @@ export default function Message({
 }: MessageProps) {
   const joinPattern = /\/join\/[\w-]+/;
   const isInviteLink = joinPattern.test(message.message);
-  const isLink = message.message?.startsWith("http://") || message.message?.startsWith("https://");
+  const isLink =
+    message.message?.startsWith("http://") ||
+    message.message?.startsWith("https://");
   const parts = message.message.split("/join/")[1]?.split("/");
   const messageCommunityId = parts?.[0];
+
   const [linkModal, setLinkModal] = useState({ isOpen: false, link: "" });
   const [isActionMenuOpen, setIsActionMenuOpen] = useState(false);
-  const [pos, setPos] = useState<{ x:number, y:number}>({ x:0, y:0});
+  const [pos, setPos] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const { communityId, channelId } = useParams();
   const { currentUser } = useCurrentUser();
   const [isEditingMessage, setIsEditingMessage] = useState(false);
   const [newMessage, setNewMessage] = useState(message.message);
 
-  const handleLinkClick = (e: React.MouseEvent<HTMLAnchorElement>, url: string) => {
+  const handleLinkClick = (
+    e: React.MouseEvent<HTMLAnchorElement>,
+    url: string
+  ) => {
     e.preventDefault();
     setLinkModal({ isOpen: true, link: url });
   };
@@ -52,7 +58,7 @@ export default function Message({
   };
 
   const handleContextMenu = (e: React.MouseEvent) => {
-    setPos({ x:e.clientX, y:e.clientY });
+    setPos({ x: e.clientX, y: e.clientY });
     setIsActionMenuOpen(true);
   };
 
@@ -64,12 +70,12 @@ export default function Message({
   const handleDeleteMessage = () => {
     setIsActionMenuOpen(false);
     if (communityId && channelId) {
-      api.channelMessages.delete(communityId, channelId, message.id)
+      api.channelMessages.delete(communityId, channelId, message.id);
     } else {
       if (message.recipientId) {
         api.directMessages.delete(message.recipientId, message.id);
       }
-  }
+    }
   };
 
   const handleEditMessage = () => {
@@ -81,28 +87,31 @@ export default function Message({
 
   useEffect(() => {
     const handleCloseAll = () => setIsEditingMessage(false);
-    window.addEventListener("closeAllEdits", handleCloseAll)
+    window.addEventListener("closeAllEdits", handleCloseAll);
     return () => window.removeEventListener("closeAllEdits", handleCloseAll);
   }, []);
 
   useEffect(() => {
     if (!isEditingMessage) return;
-
-     const handleEscape = (e: KeyboardEvent) => {
+    const handleEscape = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         setIsEditingMessage(false);
       }
     };
-    
+
     document.addEventListener("keydown", handleEscape);
     return () => document.removeEventListener("keydown", handleEscape);
-
-  }, [isEditingMessage])
+  }, [isEditingMessage]);
 
   const handleEditSave = () => {
     setIsEditingMessage(false);
     if (communityId && channelId) {
-      api.channelMessages.edit(communityId, channelId, message.id, newMessage);
+      api.channelMessages.edit(
+        communityId,
+        channelId,
+        message.id,
+        newMessage
+      );
     } else {
       if (!message.recipientId) return;
       api.directMessages.edit(message.recipientId, message.id, newMessage);
@@ -114,7 +123,7 @@ export default function Message({
       e.preventDefault();
       handleEditSave();
     }
-  }
+  };
 
   return (
     <>
@@ -138,34 +147,126 @@ export default function Message({
 
         <div className="relative w-full min-w-0 overflow-hidden px-3 py-1 rounded-2xl">
           {isFirstInGroup && (
-            <div className={`flex items-center gap-2 text-sm font-semibold text-emerald-400 mb-0.5 ${isInviteLink ? "mb-2" : ""}`}>
+            <div
+              className={`flex items-center gap-2 text-sm font-semibold text-emerald-400 mb-0.5 ${isInviteLink ? "mb-2" : ""}`}
+            >
               <div>{message.senderUsername}</div>
               <div className="text-gray-500 text-xs">{message.createdAt}</div>
             </div>
           )}
 
           {isInviteLink ? (
-            <CommunityPreview joinBtn community={communityData} />
+            <>
+              {isEditingMessage ? (
+                <div className="flex flex-col gap-1">
+                  <TextArea
+                    className="border border-outline"
+                    defaultValue={message.message}
+                    onChange={(text) => setNewMessage(text)}
+                    onKeyDown={(e) => handleKeyDown(e)}
+                    maxLength={2000}
+                  />
+                  <div className="text-xs">
+                    escape to{" "}
+                    <button
+                      onClick={() => setIsEditingMessage(false)}
+                      className="text-blue-400 hover:underline"
+                    >
+                      cancel
+                    </button>{" "}
+                    • enter to{" "}
+                    <button
+                      onClick={() => handleEditSave()}
+                      className="text-blue-400 hover:underline"
+                    >
+                      save
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <CommunityPreview joinBtn community={communityData} />
+              )}
+            </>
           ) : isLink ? (
-            <a
-              href={message.message}
-              onClick={(e) => handleLinkClick(e, message.message)}
-              className="text-[14px] text-blue-400 underline leading-snug break-words hover:text-blue-300 transition duration-300"
-            >
-              {message.message}
-            </a>
+            <>
+              {isEditingMessage ? (
+                <div className="flex flex-col gap-1">
+                  <TextArea
+                    className="border border-outline"
+                    defaultValue={message.message}
+                    onChange={(text) => setNewMessage(text)}
+                    onKeyDown={(e) => handleKeyDown(e)}
+                    maxLength={2000}
+                  />
+                  <div className="text-xs">
+                    escape to{" "}
+                    <button
+                      onClick={() => setIsEditingMessage(false)}
+                      className="text-blue-400 hover:underline"
+                    >
+                      cancel
+                    </button>{" "}
+                    • enter to{" "}
+                    <button
+                      onClick={() => handleEditSave()}
+                      className="text-blue-400 hover:underline"
+                    >
+                      save
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <a
+                    href={message.message}
+                    onClick={(e) => handleLinkClick(e, message.message)}
+                    className="text-[14px] text-blue-400 underline leading-snug break-words hover:text-blue-300 transition duration-300"
+                  >
+                    {message.message}
+                  </a>
+                  {message.isEdited && (
+                    <span className="text-gray-500 text-xs pl-1">
+                      (edited)
+                    </span>
+                  )}
+                </>
+              )}
+            </>
           ) : (
             <>
               {isEditingMessage ? (
                 <div className="flex flex-col gap-1">
-                  <TextArea className='border border-outline' defaultValue={message.message} onChange={(text) => setNewMessage(text)} onKeyDown={(e) => handleKeyDown(e)} maxLength={2000} />
-                  <div className="text-xs">escape to <button onClick={() => setIsEditingMessage(false)} className="text-blue-400 hover:underline">cancel</button> • enter to <button onClick={() => handleEditSave()} className="text-blue-400 hover:underline">save</button></div>
+                  <TextArea
+                    className="border border-outline"
+                    defaultValue={message.message}
+                    onChange={(text) => setNewMessage(text)}
+                    onKeyDown={(e) => handleKeyDown(e)}
+                    maxLength={2000}
+                  />
+                  <div className="text-xs">
+                    escape to{" "}
+                    <button
+                      onClick={() => setIsEditingMessage(false)}
+                      className="text-blue-400 hover:underline"
+                    >
+                      cancel
+                    </button>{" "}
+                    • enter to{" "}
+                    <button
+                      onClick={() => handleEditSave()}
+                      className="text-blue-400 hover:underline"
+                    >
+                      save
+                    </button>
+                  </div>
                 </div>
-              ): (
-                <div className="select-text w-full text-[14px] text-gray-100 leading-snug break-words">
+              ) : (
+                <div className="select-text w-full text-[14px] text-gray-100 leading-snug break-words whitespace-pre-wrap">
                   {message.message}
                   {message.isEdited && (
-                    <span className="text-gray-500 text-xs pl-1">(edited)</span>
+                    <span className="text-gray-500 text-xs pl-1">
+                      (edited)
+                    </span>
                   )}
                 </div>
               )}
@@ -179,14 +280,37 @@ export default function Message({
           isOpen={linkModal.isOpen}
           onClose={() => setLinkModal({ isOpen: false, link: "" })}
         >
-          <LinkAlert onClose={() => setLinkModal({ isOpen: false, link: "" })} link={linkModal.link} />
+          <LinkAlert
+            onClose={() => setLinkModal({ isOpen: false, link: "" })}
+            link={linkModal.link}
+          />
         </Modal>
       )}
-      <ActionMenu isOpen={isActionMenuOpen} onClose={() => setIsActionMenuOpen(false)} position={pos}>
-        <ActionMenuButton text="Edit Message" svgPaths={icons.pen} onClick={handleEditMessage} isVisible={currentUser?.id === message.senderId} />
+
+      <ActionMenu
+        isOpen={isActionMenuOpen}
+        onClose={() => setIsActionMenuOpen(false)}
+        position={pos}
+      >
+        <ActionMenuButton
+          text="Edit Message"
+          svgPaths={icons.pen}
+          onClick={handleEditMessage}
+          isVisible={currentUser?.id === message.senderId}
+        />
         <ActionMenuButton text="Reply" svgPaths={icons.reply} />
-        <ActionMenuButton text="Copy Text" svgPaths={icons.copy} onClick={handleCopyText} />
-        <ActionMenuButton text="Delete Message" isDanger svgPaths={icons.delete} onClick={handleDeleteMessage} isVisible={currentUser?.id === message.senderId} />
+        <ActionMenuButton
+          text="Copy Text"
+          svgPaths={icons.copy}
+          onClick={handleCopyText}
+        />
+        <ActionMenuButton
+          text="Delete Message"
+          isDanger
+          svgPaths={icons.delete}
+          onClick={handleDeleteMessage}
+          isVisible={currentUser?.id === message.senderId}
+        />
       </ActionMenu>
     </>
   );
