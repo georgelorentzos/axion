@@ -9,17 +9,17 @@ router = APIRouter(prefix="/api", tags=["users"])
 
 @router.get('/me', response_model=Dict[str, Any])
 @limiter.limit("220/minute")
-async def get_current_user(request: Request, user_id: str = Depends(get_user_id_from_token), db: Session = Depends(get_db)) -> Dict[str, Any]:
-    user = db.query(User).filter(User.id == user_id).first()
-    if not user:
+async def get_current_user(request: Request, current_user_id: str = Depends(get_user_id_from_token), db: Session = Depends(get_db)) -> Dict[str, Any]:
+    current_user = db.query(User).filter(User.id == current_user_id).first()
+    if not current_user:
         raise HTTPException(status_code=401, detail="User not found.")
 
     return {
         "success": True,
-        "id": user.id,
-        "username": user.username,
-        "email": user.email,
-        "image": user.profile_image
+        "id": current_user.id,
+        "username": current_user.username,
+        "email": current_user.email,
+        "image": current_user.profile_image
     }
 
 @router.get('/users/search', response_model=Dict[str, Any])

@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { useCommunities } from "../../../ui/sidebar/contexts/useCommunities";
 import { type Community } from "../types/community";
 import Modal from "../../../ui/modal/Modal";
+import InviteFriend from "../../../ui/modal/content/InviteFriend";
 import Alert from "../../../ui/modal/content/Alert";
 import { api } from "../../../api/client";
 import { icons } from "../../../constants/Icons";
@@ -27,7 +28,7 @@ export default function CommunityPreview({ joinBtn, community: communityProp, sk
   const { communityId } = useParams();
   const [isBannedModalOpen, setIsBannedModalOpen] = useState(false);
   const [banReason, setBanReason] = useState('');
-
+  const [isInviteFriendModalOpen, setIsInviteFriendModalOpen] = useState(false);
 
   const community = fetchedCommunity || communityProp;
 
@@ -166,12 +167,17 @@ export default function CommunityPreview({ joinBtn, community: communityProp, sk
         </div>
         <div className="text-[12px] text-gray-500">Est. {createdAt}</div>
       </div>
-      {joinBtn && (
+      {joinBtn && !communityId ? (
         <Button text="Join Community" isGreen onClick={() => id && joinCommunity(id)} bold />
+      ) : (
+        <Button text="Invite Friends" isGreen onClick={() => setIsInviteFriendModalOpen(true)} bold />
       )}
     </div>
       <Modal isOpen={isBannedModalOpen} onClose={() => setIsBannedModalOpen(false)}>
         <Alert text={`You have been banned from ${name} with reason: ${banReason}`} />
+      </Modal>
+      <Modal isOpen={isInviteFriendModalOpen} onClose={() => setIsInviteFriendModalOpen(false)}>
+        <InviteFriend />
       </Modal>
     </>
   );

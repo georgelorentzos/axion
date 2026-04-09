@@ -1,7 +1,6 @@
 import { useParams, useLocation } from "react-router-dom";
 import { useState, useEffect, useLayoutEffect, useRef } from "react";
 import { api } from "../../../api/client";
-import { useCurrentUser } from "../../user/contexts/useCurrentUser";
 import { useChannelMessages } from "../contexts/useChannelMessages";
 import MessageInput from "../../../ui/MessageInput";
 import Message from "../../../ui/Message";
@@ -12,14 +11,13 @@ import Icon from "../../../ui/Icon";
 export default function ChannelConversation() {
     const { communityId, channelId } = useParams();
     const location = useLocation();
-    const { currentUser } = useCurrentUser();
     const [channel, setChannel] = useState(location.state?.channel || null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const scrollContainerRef = useRef<HTMLDivElement>(null);
     const [showMessages, setShowMessages] = useState(false);
     const prevScrollHeightRef = useRef(0);
     const [showMembers, setShowMembers] = useState(true);
-    const { messages, setMessages, isMessagesLoaded, hasMore, isLoading, loadMore } = useChannelMessages();
+    const { messages, isMessagesLoaded, hasMore, isLoading, loadMore } = useChannelMessages();
 
     useEffect(() => {
         if (!channelId) {
@@ -61,38 +59,6 @@ export default function ChannelConversation() {
             setShowMessages(false);
         }
     }, [isMessagesLoaded]);
-
-    useEffect(() => {
-        const handleMessage = (event: MessageEvent) => {
-            try {
-                const data = JSON.parse(event.data);
-                if (data.type === 'newChannelMessage' && data.channelId === channelId) {
-                    setMessages(currentMessages => {
-                        return [
-                            ...currentMessages,
-                            {
-                                id: data.id,
-                                senderId: data.senderId,
-                                channelId: data.channelId,
-                                message: data.message,
-                                createdAt: data.createdAt,
-                                senderUsername: data.senderUsername,
-                                senderImage: data.senderImage,
-                            },
-                        ];
-                    });
-                }
-            } catch (error) {
-                console.error('Error parsing WebSocket message:', error);
-            }
-        };
-
-        const ws = window._ws?.ws;
-        if (ws) {
-            ws.addEventListener('message', handleMessage);
-            return () => ws.removeEventListener('message', handleMessage);
-        }
-    }, [channelId]);
 
     useLayoutEffect(() => {
         if (messages.length > 0 && prevScrollHeightRef.current === 0) {
@@ -169,10 +135,7 @@ export default function ChannelConversation() {
                                         return (
                                             <Message
                                                 key={message.id}
-                                                message={message.message}
-                                                senderUsername={message.senderUsername || ""}
-                                                createdAt={message.createdAt}
-                                                senderProfileImage={message.senderImage || ""}
+                                                message={message}
                                                 isFirstInGroup={isFirstInGroup}
                                                 isLastInGroup={isLastInGroup}
                                             />

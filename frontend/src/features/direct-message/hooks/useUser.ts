@@ -1,4 +1,4 @@
-import { useLayoutEffect, useState } from "react";
+import { useLayoutEffect, useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { type User } from "../../user/types/user";
 import { api } from "../../../api/client";
@@ -29,6 +29,23 @@ export function useUser() {
             }
         };
         fetchUser();
+    }, [userId]);
+
+    useEffect(() => {
+        const handleMessage = async (event: MessageEvent) => {
+            const data = JSON.parse(event.data);
+            if (data.type === 'userOnline') {
+                setUser(prev => prev ? { ...prev, isOnline: true } : null);
+            }
+            if (data.type === 'userOffline') {
+                setUser(prev => prev ? { ...prev, isOnline: false } : null);
+            }
+        };
+        const ws = window._ws?.ws;
+        if (ws) {
+            ws.addEventListener("message", handleMessage);
+            return () => ws.removeEventListener("message", handleMessage);
+        }
     }, [userId]);
 
     return { user, setUser };

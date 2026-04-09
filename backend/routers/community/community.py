@@ -25,8 +25,8 @@ def create_community(
     current_user_id: str = Depends(get_user_id_from_token),
     db: Session = Depends(get_db),
 ) -> Dict[str, Any]:
-    user = db.query(User).filter(User.id == current_user_id).first()
-    if not user:
+    current_user = db.query(User).filter(User.id == current_user_id).first()
+    if not current_user:
         raise HTTPException(status_code=404, detail="User not found.")
 
     community_name = community_name.strip()
@@ -54,16 +54,16 @@ def create_community(
         new_community = Community(
             community_name=community_name,
             community_image=image_url,
-            owner_id=user.id,
+            owner_id=current_user.id,
         )
         db.add(new_community)
         db.flush()
 
-        db.add(CommunityMember(user_id=user.id, community_id=new_community.id))
+        db.add(CommunityMember(user_id=current_user.id, community_id=new_community.id))
         new_log = CommunityLog(
-            log=f"Community created by {user.username}",
+            log=f"Community created by {current_user.username}",
             community_id=new_community.id,
-            user_id=user.id
+            user_id=current_user.id
         )
         db.add(new_log)
         db.flush()
@@ -98,8 +98,8 @@ def create_community(
 @router.get("/my/communities", response_model=Dict[str, Any])
 @limiter.limit("220/minute")
 def my_communities(request: Request, current_user_id: str = Depends(get_user_id_from_token), db: Session = Depends(get_db)) -> Dict[str, Any]:
-    user = db.query(User).filter(User.id == current_user_id).first()
-    if not user:
+    current_user = db.query(User).filter(User.id == current_user_id).first()
+    if not current_user:
         raise HTTPException(status_code=404, detail="User not found.")
     communities = (
         db.query(CommunityMember, Community).join(
@@ -163,20 +163,20 @@ async def update_community(
     current_user_id: str = Depends(get_user_id_from_token),
     db: Session = Depends(get_db)
 ) -> Dict[str, Any]:
-    user = db.query(User).filter(User.id == current_user_id).first()
-    if not user:
+    current_user = db.query(User).filter(User.id == current_user_id).first()
+    if not current_user:
         raise HTTPException(status_code=404, detail="User not found.")
 
     community = db.query(Community).filter(Community.id == community_id).first()
     if not community:
         raise HTTPException(status_code=404, detail="Community not found.")
 
-    is_owner = community.owner_id == user.id
+    is_owner = community.owner_id == current_user.id
 
     has_permissions = False
     member = db.query(CommunityMember).filter(
         CommunityMember.community_id == community_id,
-        CommunityMember.user_id == user.id
+        CommunityMember.user_id == current_user.id
     ).first()
 
     if member:
@@ -237,11 +237,11 @@ async def update_community(
             community.community_image = image_url
 
         if name_changed and image_changed:
-            log_message = f"{user.username} updated community image and name to {community_name}"
+            log_message = f"{current_user.username} updated community image and name to {community_name}"
         elif name_changed:
-            log_message = f"{user.username} updated community name to {community_name}"
+            log_message = f"{current_user.username} updated community name to {community_name}"
         elif image_changed:
-            log_message = f"{user.username} updated community image"
+            log_message = f"{current_user.username} updated community image"
         else:
             log_message = None
 
@@ -249,7 +249,7 @@ async def update_community(
             new_log = CommunityLog(
                 log=log_message,
                 community_id=community.id,
-                user_id=user.id
+                user_id=current_user.id
             )
             db.add(new_log)
             db.flush()
@@ -261,7 +261,7 @@ async def update_community(
                 CommunityRole, CommunityRole.id == MemberRole.role_id
             ).filter(
                 CommunityMember.community_id == community.id,
-                CommunityMember.user_id != user.id,
+                CommunityMember.user_id != current_user.id,
                 or_(
                     cast(CommunityRole.permissions, String).like(f'%{PERMISSIONS.VIEW_LOGS}%'),
                     cast(CommunityRole.permissions, String).like(f'%{PERMISSIONS.ADMINISTRATOR}%')
@@ -269,15 +269,15 @@ async def update_community(
             ).all()
             log_user_ids = {m.user_id for m in members_with_log_permission}
             log_user_ids.add(community.owner_id)
-            if user.id != community.owner_id:
-                log_user_ids.discard(user.id)
+            if current_user.id != community.owner_id:
+                log_user_ids.discard(current_user.id)
             await asyncio.gather(*[
                 manager.broadcast_to_user(uid, {
                     "type": "newLog",
                     "log": new_log.log,
                     "description": "",
                     "createdAt": new_log.created_at.strftime("%D %H:%M"),
-                    "userImgUrl": user.profile_image
+                    "userImgUrl": current_user.profile_image
                 })
                 for uid in log_user_ids
             ])
@@ -293,7 +293,7 @@ async def update_community(
 
         members_to_notify = db.query(CommunityMember).filter(
             CommunityMember.community_id == community_id,
-            CommunityMember.user_id != user.id
+            CommunityMember.user_id != current_user.id
         ).all()
 
         await asyncio.gather(*[
@@ -332,8 +332,8 @@ async def join_community(request: Request,
                    current_user_id: str = Depends(get_user_id_from_token),
                    db: Session = Depends(get_db
                    )) -> Dict[str, Any]:
-    user = db.query(User).filter(User.id == current_user_id).first()
-    if not user:
+    current_user = db.query(User).filter(User.id == current_user_id).first()
+    if not current_user:
         raise HTTPException(status_code=404, detail="User not found.")
 
     community = db.query(Community).filter(Community.id == community_id).first()
@@ -342,7 +342,7 @@ async def join_community(request: Request,
 
     banned_member = db.query(CommunityBan).filter(
         CommunityBan.community_id == community.id,
-        CommunityBan.user_id == user.id
+        CommunityBan.user_id == current_user.id
     ).first()
 
     if banned_member:
@@ -354,7 +354,7 @@ async def join_community(request: Request,
         }
 
     existing_member = db.query(CommunityMember).filter(
-        CommunityMember.user_id == user.id,
+        CommunityMember.user_id == current_user.id,
         CommunityMember.community_id == community.id
     ).first()
 
@@ -368,28 +368,28 @@ async def join_community(request: Request,
     try:
         members_to_notify = db.query(CommunityMember).filter(
             CommunityMember.community_id == community.id,
-            CommunityMember.user_id != user.id,
+            CommunityMember.user_id != current_user.id,
         ).all()
         new_community_member = CommunityMember(
-            user_id=user.id,
+            user_id=current_user.id,
             community_id=community.id,
         )
         db.add(new_community_member)
         await asyncio.gather(*[
             manager.broadcast_to_user(member.user_id, {
                 "type": "userJoined",
-                "id": user.id,
-                "username": user.username,
-                "image": user.profile_image,
-                "isOnline": user.is_online,
-                "createdAt": user.created_at.year,
+                "id": current_user.id,
+                "username": current_user.username,
+                "image": current_user.profile_image,
+                "isOnline": current_user.is_online,
+                "createdAt": current_user.created_at.year,
             })
             for member in members_to_notify
         ])
         new_log = CommunityLog(
-            log=f"{user.username} joined",
+            log=f"{current_user.username} joined",
             community_id=community.id,
-            user_id=user.id,
+            user_id=current_user.id,
         )
         db.add(new_log)
         db.flush()
@@ -401,7 +401,7 @@ async def join_community(request: Request,
             CommunityRole, CommunityRole.id == MemberRole.role_id
         ).filter(
             CommunityMember.community_id == community.id,
-            CommunityMember.user_id != user.id,
+            CommunityMember.user_id != current_user.id,
             or_(
                 cast(CommunityRole.permissions, String).like(f'%{PERMISSIONS.VIEW_LOGS}%'),
                 cast(CommunityRole.permissions, String).like(f'%{PERMISSIONS.ADMINISTRATOR}%')
@@ -409,15 +409,15 @@ async def join_community(request: Request,
         ).all()
         log_user_ids = {m.user_id for m in members_with_log_permission}
         log_user_ids.add(community.owner_id)
-        if user.id != community.owner_id:
-            log_user_ids.discard(user.id)
+        if current_user.id != community.owner_id:
+            log_user_ids.discard(current_user.id)
         await asyncio.gather(*[
             manager.broadcast_to_user(uid, {
                 "type": "newLog",
                 "log": new_log.log,
                 "description": "",
                 "createdAt": new_log.created_at.strftime("%D %H:%M"),
-                "userImgUrl": user.profile_image
+                "userImgUrl": current_user.profile_image
             })
             for uid in log_user_ids
         ])
@@ -442,15 +442,15 @@ async def leave_community(request: Request,
                     current_user_id: str = Depends(get_user_id_from_token),
                     db: Session = Depends(get_db
                     )) -> Dict[str, Any]:
-    user = db.query(User).filter(User.id == current_user_id).first()
-    if not user:
+    current_user = db.query(User).filter(User.id == current_user_id).first()
+    if not current_user:
         raise HTTPException(status_code=404, detail="User not found.")
 
     community = db.query(Community).filter(Community.id == community_id).first()
     if not community:
         raise HTTPException(status_code=404, detail="Community not found.")
 
-    if user.id == community.owner_id:
+    if current_user.id == community.owner_id:
         raise HTTPException(status_code=403, detail="Community owners cannot leave their own community. Please delete the community instead.")
 
     community_member = db.query(CommunityMember).filter(
@@ -466,12 +466,12 @@ async def leave_community(request: Request,
         db.commit()
         members_to_notify = db.query(CommunityMember).filter(
             CommunityMember.community_id == community.id,
-            CommunityMember.user_id != user.id,
+            CommunityMember.user_id != current_user.id,
         ).all()
         await asyncio.gather(*[
             manager.broadcast_to_user(member.user_id, {
                 "type": "userLeft",
-                "memberId": user.id,
+                "memberId": current_user.id,
             })
             for member in members_to_notify
         ])
@@ -491,8 +491,8 @@ async def delete_community(request: Request,
                     current_user_id: str = Depends(get_user_id_from_token),
                     db: Session = Depends(get_db)
                     ) -> Dict[str, Any]:
-    user = db.query(User).filter(User.id == current_user_id).first()
-    if not user:
+    current_user = db.query(User).filter(User.id == current_user_id).first()
+    if not current_user:
         raise HTTPException(status_code=404, detail="User not found.")
 
     community = db.query(Community).filter(Community.id == community_id).first()
@@ -502,7 +502,7 @@ async def delete_community(request: Request,
     if community.community_name != community_name:
         raise HTTPException(status_code=400, detail="Community name does not match.")
 
-    if community.owner_id != user.id:
+    if community.owner_id != current_user.id:
         raise HTTPException(status_code=403, detail="Only the community owner is authorized to delete this community.")
 
     try:

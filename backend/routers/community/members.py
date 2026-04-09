@@ -20,8 +20,8 @@ def get_community_members(request: Request,
                           db: Session = Depends(get_db)
                           ) -> Dict[str, Any]:
 
-    user = db.query(User).filter(User.id == current_user_id).first()
-    if not user:
+    current_user = db.query(User).filter(User.id == current_user_id).first()
+    if not current_user:
         raise HTTPException(status_code=404, detail="User not found.")
 
     community = db.query(Community).filter(Community.id == community_id).first()
@@ -63,8 +63,8 @@ async def kick_member_from_community(request: Request,
                                current_user_id: str = Depends(get_user_id_from_token),
                                db: Session = Depends(get_db)
                                ) -> Dict[str, Any]:
-    user = db.query(User).filter(User.id == current_user_id).first()
-    if not user:
+    current_user = db.query(User).filter(User.id == current_user_id).first()
+    if not current_user:
         raise HTTPException(status_code=404, detail="User not found.")
 
     user_to_kick = db.query(User).filter(User.id == member_id).first()
@@ -75,7 +75,7 @@ async def kick_member_from_community(request: Request,
     if not community:
         raise HTTPException(status_code=404, detail="Community not found.")
 
-    community_member = db.query(CommunityMember).filter(CommunityMember.community_id == community_id, CommunityMember.user_id == user.id).first()
+    community_member = db.query(CommunityMember).filter(CommunityMember.community_id == community_id, CommunityMember.user_id == current_user.id).first()
     if not community_member:
         raise HTTPException(status_code=404, detail="Community member not found.")
 
@@ -89,7 +89,7 @@ async def kick_member_from_community(request: Request,
     if community.owner_id == user_to_kick.id:
         raise HTTPException(status_code=404, detail="you cant kick the owner")
 
-    if community.owner_id != user.id:
+    if community.owner_id != current_user.id:
         community_member_roles = db.query(CommunityRole).join(
             MemberRole, MemberRole.role_id == CommunityRole.id
         ).filter(
@@ -125,7 +125,7 @@ async def kick_member_from_community(request: Request,
             log=f"{community_member.user.username} kicked {community_member_to_kick.user.username}",
             description=f"{reason}",
             community_id=community_member_to_kick.community_id,
-            user_id=user.id,
+            user_id=current_user.id,
         )
         db.add(new_log)
         db.flush()
@@ -137,7 +137,7 @@ async def kick_member_from_community(request: Request,
             CommunityRole, CommunityRole.id == MemberRole.role_id
         ).filter(
             CommunityMember.community_id == community.id,
-            CommunityMember.user_id != user.id,
+            CommunityMember.user_id != current_user.id,
             or_(
                 cast(CommunityRole.permissions, String).like(f'%{PERMISSIONS.VIEW_LOGS}%'),
                 cast(CommunityRole.permissions, String).like(f'%{PERMISSIONS.ADMINISTRATOR}%')
@@ -145,15 +145,15 @@ async def kick_member_from_community(request: Request,
         ).all()
         log_user_ids = {m.user_id for m in members_with_log_permission}
         log_user_ids.add(community.owner_id)
-        if user.id != community.owner_id:
-            log_user_ids.discard(user.id)
+        if current_user.id != community.owner_id:
+            log_user_ids.discard(current_user.id)
         await asyncio.gather(*[
             manager.broadcast_to_user(uid, {
                 "type": "newLog",
                 "log": new_log.log,
                 "description": f"{reason}",
                 "createdAt": new_log.created_at.strftime("%D %H:%M"),
-                "userImgUrl": user.profile_image
+                "userImgUrl": current_user.profile_image
             })
             for uid in log_user_ids
         ])
@@ -175,8 +175,8 @@ async def ban_member_from_community(request: Request,
                                current_user_id: str = Depends(get_user_id_from_token),
                                db: Session = Depends(get_db)
                                ) -> Dict[str, Any]:
-    user = db.query(User).filter(User.id == current_user_id).first()
-    if not user:
+    current_user = db.query(User).filter(User.id == current_user_id).first()
+    if not current_user:
         raise HTTPException(status_code=404, detail="User not found.")
 
     user_to_ban = db.query(User).filter(User.id == member_id).first()
@@ -187,7 +187,7 @@ async def ban_member_from_community(request: Request,
     if not community:
         raise HTTPException(status_code=404, detail="Community not found.")
 
-    community_member = db.query(CommunityMember).filter(CommunityMember.community_id == community_id, CommunityMember.user_id == user.id).first()
+    community_member = db.query(CommunityMember).filter(CommunityMember.community_id == community_id, CommunityMember.user_id == current_user.id).first()
     if not community_member:
         raise HTTPException(status_code=404, detail="Community member not found.")
 
@@ -208,7 +208,7 @@ async def ban_member_from_community(request: Request,
     if community.owner_id == user_to_ban.id:
         raise HTTPException(status_code=404, detail="you cant ban the owner")
 
-    if community.owner_id != user.id:
+    if community.owner_id != current_user.id:
         community_member_roles = db.query(CommunityRole).join(
             MemberRole, MemberRole.role_id == CommunityRole.id
         ).filter(
@@ -244,7 +244,7 @@ async def ban_member_from_community(request: Request,
             log=f"{community_member.user.username} banned {community_member_to_ban.user.username}",
             description=f"{reason}",
             community_id=community_member_to_ban.community_id,
-            user_id=user.id,
+            user_id=current_user.id,
         )
         db.add(new_log)
         db.flush()
@@ -256,7 +256,7 @@ async def ban_member_from_community(request: Request,
             CommunityRole, CommunityRole.id == MemberRole.role_id
         ).filter(
             CommunityMember.community_id == community.id,
-            CommunityMember.user_id != user.id,
+            CommunityMember.user_id != current_user.id,
             or_(
                 cast(CommunityRole.permissions, String).like(f'%{PERMISSIONS.VIEW_LOGS}%'),
                 cast(CommunityRole.permissions, String).like(f'%{PERMISSIONS.ADMINISTRATOR}%')
@@ -268,7 +268,7 @@ async def ban_member_from_community(request: Request,
             CommunityRole, CommunityRole.id == MemberRole.role_id
         ).filter(
             CommunityMember.community_id == community.id,
-            CommunityMember.user_id != user.id,
+            CommunityMember.user_id != current_user.id,
             or_(
                 cast(CommunityRole.permissions, String).like(f'%{PERMISSIONS.BAN}%'),
                 cast(CommunityRole.permissions, String).like(f'%{PERMISSIONS.ADMINISTRATOR}%')
@@ -280,15 +280,15 @@ async def ban_member_from_community(request: Request,
         ban_users_ids = {m.user_id for m in members_with_ban_permission}
         ban_users_ids.add(community.owner_id)
 
-        if user.id != community.owner_id:
-            log_user_ids.discard(user.id)
+        if current_user.id != community.owner_id:
+            log_user_ids.discard(current_user.id)
         await asyncio.gather(*[
             manager.broadcast_to_user(uid, {
                 "type": "newLog",
                 "log": new_log.log,
                 "description": f"{reason}",
                 "createdAt": new_log.created_at.strftime("%D %H:%M"),
-                "userImgUrl": user.profile_image
+                "userImgUrl": current_user.profile_image
             })
             for uid in log_user_ids
         ])

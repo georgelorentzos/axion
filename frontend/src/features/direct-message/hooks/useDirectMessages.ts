@@ -1,6 +1,6 @@
-import { useLayoutEffect, useState, useRef, useCallback } from "react";
+import { useLayoutEffect, useState, useRef, useCallback, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { type Message } from "../types/message";
+import { type Message } from "../../../types/message";
 import { api } from "../../../api/client";
 
 export function useDirectMessages() {
@@ -67,6 +67,36 @@ export function useDirectMessages() {
             setIsLoading(false);
         }
     }, [userId, hasMore, isLoading]);
+
+    useEffect(() => {
+        const handleMessage = async (event: MessageEvent) => {
+            const data = JSON.parse(event.data);
+            if (data.type === "newDirectMessage") {
+                setMessages(currentMessages => {
+                    return [
+                        ...currentMessages,
+                        {
+                            id: data.id,
+                            senderId: data.senderId,
+                            recipientId: data.recipientId,
+                            message: data.message,
+                            createdAt: data.createdAt,
+                            senderUsername: data.senderUsername,
+                            senderImage: data.senderImage,
+                        },
+                    ];
+                });
+            }
+            if (data.type === "directMessageDeleted") {
+                setMessages(prev => prev.filter(m => m.id !== data.id));
+            }
+        };
+        const ws = window._ws?.ws;
+        if (ws) {
+            ws.addEventListener("message", handleMessage);
+            return () => ws.removeEventListener("message", handleMessage);
+        }
+    }, [userId]);
 
     return { messages, setMessages, isMessagesLoaded, hasMore, isLoading, loadMore };
 }

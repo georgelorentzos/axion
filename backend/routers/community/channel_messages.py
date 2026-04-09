@@ -23,10 +23,10 @@ def fetch_channel_messages(
     current_user_id: str = Depends(get_user_id_from_token),
     db: Session = Depends(get_db)
 ) -> Dict[str, Any]:
-    user = db.query(User).filter(
+    current_user = db.query(User).filter(
         User.id == current_user_id
     ).first()
-    if not user:
+    if not current_user:
         raise HTTPException(status_code=404, detail="User not found.")
     
     community = db.query(Community).filter(
@@ -36,7 +36,7 @@ def fetch_channel_messages(
         raise HTTPException(status_code=404, detail="Community not found.")
     
     community_member = db.query(CommunityMember).filter(
-        CommunityMember.user_id == user.id,
+        CommunityMember.user_id == current_user.id,
         CommunityMember.community_id == community.id
     ).first()
     if not community_member:
@@ -82,7 +82,7 @@ def fetch_channel_messages(
         "hasMore": (offset + limit) < total_count
     }
 
-@router.post("/community/{community_id}/channels/{channel_id}/messages", response_model=Dict[str, Any])
+@router.post("/community/{community_id}/channels/{channel_id}/messages", status_code=200)
 @limiter.limit("120/minute")
 async def send_channel_message(
     request: Request,
@@ -91,11 +91,11 @@ async def send_channel_message(
     req: MessageRequest,
     current_user_id: str = Depends(get_user_id_from_token),
     db: Session = Depends(get_db)
-) -> Dict[str, Any]:
-    user = db.query(User).filter(
+) -> Dict[str, bool]:
+    current_user = db.query(User).filter(
         User.id == current_user_id
     ).first()
-    if not user:
+    if not current_user:
         raise HTTPException(status_code=404, detail="User not found.")
     
     community = db.query(Community).filter(
@@ -105,7 +105,7 @@ async def send_channel_message(
         raise HTTPException(status_code=404, detail="Community not found")
     
     community_member = db.query(CommunityMember).filter(
-        CommunityMember.user_id == user.id
+        CommunityMember.user_id == current_user.id
     ).first()
     if not community_member:
         raise HTTPException(status_code=404, detail="Community member not found")
@@ -126,7 +126,6 @@ async def send_channel_message(
         )
         db.add(new_message)
         db.commit()
-        db.flush()
 
         community_members = db.query(CommunityMember).filter(
             CommunityMember.community_id == community.id
@@ -136,7 +135,7 @@ async def send_channel_message(
             manager.broadcast_to_user(community_member.user_id, {
                 "type": "newChannelMessage",
                 "id": new_message.id,
-                "senderId": user.id,
+                "senderId": current_user.id,
                 "channelId": new_message.channel_id,
                 "message": req.message,
                 "createdAt": datetime.now().strftime("%H:%M"),
@@ -153,3 +152,64 @@ async def send_channel_message(
         raise HTTPException(status_code=500, detail="Failed to send message in channel due to internal server error.")
 
     
+@router.delete("/community/{community_id}/channels/{channel_id}/messages/{message_id}", status_code=200)
+@limiter.limit("120/minute")
+async def delete_channel_message(
+    request: Request,
+    community_id: str,
+    channel_id: str,
+    message_id: str,
+    current_user_id: str = Depends(get_user_id_from_token),
+    db: Session = Depends(get_db)
+) -> Dict[str, bool]:
+    current_user = db.query(User).filter(
+        User.id == current_user_id
+    ).first()
+    if not current_user:
+        raise HTTPException(status_code=404, detail="Detail user not found.")
+    
+    community = db.query(Community).filter(
+        Community.id == community_id
+    ).first()
+    if not community:
+        raise HTTPException(status_code=404, detail="Community not found.")
+    
+    channel = db.query(CommunityChannel).filter(
+        CommunityChannel.community_id == community.id,
+        CommunityChannel.id == channel_id
+    ).first()
+    if not channel:
+        raise HTTPException(status_code=404, detail="Channel not found.")
+    
+    message = db.query(ChannelMessage).filter(
+        ChannelMessage.channel_id == channel.id,
+        ChannelMessage.id == message_id
+    ).first()
+    if not message:
+        raise HTTPException(status_code=404, detail="Message not found.")
+    
+    if current_user.id != message.sender.id:
+        raise HTTPException(status_code=403, detail="You cant delete messages from another user.")
+
+    message_id_to_return = message.id
+
+    try:
+        db.delete(message)
+        db.commit()
+
+        community_members = db.query(CommunityMember).filter(
+            CommunityMember.community_id == community.id
+        ).all()
+        await asyncio.gather(*[
+            manager.broadcast_to_user(community_member.user_id, {
+                "type": "channelMessageDeleted",
+                "id": message_id_to_return
+            })
+            for community_member in community_members
+        ])
+        return {
+            "success": True
+        }
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Failed to delete message due to internal server error.")

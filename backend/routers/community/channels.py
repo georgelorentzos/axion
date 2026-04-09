@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, Depends, Request
 from schemas.community.channel import CreateChannel
 from utils.database import get_db
 from sqlalchemy.orm import Session
-from models import User, Community, CommunityMember, CommunityCategory, CommunityRole, MemberRole, CommunityChannel
+from models import User, Community, CommunityMember, CommunityRole, MemberRole, CommunityChannel
 from dependencies import limiter, get_user_id_from_token
 from typing import Dict, Any
 from constants.permissions import PERMISSIONS
@@ -21,10 +21,10 @@ def fetch_channel(
     current_user_id: str = Depends(get_user_id_from_token),
     db: Session = Depends(get_db)
 ) -> Dict[str, Any]:
-    user = db.query(User).filter(
+    current_user = db.query(User).filter(
         User.id == current_user_id
     ).first()
-    if not user:
+    if not current_user:
         raise HTTPException(status_code=404, detail="User not found.")
     
     community = db.query(Community).filter(
@@ -35,7 +35,7 @@ def fetch_channel(
     
     community_member = db.query(CommunityMember).filter(
         CommunityMember.community_id == community.id,
-        CommunityMember.user_id == user.id
+        CommunityMember.user_id == current_user.id
     ).first()
     if not community_member:
         raise HTTPException(status_code=404, detail="Community member not found.")
@@ -59,10 +59,10 @@ def fetch_channels(
     current_user_id: str = Depends(get_user_id_from_token),
     db: Session = Depends(get_db)
 ) -> Dict[str, Any]:
-    user = db.query(User).filter(
+    current_user = db.query(User).filter(
         User.id == current_user_id
     ).first()
-    if not user:
+    if not current_user:
         raise HTTPException(status_code=404, detail="User not found.")
     
     community = db.query(Community).filter(
@@ -73,7 +73,7 @@ def fetch_channels(
     
     community_member = db.query(CommunityMember).filter(
         CommunityMember.community_id == community.id,
-        CommunityMember.user_id == user.id
+        CommunityMember.user_id == current_user.id
     ).first()
     if not community_member:
         raise HTTPException(status_code=404, detail="Community member not found.")
@@ -102,10 +102,10 @@ async def create_channel(
     current_user_id: str = Depends(get_user_id_from_token),
     db: Session = Depends(get_db)
 ) -> Dict[str, Any]:
-    user = db.query(User).filter(
+    current_user = db.query(User).filter(
         User.id == current_user_id
     ).first()
-    if not user:
+    if not current_user:
         raise HTTPException(status_code=404, detail="User not found.")
     
     community = db.query(Community).filter(
@@ -116,7 +116,7 @@ async def create_channel(
     
     community_member = db.query(CommunityMember).filter(
         CommunityMember.community_id == community.id,
-        CommunityMember.user_id == user.id
+        CommunityMember.user_id == current_user.id
     ).first()
     if not community_member:
         raise HTTPException(status_code=404, detail="Community member not found.")
@@ -131,7 +131,7 @@ async def create_channel(
         db.add(new_channel)
         community_members = db.query(CommunityMember).filter(
             CommunityMember.community_id == community_id,
-            CommunityMember.user_id != user.id
+            CommunityMember.user_id != current_user.id
         ).all()
         await asyncio.gather(*[
             manager.broadcast_to_user(community_member.user_id, {
@@ -162,10 +162,10 @@ async def delete_channel(
     current_user_id: str = Depends(get_user_id_from_token),
     db: Session = Depends(get_db)
 ) -> Dict[str, Any]:
-    user = db.query(User).filter(
+    current_user = db.query(User).filter(
         User.id == current_user_id
     ).first()
-    if not user:
+    if not current_user:
         raise HTTPException(status_code=404, detail="User not found.")
     
     community = db.query(Community).filter(
@@ -176,7 +176,7 @@ async def delete_channel(
     
     community_member = db.query(CommunityMember).filter(
         CommunityMember.community_id == community.id,
-        CommunityMember.user_id == user.id
+        CommunityMember.user_id == current_user.id
     ).first()
     if not community_member:
         raise HTTPException(status_code=404, detail="Community member not found.")
@@ -207,7 +207,7 @@ async def delete_channel(
         db.flush()
         community_members = db.query(CommunityMember).filter(
             CommunityMember.community_id == community_id,
-            CommunityMember.user_id != user.id
+            CommunityMember.user_id != current_user.id
         ).all()
         await asyncio.gather(*[
             manager.broadcast_to_user(community_member.user_id, {

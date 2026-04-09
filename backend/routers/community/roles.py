@@ -19,15 +19,15 @@ async def create_role(request: Request,
                 req: RoleRequest,
                 current_user_id: str = Depends(get_user_id_from_token),
                 db: Session = Depends(get_db)) -> Dict[str, Any]:
-    user = db.query(User).filter(User.id == current_user_id).first()
-    if not user:
+    current_user = db.query(User).filter(User.id == current_user_id).first()
+    if not current_user:
         raise HTTPException(status_code=404, detail="User not found.")
 
     community = db.query(Community).filter(Community.id == community_id).first()
     if not community:
         raise HTTPException(status_code=404, detail="Community not found.")
 
-    community_member = db.query(CommunityMember).filter(CommunityMember.community_id == community_id, CommunityMember.user_id == user.id).first()
+    community_member = db.query(CommunityMember).filter(CommunityMember.community_id == community_id, CommunityMember.user_id == current_user.id).first()
     if not community_member:
         raise HTTPException(status_code=404, detail="Community member not found.")
 
@@ -37,7 +37,7 @@ async def create_role(request: Request,
     if len(role_name) > 20:
         raise HTTPException(status_code=400, detail="Role name can't be longer than 20 characters.")
 
-    if community.owner_id != user.id:
+    if community.owner_id != current_user.id:
         community_member_roles = db.query(CommunityRole).join(
             MemberRole, MemberRole.role_id == CommunityRole.id
         ).filter(
@@ -61,10 +61,10 @@ async def create_role(request: Request,
         db.add(new_role)
         db.flush()
         new_log = CommunityLog(
-            log=f"{user.username} created the role {new_role.role_name}",
+            log=f"{current_user.username} created the role {new_role.role_name}",
             description=f"{', '.join(req.permissions.split('|'))}" if req.permissions else "",
             community_id=community.id,
-            user_id=user.id
+            user_id=current_user.id
         )
         db.add(new_log)
         db.flush()
@@ -76,7 +76,7 @@ async def create_role(request: Request,
             CommunityRole, CommunityRole.id == MemberRole.role_id
         ).filter(
             CommunityMember.community_id == community.id,
-            CommunityMember.user_id != user.id,
+            CommunityMember.user_id != current_user.id,
             or_(
                 cast(CommunityRole.permissions, String).like(f'%{PERMISSIONS.VIEW_LOGS}%'),
                 cast(CommunityRole.permissions, String).like(f'%{PERMISSIONS.ADMINISTRATOR}%')
@@ -84,22 +84,22 @@ async def create_role(request: Request,
         ).all()
         log_user_ids = {m.user_id for m in members_with_log_permission}
         log_user_ids.add(community.owner_id)
-        if user.id != community.owner_id:
-            log_user_ids.discard(user.id)
+        if current_user.id != community.owner_id:
+            log_user_ids.discard(current_user.id)
         await asyncio.gather(*[
             manager.broadcast_to_user(uid, {
                 "type": "newLog",
                 "log": new_log.log,
                 "description": f"{', '.join(req.permissions.split('|'))}" if req.permissions else "",
                 "createdAt": new_log.created_at.strftime("%D %H:%M"),
-                "userImgUrl": user.profile_image
+                "userImgUrl": current_user.profile_image
             })
             for uid in log_user_ids
         ])
 
         all_community_members = db.query(CommunityMember).filter(
             CommunityMember.community_id == community.id,
-            CommunityMember.user_id != user.id
+            CommunityMember.user_id != current_user.id
         ).all()
         await asyncio.gather(*[
             manager.broadcast_to_user(m.user_id, {
@@ -136,15 +136,15 @@ async def update_role(request: Request,
                 req: RoleRequest,
                 current_user_id: str = Depends(get_user_id_from_token),
                 db: Session = Depends(get_db)) -> Dict[str, Any]:
-    user = db.query(User).filter(User.id == current_user_id).first()
-    if not user:
+    current_user = db.query(User).filter(User.id == current_user_id).first()
+    if not current_user:
         raise HTTPException(status_code=404, detail="User not found.")
 
     community = db.query(Community).filter(Community.id == community_id).first()
     if not community:
         raise HTTPException(status_code=404, detail="Community not found.")
 
-    community_member = db.query(CommunityMember).filter(CommunityMember.community_id == community_id, CommunityMember.user_id == user.id).first()
+    community_member = db.query(CommunityMember).filter(CommunityMember.community_id == community_id, CommunityMember.user_id == current_user.id).first()
     if not community_member:
         raise HTTPException(status_code=404, detail="Community member not found.")
 
@@ -158,7 +158,7 @@ async def update_role(request: Request,
     if len(role_name) > 20:
         raise HTTPException(status_code=400, detail="Role name can't be longer than 20 characters.")
 
-    if community.owner_id != user.id:
+    if community.owner_id != current_user.id:
         community_member_roles = db.query(CommunityRole).join(
             MemberRole, MemberRole.role_id == CommunityRole.id
         ).filter(
@@ -179,7 +179,7 @@ async def update_role(request: Request,
 
         all_community_members = db.query(CommunityMember).filter(
             CommunityMember.community_id == community.id,
-            CommunityMember.user_id != user.id
+            CommunityMember.user_id != current_user.id
         ).all()
         await asyncio.gather(*[
             manager.broadcast_to_user(m.user_id, {
@@ -235,15 +235,15 @@ def fetch_roles(request: Request,
                 db: Session = Depends(get_db),
                 ) -> Dict[str, Any]:
 
-    user = db.query(User).filter(User.id == current_user_id).first()
-    if not user:
+    current_user = db.query(User).filter(User.id == current_user_id).first()
+    if not current_user:
         raise HTTPException(status_code=404, detail="User not found.")
 
     community = db.query(Community).filter(Community.id == community_id).first()
     if not community:
         raise HTTPException(status_code=404, detail="Community not found.")
 
-    community_member = db.query(CommunityMember).filter(CommunityMember.community_id == community_id, CommunityMember.user_id == user.id).first()
+    community_member = db.query(CommunityMember).filter(CommunityMember.community_id == community_id, CommunityMember.user_id == current_user.id).first()
     if not community_member:
         raise HTTPException(status_code=404, detail="Community member not found.")
 
@@ -269,15 +269,15 @@ async def delete_role(request: Request,
                 role_id: str,
                 current_user_id: str = Depends(get_user_id_from_token),
                 db: Session = Depends(get_db)) -> Dict[str, Any]:
-    user = db.query(User).filter(User.id == current_user_id).first()
-    if not user:
+    current_user = db.query(User).filter(User.id == current_user_id).first()
+    if not current_user:
         raise HTTPException(status_code=404, detail="User not found.")
 
     community = db.query(Community).filter(Community.id == community_id).first()
     if not community:
         raise HTTPException(status_code=404, detail="Community not found.")
 
-    community_member = db.query(CommunityMember).filter(CommunityMember.community_id == community_id, CommunityMember.user_id == user.id).first()
+    community_member = db.query(CommunityMember).filter(CommunityMember.community_id == community_id, CommunityMember.user_id == current_user.id).first()
     if not community_member:
         raise HTTPException(status_code=404, detail="Community member not found.")
 
@@ -285,7 +285,7 @@ async def delete_role(request: Request,
     if not role:
         raise HTTPException(status_code=404, detail="Role not found.")
 
-    if community.owner_id != user.id:
+    if community.owner_id != current_user.id:
         community_member_roles = db.query(CommunityRole).join(
             MemberRole, MemberRole.role_id == CommunityRole.id
         ).filter(
@@ -310,9 +310,9 @@ async def delete_role(request: Request,
 
         db.query(MemberRole).filter(MemberRole.role_id == role.id).delete()
         new_log = CommunityLog(
-            log=f"{user.username} deleted the role {role.role_name}",
+            log=f"{current_user.username} deleted the role {role.role_name}",
             community_id=community.id,
-            user_id=user.id
+            user_id=current_user.id
         )
         db.add(new_log)
         db.flush()
@@ -324,7 +324,7 @@ async def delete_role(request: Request,
             CommunityRole, CommunityRole.id == MemberRole.role_id
         ).filter(
             CommunityMember.community_id == community.id,
-            CommunityMember.user_id != user.id,
+            CommunityMember.user_id != current_user.id,
             or_(
                 cast(CommunityRole.permissions, String).like(f'%{PERMISSIONS.VIEW_LOGS}%'),
                 cast(CommunityRole.permissions, String).like(f'%{PERMISSIONS.ADMINISTRATOR}%')
@@ -332,22 +332,22 @@ async def delete_role(request: Request,
         ).all()
         log_user_ids = {m.user_id for m in members_with_log_permission}
         log_user_ids.add(community.owner_id)
-        if user.id != community.owner_id:
-            log_user_ids.discard(user.id)
+        if current_user.id != community.owner_id:
+            log_user_ids.discard(current_user.id)
         await asyncio.gather(*[
             manager.broadcast_to_user(uid, {
                 "type": "newLog",
                 "log": new_log.log,
                 "description": "",
                 "createdAt": new_log.created_at.strftime("%D %H:%M"),
-                "userImgUrl": user.profile_image
+                "userImgUrl": current_user.profile_image
             })
             for uid in log_user_ids
         ])
 
         all_community_members = db.query(CommunityMember).filter(
             CommunityMember.community_id == community.id,
-            CommunityMember.user_id != user.id
+            CommunityMember.user_id != current_user.id
         ).all()
         await asyncio.gather(*[
             manager.broadcast_to_user(m.user_id, {
@@ -392,10 +392,10 @@ async def toggle_role(
     current_user_id: str = Depends(get_user_id_from_token),
     db: Session = Depends(get_db)
 ) -> Dict[str, Any]:
-    user = db.query(User).filter(
+    current_user = db.query(User).filter(
         User.id == current_user_id
     ).first()
-    if not user:
+    if not current_user:
         raise HTTPException(status_code=404, detail="User not found.")
     
     community = db.query(Community).filter(
@@ -418,7 +418,7 @@ async def toggle_role(
     if not community_role:
         raise HTTPException(status_code=404, detail="Community role not found.")
     
-    if user.id != community.owner_id:
+    if current_user.id != community.owner_id:
         current_member = db.query(CommunityMember).filter(
             CommunityMember.community_id == community_id,
             CommunityMember.user_id == current_user_id
@@ -480,7 +480,7 @@ async def toggle_role(
         ]
         all_community_members = db.query(CommunityMember).filter(
             CommunityMember.community_id == community.id,
-            CommunityMember.user_id != user.id
+            CommunityMember.user_id != current_user.id
         ).all()
         await asyncio.gather(*[
             manager.broadcast_to_user(m.user_id, {

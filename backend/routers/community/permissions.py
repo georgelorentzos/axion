@@ -1,17 +1,10 @@
-from fastapi import APIRouter, HTTPException, Depends, Request, UploadFile, File, Form
+from fastapi import APIRouter, HTTPException, Depends, Request
 from utils.database import get_db
-from sqlalchemy import or_, cast, String, func
 from sqlalchemy.orm import Session
-from models import (User, Community, CommunityMember, CommunityCategory, CommunityChannel,
-                    CommunityRole, MemberRole, CommunityLog, CommunityBan)
+from models import (User, Community, CommunityMember, CommunityRole, MemberRole)
 from utils.websocket_manager import manager
 from dependencies import limiter, get_user_id_from_token, UPLOADS_FOLDER
-from constants.permissions import PERMISSIONS
 from typing import Dict, Any
-import asyncio
-import uuid
-import shutil
-import os
 
 router = APIRouter(prefix="/api", tags=["permissions"])
 
@@ -23,10 +16,10 @@ def fetch_current_user_permissions(
     current_user_id: str = Depends(get_user_id_from_token),
     db: Session = Depends(get_db)
 ) -> Dict[str, Any]:
-    user = db.query(User).filter(
+    current_user = db.query(User).filter(
         User.id == current_user_id
     ).first()
-    if not user:
+    if not current_user:
         raise HTTPException(status_code=404, detail="User not found.")
     
     community = db.query(Community).filter(
@@ -37,7 +30,7 @@ def fetch_current_user_permissions(
     
     community_member = db.query(CommunityMember).filter(
         CommunityMember.community_id == community.id,
-        CommunityMember.user_id == user.id
+        CommunityMember.user_id == current_user.id
     ).first()
     if not community_member:
         raise HTTPException(status_code=404, detail="Community member not found.")
@@ -55,6 +48,6 @@ def fetch_current_user_permissions(
     return {
         "success": True,
         "community_id": community.id,
-        "user_id": user.id,
+        "user_id": current_user.id,
         "permissions": list(all_permissions)
     }

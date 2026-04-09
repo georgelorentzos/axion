@@ -69,9 +69,11 @@ export const api = {
 
   directMessages: {
     send: (recipientId: string, message: string) =>
-      request(`/api/send/message/${recipientId}`, { method: "POST", body: { message } }),
+      request(`/api/chat/${recipientId}/messages`, { method: "POST", body: { message } }),
     get: (userId: string, limit = 50, offset = 0) =>
-      request(`/api/messages/${userId}?limit=${limit}&offset=${offset}`),
+      request(`/api/chat/${userId}/messages?limit=${limit}&offset=${offset}`),
+    delete: (recipientId: string, messageId: string) =>
+      request(`/api/chat/${recipientId}/messages/${messageId}`, { method: "DELETE" }),
     conversations: () => request("/api/my/conversations"),
     deleteConversation: (userId: string) =>
       request(`/api/conversation/${userId}`, { method: "DELETE" }),
@@ -82,6 +84,8 @@ export const api = {
       request(`/api/community/${communityId}/channels/${channelId}/messages`, { method: "POST", body: { message } }),
     get: (communityId: string, channelId: string, limit = 50, offset = 0) =>
       request(`/api/community/${communityId}/channels/${channelId}/messages?limit=${limit}&offset=${offset}`),
+    delete: (communityId: string, channelId: string, messageId: string) =>
+      request(`/api/community/${communityId}/channels/${channelId}/messages/${messageId}`, { method: "DELETE" }),
   },
 
   communities: {

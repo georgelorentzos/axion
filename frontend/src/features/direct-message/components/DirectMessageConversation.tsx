@@ -11,14 +11,14 @@ import { useUser } from '../contexts/useUser';
 export default function DirectMessageConversation() {
     const { userId } = useParams();
     const { currentUser } = useCurrentUser();
-    const { user, setUser } = useUser();
+    const { user } = useUser();
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const scrollContainerRef = useRef<HTMLDivElement>(null);
     const navigate = useNavigate();
     const [showMessages, setShowMessages] = useState(false);
     const conversationRef = useRef<HTMLDivElement>(null);
     const prevScrollHeightRef = useRef(0);
-    const { messages, setMessages, isMessagesLoaded, hasMore, isLoading, loadMore } = useDirectMessages();
+    const { messages, isMessagesLoaded, hasMore, isLoading, loadMore } = useDirectMessages();
 
     useEffect(() => {
         prevScrollHeightRef.current = 0;
@@ -40,42 +40,6 @@ export default function DirectMessageConversation() {
             navigate("/");
         }
     }, [userId, currentUser]);
-
-    useEffect(() => {
-        const handleMessage = (event: MessageEvent) => {
-            try {
-                const data = JSON.parse(event.data);
-                if (data.type === 'messageSent') {
-                    setMessages(currentMessages => {
-                        return [
-                            ...currentMessages,
-                            {
-                                id: data.id,
-                                senderId: data.senderId,
-                                recipientId: data.recipientId,
-                                message: data.message,
-                                createdAt: data.createdAt,
-                            },
-                        ];
-                    });
-                }
-                if (data.type === 'userOnline') {
-                    setUser(prev => prev ? { ...prev, isOnline: true } : null);
-                }
-                if (data.type === 'userOffline') {
-                    setUser(prev => prev ? { ...prev, isOnline: false } : null);
-                }
-            } catch (error) {
-                console.error('Error parsing WebSocket message:', error);
-            }
-        };
-
-        const ws = window._ws?.ws;
-        if (ws) {
-            ws.addEventListener('message', handleMessage);
-            return () => ws.removeEventListener('message', handleMessage);
-        }
-    }, []);
 
     useLayoutEffect(() => {
         if (messages.length > 0 && prevScrollHeightRef.current === 0) {
@@ -153,18 +117,7 @@ export default function DirectMessageConversation() {
                     return (
                             <Message
                                 key={message.id}
-                                message={message.message}
-                                senderUsername={
-                                    message.senderId === currentUser?.id
-                                        ? currentUser?.username || ""
-                                        : user?.username || ""
-                                }
-                                createdAt={message.createdAt}
-                                senderProfileImage={
-                                    message.senderId === currentUser?.id
-                                        ? currentUser?.image || ""
-                                        : user?.image || ""
-                                }
+                                message={message}
                                 isFirstInGroup={isFirstInGroup}
                                 isLastInGroup={isLastInGroup}
                             />

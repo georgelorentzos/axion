@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import ModalCloseButton from "./ModalCloseButton";
+import { createPortal } from "react-dom";
 
 type ModalProps = {
     isOpen: boolean;
@@ -25,7 +26,7 @@ export default function Modal({ isOpen, onClose, children }: ModalProps) {
 
     if (!isVisible) return;
 
-    return (
+    return createPortal(
         <div
             onClick={onClose}
             className={`fixed inset-0 z-50 bg-black/50 flex justify-center items-center transition-opacity duration-200 ${
@@ -38,6 +39,7 @@ export default function Modal({ isOpen, onClose, children }: ModalProps) {
                     {children}
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 }

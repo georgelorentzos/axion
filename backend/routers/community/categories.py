@@ -19,10 +19,10 @@ def fetch_categories(
     current_user_id: str = Depends(get_user_id_from_token),
     db: Session = Depends(get_db)
 ) -> Dict[str, Any]:
-    user = db.query(User).filter(
+    current_user = db.query(User).filter(
         User.id == current_user_id
     ).first()
-    if not user:
+    if not current_user:
         raise HTTPException(status_code=404, detail="User not found.")
     
     community = db.query(Community).filter(
@@ -54,10 +54,10 @@ async def create_category(
     current_user_id: str = Depends(get_user_id_from_token),
     db: Session = Depends(get_db)
 ) -> Dict[str, Any]:
-    user = db.query(User).filter(
+    current_user = db.query(User).filter(
         User.id == current_user_id
     ).first()
-    if not user:
+    if not current_user:
         raise HTTPException(status_code=404, detail="User not found.")
     
     community = db.query(Community).filter(
@@ -68,7 +68,7 @@ async def create_category(
     
     community_member = db.query(CommunityMember).filter(
         CommunityMember.community_id == community.id,
-        CommunityMember.user_id == user.id
+        CommunityMember.user_id == current_user.id
     ).first()
     if not community_member:
         raise HTTPException(status_code=404, detail="Community member not found.")
@@ -96,7 +96,7 @@ async def create_category(
         db.flush()
         community_members = db.query(CommunityMember).filter(
             CommunityMember.community_id == community_id,
-            CommunityMember.user_id != user.id
+            CommunityMember.user_id != current_user.id
         ).all()
         await asyncio.gather(*[
             manager.broadcast_to_user(community_member.user_id, {
@@ -125,10 +125,10 @@ async def delete_category(
     current_user_id: str = Depends(get_user_id_from_token),
     db: Session = Depends(get_db)
 ) -> Dict[str, Any]:
-    user = db.query(User).filter(
+    current_user = db.query(User).filter(
         User.id == current_user_id
     ).first()
-    if not user:
+    if not current_user:
         raise HTTPException(status_code=404, detail="User not found.")
     
     community = db.query(Community).filter(
@@ -139,7 +139,7 @@ async def delete_category(
     
     community_member = db.query(CommunityMember).filter(
         CommunityMember.community_id == community.id,
-        CommunityMember.user_id == user.id
+        CommunityMember.user_id == current_user.id
     ).first()
     if not community_member:
         raise HTTPException(status_code=404, detail="Community member not found.")
@@ -178,7 +178,7 @@ async def delete_category(
 
         community_members = db.query(CommunityMember).filter(
             CommunityMember.community_id == community_id,
-            CommunityMember.user_id != user.id
+            CommunityMember.user_id != current_user.id
         ).all()
         await asyncio.gather(* [
             manager.broadcast_to_user(community_member.user_id, {

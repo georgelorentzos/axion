@@ -16,19 +16,19 @@ def fetch_logs(request: Request,
                db: Session = Depends(get_db)
                ) -> Dict[str, Any]:
 
-    user = db.query(User).filter(User.id == current_user_id).first()
-    if not user:
+    current_user = db.query(User).filter(User.id == current_user_id).first()
+    if not current_user:
         raise HTTPException(status_code=404, detail="User not found.")
 
     community = db.query(Community).filter(Community.id == community_id).first()
     if not community:
         raise HTTPException(status_code=404, detail="Community not found.")
 
-    community_member = db.query(CommunityMember).filter(CommunityMember.community_id == community_id, CommunityMember.user_id == user.id).first()
+    community_member = db.query(CommunityMember).filter(CommunityMember.community_id == community_id, CommunityMember.user_id == current_user.id).first()
     if not community_member:
         raise HTTPException(status_code=404, detail="Community member not found.")
 
-    if community.owner_id != user.id:
+    if community.owner_id != current_user.id:
         community_member_roles = db.query(CommunityRole).join(
             MemberRole, MemberRole.role_id == CommunityRole.id
         ).filter(

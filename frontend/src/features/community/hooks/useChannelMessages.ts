@@ -1,6 +1,6 @@
-import { useLayoutEffect, useState, useRef, useCallback } from "react";
+import { useLayoutEffect, useState, useRef, useCallback, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { type Message } from "../types/message";
+import { type Message } from "../../../types/message";
 import { api } from "../../../api/client";
 
 export function useChannelMessages() {
@@ -67,6 +67,36 @@ export function useChannelMessages() {
             setIsLoading(false);
         }
     }, [communityId, channelId, hasMore, isLoading]);
+
+    useEffect(() => {
+        const handleMessage = async (event: MessageEvent) => {
+            const data = JSON.parse(event.data);
+            if (data.type === "newChannelMessage") {
+                setMessages(currentMessages => {
+                    return [
+                        ...currentMessages,
+                        {
+                            id: data.id,
+                            senderId: data.senderId,
+                            channelId: data.channelId,
+                            message: data.message,
+                            createdAt: data.createdAt,
+                            senderUsername: data.senderUsername,
+                            senderImage: data.senderImage,
+                        },
+                    ];
+                });
+            }
+            if (data.type === "channelMessageDeleted") {
+                setMessages(prev => prev.filter(m => m.id !== data.id));
+            }
+        };
+        const ws = window._ws?.ws;
+        if (ws) {
+            ws.addEventListener("message", handleMessage);
+            return () => ws.removeEventListener("message", handleMessage);
+        }
+    }, [communityId]);
 
     return { messages, setMessages, isMessagesLoaded, hasMore, isLoading, loadMore };
 }

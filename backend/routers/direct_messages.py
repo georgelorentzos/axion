@@ -12,19 +12,19 @@ import asyncio
 
 router = APIRouter(prefix="/api", tags=["direct_messages"])
 
-@router.post('/send/message/{recipient_id}', response_model=Dict[str, Any])
+@router.post('/chat/{recipient_id}/messages', status_code=200)
 @limiter.limit("220/minute")
 async def send_message(
     request: Request, 
     recipient_id: str,
     req: MessageRequest,
     current_user_id: str = Depends(get_user_id_from_token), 
-    db: Session = Depends(get_db)) -> Dict[str, Any]:
+    db: Session = Depends(get_db)) -> Dict[str, bool]:
 
-    user = db.query(User).filter(
+    current_user = db.query(User).filter(
         User.id == current_user_id
     ).first()
-    if not user:
+    if not current_user:
         raise HTTPException(status_code=404, detail="User not found.")
 
     if current_user_id == recipient_id:
@@ -35,16 +35,16 @@ async def send_message(
         raise HTTPException(status_code=404, detail="Recipient not found.")
 
     new_direct_message = DirectMessage(
-        sender_id=user.id,
+        sender_id=current_user.id,
         recipient_id=recipient.id,
         message=req.message
     )
 
     existing_conversation = db.query(ConversationHistory).filter(
-        ((ConversationHistory.sender_id == user.id) &
+        ((ConversationHistory.sender_id == current_user.id) &
          (ConversationHistory.recipient_id == recipient.id)) |
         ((ConversationHistory.sender_id == recipient.id) &
-         (ConversationHistory.recipient_id == user.id))
+         (ConversationHistory.recipient_id == current_user.id))
     ).first()
 
     try:
@@ -52,7 +52,7 @@ async def send_message(
 
         if not existing_conversation:
             new_conversation_history = ConversationHistory(
-                sender_id=user.id,
+                sender_id=current_user.id,
                 recipient_id=recipient.id,
                 message=req.message
             )
@@ -65,25 +65,25 @@ async def send_message(
         db.commit()
 
         message_data = {
-            "type": "messageSent",
+            "type": "newDirectMessage",
             "id": new_direct_message.id,
-            "senderId": user.id,
+            "senderId": current_user.id,
             "recipientId": recipient.id,
             "message": req.message,
             "createdAt": datetime.now().strftime("%H:%M"),
         }
 
         await asyncio.gather(
-            manager.broadcast_to_user(user.id, message_data),
+            manager.broadcast_to_user(current_user.id, message_data),
             manager.broadcast_to_user(recipient.id, message_data),
             manager.broadcast_to_user(recipient.id, {
                 "type": "newDirectMessage",
-                "id": user.id,
-                "username": user.username,
-                "image": user.profile_image,
-                "isOnline": user.is_online,
+                "id": current_user.id,
+                "username": current_user.username,
+                "image": current_user.profile_image,
+                "isOnline": current_user.is_online,
                 "latestMessage": req.message,
-                "createdAt": user.created_at.year,
+                "createdAt": current_user.created_at.year,
             }),
         )
 
@@ -94,24 +94,24 @@ async def send_message(
         db.rollback()
         raise HTTPException(status_code=500, detail="Failed to send message.")
     
-@router.get('/messages/{user_id}', response_model=Dict[str, Any])
+@router.get('/chat/{recipient_id}/messages', response_model=Dict[str, Any])
 @limiter.limit("220/minute")
 def get_messages(
     request: Request,
-    user_id: str,
+    recipient_id: str,
     limit: int = Query(50, ge=1, le=50),
     offset: int = Query(0, ge=0),
     current_user_id: str = Depends(get_user_id_from_token),
     db: Session = Depends(get_db)
 ) -> Dict[str, Any]:
-    other_user = db.query(User).filter(User.id == user_id).first()
-    if not other_user:
-        raise HTTPException(status_code=404, detail="User not found.")
+    recipient = db.query(User).filter(User.id == recipient_id).first()
+    if not recipient:
+        raise HTTPException(status_code=404, detail="Recipient not found.")
 
     total_count = db.query(DirectMessage).filter(
         or_(
-            and_(DirectMessage.sender_id == current_user_id, DirectMessage.recipient_id == user_id),
-            and_(DirectMessage.sender_id == user_id, DirectMessage.recipient_id == current_user_id)
+            and_(DirectMessage.sender_id == current_user_id, DirectMessage.recipient_id == recipient.id),
+            and_(DirectMessage.sender_id == recipient.id, DirectMessage.recipient_id == current_user_id)
         )
     ).filter(
         ~and_(
@@ -126,8 +126,8 @@ def get_messages(
 
     messages = db.query(DirectMessage).filter(
         or_(
-            and_(DirectMessage.sender_id == current_user_id, DirectMessage.recipient_id == user_id),
-            and_(DirectMessage.sender_id == user_id, DirectMessage.recipient_id == current_user_id),
+            and_(DirectMessage.sender_id == current_user_id, DirectMessage.recipient_id == recipient.id),
+            and_(DirectMessage.sender_id == recipient.id, DirectMessage.recipient_id == current_user_id),
         )
     ).filter(
         ~and_(
@@ -148,7 +148,9 @@ def get_messages(
             "senderId": message.sender_id,
             "recipientId": message.recipient_id,
             "message": message.message,
-            "createdAt": message.created_at.strftime("%H:%M")
+            "createdAt": message.created_at.strftime("%H:%M"),
+            "senderUsername": message.sender.username,
+            "senderImage": message.sender.profile_image
         } for message in messages
     ]
 
@@ -161,32 +163,83 @@ def get_messages(
         "hasMore": (offset + limit) < total_count
     }
 
+@router.delete("/chat/{recipient_id}/messages/{message_id}", status_code=200)
+@limiter.limit("120/minute")
+async def delete_direct_message(
+    request: Request,
+    recipient_id: str,
+    message_id: str,
+    current_user_id: str = Depends(get_user_id_from_token),
+    db: Session = Depends(get_db)
+) -> Dict[str, bool]:
+    current_user = db.query(User).filter(
+        User.id == current_user_id
+    ).first()
+    if not current_user:
+        raise HTTPException(status_code=404, detail="User not found.")
+    
+    recipient = db.query(User).filter(
+        User.id == recipient_id
+    ).first()
+    if not recipient:
+        raise HTTPException(status_code=404, detail="Recipient not found.")
+    
+    message = db.query(DirectMessage).filter(
+        DirectMessage.sender_id == current_user.id,
+        DirectMessage.recipient_id == recipient_id,
+        DirectMessage.id == message_id
+    ).first()
+    if not message:
+        raise HTTPException(status_code=404, detail="Direct message not found.")
+
+    message_id_to_return = message.id
+
+    try:
+        db.delete(message)
+        db.commit()
+
+        users_to_notify = [current_user, recipient]
+        await asyncio.gather(*[
+            manager.broadcast_to_user(user.id, {
+                "type": "directMessageDeleted",
+                "id": message_id_to_return
+            })
+            for user in users_to_notify
+        ])
+        
+        return {
+            "success" : True
+        }
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Failed to delete direct message due to internal server error")
+
 @router.get('/my/conversations', response_model=Dict[str, Any])
 @limiter.limit('220/minute')
 def my_conversations(
     request: Request, 
-    user_id: str = Depends(get_user_id_from_token), 
+    current_user_id: str = Depends(get_user_id_from_token), 
     db: Session = Depends(get_db)
 ) -> Dict[str, Any]:
-    user = db.query(User).filter(User.id == user_id).first()
-    if not user:
+    current_user = db.query(User).filter(User.id == current_user_id).first()
+    if not current_user:
         raise HTTPException(status_code=404, detail="User not found.")
 
     messages = db.query(ConversationHistory).filter(
         or_(
-            ConversationHistory.recipient_id == user_id,
-            ConversationHistory.sender_id == user_id
+            ConversationHistory.recipient_id == current_user.id,
+            ConversationHistory.sender_id == current_user.id
         )
     ).order_by(ConversationHistory.created_at.desc()).all()
 
     seen_users = {}
     for message in messages:
-        other_user_id = message.sender_id if message.recipient_id == user_id else message.recipient_id
+        other_user_id = message.sender_id if message.recipient_id == current_user.id else message.recipient_id
 
         is_hidden = False
-        if message.recipient_id == user_id and message.hidden_by_recipient:
+        if message.recipient_id == current_user.id and message.hidden_by_recipient:
             is_hidden = True
-        elif message.sender_id == user_id and message.hidden_by_sender:
+        elif message.sender_id == current_user.id and message.hidden_by_sender:
             is_hidden = True
 
         if is_hidden:
@@ -211,25 +264,25 @@ def my_conversations(
         "conversations": conversation_list
     }
 
-@router.delete('/conversation/{user_id}', response_model=Dict[str, Any])
+@router.delete('/conversation/{recipient_id}', status_code=200)
 @limiter.limit('220/minute')
 async def delete_conversation(
     request: Request, 
-    user_id: str, 
+    recipient_id: str, 
     current_user_id: str = Depends(get_user_id_from_token), 
     db: Session = Depends(get_db)
-) -> Dict[str, Any]:
-    other_user = db.query(User).filter(User.id == user_id).first()
-    if not other_user:
-        raise HTTPException(status_code=404, detail="User not found.")
+) -> Dict[str, bool]:
+    recipient = db.query(User).filter(User.id == recipient_id).first()
+    if not recipient:
+        raise HTTPException(status_code=404, detail="Recipient not found.")
 
     conversation = db.query(ConversationHistory).filter(
         (
             (ConversationHistory.sender_id == current_user_id) &
-            (ConversationHistory.recipient_id == user_id)
+            (ConversationHistory.recipient_id == recipient.id)
         ) |
         (
-            (ConversationHistory.sender_id == user_id) &
+            (ConversationHistory.sender_id == recipient.id) &
             (ConversationHistory.recipient_id == current_user_id)
         )
     ).first()
@@ -237,10 +290,10 @@ async def delete_conversation(
     messages = db.query(DirectMessage).filter(
         (
             (DirectMessage.sender_id == current_user_id) &
-            (DirectMessage.recipient_id == user_id)
+            (DirectMessage.recipient_id == recipient.id)
         ) |
         (
-            (DirectMessage.sender_id == user_id) &
+            (DirectMessage.sender_id == recipient.id) &
             (DirectMessage.recipient_id == current_user_id)
         )
     ).all()
@@ -270,7 +323,7 @@ async def delete_conversation(
 
         await manager.broadcast_to_user(current_user_id, {
             "type": "conversationDeleted",
-            "conversationId": user_id
+            "conversationId": recipient.id
         })
 
         return {
