@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import ImageProfile from "./ImageProfile";
 import CommunityPreview from "../features/community/components/CommunityPreview";
 import Modal from "./modal/Modal";
@@ -158,7 +158,7 @@ export default function Message({
             <>
               {isEditingMessage ? (
                 <div className="flex flex-col gap-1">
-                  <TextArea defaultValue={message.message} onChange={(e) => setNewMessage(e.target.value)} onKeyDown={(e) => handleKeyDown(e)} maxLength={2000} />
+                  <TextArea className='border border-outline' defaultValue={message.message} onChange={(text) => setNewMessage(text)} onKeyDown={(e) => handleKeyDown(e)} maxLength={2000} />
                   <div className="text-xs">escape to <button onClick={() => setIsEditingMessage(false)} className="text-blue-400 hover:underline">cancel</button> • enter to <button onClick={() => handleEditSave()} className="text-blue-400 hover:underline">save</button></div>
                 </div>
               ): (

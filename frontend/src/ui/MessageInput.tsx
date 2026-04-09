@@ -4,6 +4,7 @@ import notificationSound from '../assets/sounds/notification.mp3';
 import { useParams } from 'react-router-dom';
 import { icons } from '../constants/Icons';
 import Icon from './Icon';
+import TextArea from './TextArea';
 
 type MessageInputProps = {
     value?: string;
@@ -44,7 +45,7 @@ export default function MessageInput({ value: propValue, recipient_id }: Message
         }
     };
 
-    const handleKeyPressEnter = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    const handleKeyPressEnter = (event: React.KeyboardEvent<HTMLDivElement>) => {
         if (event.key === 'Enter' && value.trim()) {
             sendMessage(value);
         }
@@ -55,18 +56,17 @@ export default function MessageInput({ value: propValue, recipient_id }: Message
     };
 
     return (
-        <div className='border border-outline flex items-center bg-basalt px-4 rounded-lg gap-2 w-full h-[60px]'>
+        <div className='border border-outline flex items-center bg-basalt px-4 rounded-lg gap-2 w-full min-h-[60px] h-auto'>
             <audio ref={audioRef} preload="auto" />
             <button>
                 <Icon svgPaths={icons.add} className="size-5 text-gray-500 hover:text-gray-300 transition duration-300" />
             </button>
-            <input 
-                type="text" 
-                value={value}
-                onChange={(e) => setValue(e.target.value)}
-                onKeyPress={handleKeyPressEnter}
-                className="bg-basalt text-gray-100 focus:outline-none h-full border-outline flex justify-between items-center w-full"
-                placeholder="Message"  
+            <TextArea 
+            maxLength={2000}
+            placeholder='Message' 
+            value={value}
+            onChange={(text) => setValue(text)}
+            onKeyDown={handleKeyPressEnter}
             />
             <button onClick={handleSendClick}>
                 <Icon svgPaths={icons.send} className="size-5 text-gray-500 hover:text-gray-300 transition duration-300" />

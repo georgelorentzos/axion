@@ -1,52 +1,68 @@
-import { useRef, useEffect } from "react";
-import type React from "react";
-import Icon from "./Icon";
+import { useEffect, useRef } from "react";
 
 type TextAreaProps = {
-    onChange?: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
-    onKeyDown?: (e: React.KeyboardEvent) => void;
+    onChange?: (value: string) => void;
+    onKeyDown?: (e: React.KeyboardEvent<HTMLDivElement>) => void;
     placeholder?: string;
-    svgPaths?: string[];
     value?: string;
-    defaultValue: string;
+    defaultValue?: string;
     maxLength?: number;
-    readOnly?: boolean;
-    isLink?: boolean;
-}
+    className?: string;
+};
 
-export default function TextArea({ onChange, onKeyDown, placeholder, svgPaths, value, defaultValue, maxLength, readOnly, isLink }: TextAreaProps) {
-    const textareaRef = useRef<HTMLTextAreaElement>(null);
-
-    const autoResize = () => {
-        const el = textareaRef.current;
-        if (!el) return;
-        el.style.height = "auto";
-        el.style.height = el.scrollHeight + "px";
-    };
+export default function TextArea({ onChange, onKeyDown, placeholder, defaultValue, value, maxLength, className }: TextAreaProps) {
+    const editableRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        autoResize();
-    }, [defaultValue, value]);
+        if (editableRef.current && defaultValue) {
+            editableRef.current.textContent = defaultValue;
+        }
+    }, []);
+
+    useEffect(() => {
+        if (editableRef.current && value === '') {
+            editableRef.current.innerHTML = '';
+        }
+    }, [value]);
+
+    const handleInput = () => {
+        const el = editableRef.current;
+        if (!el) return;
+        let text = el.textContent || "";
+
+        if (text.trim() === "") {
+            el.innerHTML = "";
+        }
+
+        if (maxLength && text.length > maxLength) {
+            text = text.slice(0, maxLength);
+            el.textContent = text;
+            const range = document.createRange();
+            const sel = window.getSelection();
+            range.selectNodeContents(el);
+            range.collapse(false);
+            sel?.removeAllRanges();
+            sel?.addRange(range);
+        }
+        onChange?.(text);
+    };
+
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+        }
+        onKeyDown?.(e);
+    };
 
     return (
-        <div className='border border-outline flex bg-basalt px-2 rounded-lg gap-2 w-full'>
-            {svgPaths && (
-                <Icon svgPaths={svgPaths} className="size-5 text-gray-500 hover:text-gray-300 transition duration-300 mt-3" />
-            )}
-            <textarea
-                ref={textareaRef}
-                readOnly={readOnly}
-                value={value}
-                defaultValue={defaultValue}
-                onChange={(e) => {
-                    autoResize();
-                    onChange?.(e);
-                }}
-                onKeyDown={onKeyDown}
-                maxLength={maxLength}
-                className={`${isLink ? "text-blue-400 cursor-default pointer-events-none" : "text-gray-100"} bg-basalt focus:outline-none py-1 border-outline w-full resize-none overflow-hidden`}
-                placeholder={placeholder}
-            />
-        </div>
+        <div
+            ref={editableRef}
+            onInput={handleInput}
+            contentEditable={true}
+            suppressContentEditableWarning
+            onKeyDown={handleKeyDown}
+            data-placeholder={placeholder}
+            className={`${className} text-[14px] text-gray-100 bg-transparent focus:outline-none px-3 py-1 w-full break-words outline-none leading-snug min-w-0 overflow-hidden rounded-2xl empty:before:content-[attr(data-placeholder)] empty:before:text-gray-500`}
+        />
     );
 }
