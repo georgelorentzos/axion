@@ -75,8 +75,15 @@ export default function Message({
   const handleEditMessage = () => {
     setIsActionMenuOpen(false);
     setNewMessage(message.message);
+    window.dispatchEvent(new CustomEvent("closeAllEdits"));
     setIsEditingMessage(true);
   };
+
+  useEffect(() => {
+    const handleCloseAll = () => setIsEditingMessage(false);
+    window.addEventListener("closeAllEdits", handleCloseAll)
+    return () => window.removeEventListener("closeAllEdits", handleCloseAll);
+  }, []);
 
   useEffect(() => {
     if (!isEditingMessage) return;
