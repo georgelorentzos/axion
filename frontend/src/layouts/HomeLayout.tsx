@@ -3,7 +3,7 @@ import ChatOverView from '../features/home/components/ChatOverView';
 import { Outlet } from 'react-router-dom';
 
 export const HomeLayout = () => (
-  <div className="h-screen w-full flex items-center">
+  <div className="h-screen w-screen flex overflow-hidden">
     <CommunityList />
     <ChatOverView />
     <Outlet />

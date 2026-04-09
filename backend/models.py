@@ -54,7 +54,7 @@ class DirectMessage(Base):
     hidden_by_sender = Column(Boolean, nullable=False, default=False)
     hidden_by_recipient = Column(Boolean, nullable=False, default=False)
     created_at = Column(DateTime, default=datetime.now)
-    is_read = Column(Boolean, nullable=False, default=False)
+    is_edited = Column(Boolean, default=False, nullable=False)
     sender = relationship("User", foreign_keys=[sender_id])
     recipient = relationship("User", foreign_keys=[recipient_id])
 
@@ -116,6 +116,7 @@ class ChannelMessage(Base):
     community_id = Column(String, ForeignKey("communities.id"), nullable=False)
     message = Column(String, nullable=False)
     created_at = Column(DateTime, default=datetime.now)
+    is_edited = Column(Boolean, default=False, nullable=False)
     sender = relationship("User", foreign_keys=[sender_id])
     community = relationship("Community", foreign_keys=[community_id])
 

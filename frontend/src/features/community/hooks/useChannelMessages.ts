@@ -80,6 +80,7 @@ export function useChannelMessages() {
                             senderId: data.senderId,
                             channelId: data.channelId,
                             message: data.message,
+                            isEdited: data.isEdited,
                             createdAt: data.createdAt,
                             senderUsername: data.senderUsername,
                             senderImage: data.senderImage,
@@ -89,6 +90,15 @@ export function useChannelMessages() {
             }
             if (data.type === "channelMessageDeleted") {
                 setMessages(prev => prev.filter(m => m.id !== data.id));
+            }
+            if (data.type === "channelMessageEdited") {
+                setMessages(prev => prev.map(
+                    message => message.id === data.id ? {
+                        ...message,
+                        message: data.message,
+                        isEdited: data.isEdited
+                    } : message
+                ));
             }
         };
         const ws = window._ws?.ws;

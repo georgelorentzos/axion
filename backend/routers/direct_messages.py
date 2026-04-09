@@ -148,6 +148,7 @@ def get_messages(
             "senderId": message.sender_id,
             "recipientId": message.recipient_id,
             "message": message.message,
+            "isEdited": message.is_edited,
             "createdAt": message.created_at.strftime("%H:%M"),
             "senderUsername": message.sender.username,
             "senderImage": message.sender.profile_image
@@ -213,6 +214,59 @@ async def delete_direct_message(
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail="Failed to delete direct message due to internal server error")
+
+@router.patch("/chat/{recipient_id}/messages/{message_id}", status_code=200)
+@limiter.limit("120/minute")
+async def edit_direct_message(
+    request: Request,
+    recipient_id: str,
+    message_id: str,
+    req: MessageRequest,
+    current_user_id: str = Depends(get_user_id_from_token),
+    db: Session = Depends(get_db)
+) -> Dict[str, bool]:
+    current_user = db.query(User).filter(
+        User.id == current_user_id
+    ).first()
+    if not current_user:
+        raise HTTPException(status_code=404, detail="User not found.")
+    
+    recipient = db.query(User).filter(
+        User.id == recipient_id
+    ).first()
+    if not recipient:
+        raise HTTPException(status_code=404, detail="Recipient not found.")
+    
+    message = db.query(DirectMessage).filter(
+        DirectMessage.sender_id == current_user.id,
+        DirectMessage.recipient_id == recipient_id,
+        DirectMessage.id == message_id
+    ).first()
+    if not message:
+        raise HTTPException(status_code=404, detail="Direct message not found.")
+
+    try:
+        message.message = req.message
+        message.is_edited = True
+        db.commit()
+
+        users_to_notify = [current_user, recipient]
+        await asyncio.gather(*[
+            manager.broadcast_to_user(user.id, {
+                "type": "directMessageEdited",
+                "id": message.id,
+                "message": message.message,
+                "isEdited": message.is_edited,
+            })
+            for user in users_to_notify
+        ])
+        
+        return {
+            "success" : True
+        }
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Failed to edit direct message due to internal server error")
 
 @router.get('/my/conversations', response_model=Dict[str, Any])
 @limiter.limit('220/minute')

@@ -107,7 +107,7 @@ export default function ChannelConversation() {
     }, [hasMore, isLoading, loadMore]);
 
     return (
-        <>
+        <div className="flex-1 min-w-0 h-full overflow-hidden">
             {channelId && (
                 <div className="flex-1 h-full flex flex-col">
                     <div className="w-full h-[60px] border-b border-outline flex items-center justify-between px-4 flex-shrink-0">
@@ -165,6 +165,6 @@ export default function ChannelConversation() {
                     </div>
                 </div>
             )}
-        </>
+        </div>
     );
 }

@@ -1,0 +1,4 @@
+ALTER TABLE direct_messages DROP COLUMN is_read;
+ALTER TABLE  direct_messages ADD COLUMN is_edited BOOLEAN NOT NULL DEFAULT FALSE;
+
+ALTER TABLE channel_messages ADD COLUMN is_edited BOOLEAN NOT NULL DEFAULT FALSE;

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import ImageProfile from "./ImageProfile";
 import CommunityPreview from "../features/community/components/CommunityPreview";
 import Modal from "./modal/Modal";
@@ -10,6 +10,7 @@ import { useParams } from "react-router-dom";
 import { api } from "../api/client";
 import { type Message } from "../types/message";
 import { useCurrentUser } from "../features/user/contexts/useCurrentUser";
+import TextArea from "./TextArea";
 
 type MessageProps = {
   message: Message;
@@ -32,6 +33,8 @@ export default function Message({
   const [pos, setPos] = useState<{ x:number, y:number}>({ x:0, y:0});
   const { communityId, channelId } = useParams();
   const { currentUser } = useCurrentUser();
+  const [isEditingMessage, setIsEditingMessage] = useState(false);
+  const [newMessage, setNewMessage] = useState(message.message);
 
   const handleLinkClick = (e: React.MouseEvent<HTMLAnchorElement>, url: string) => {
     e.preventDefault();
@@ -69,20 +72,51 @@ export default function Message({
   }
   };
 
+  const handleEditMessage = () => {
+    setIsActionMenuOpen(false);
+    setNewMessage(message.message);
+    setIsEditingMessage(true);
+  };
+
+  useEffect(() => {
+    if (!isEditingMessage) return;
+
+     const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setIsEditingMessage(false);
+      }
+    };
+    
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
+
+  }, [isEditingMessage])
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      setIsEditingMessage(false);
+        if (communityId && channelId) {
+          api.channelMessages.edit(communityId, channelId, message.id, newMessage);
+        } else {
+          if (!message.recipientId) return;
+          api.directMessages.edit(message.recipientId, message.id, newMessage);
+        }
+    }
+  }
+
   return (
     <>
       <div
         onContextMenu={handleContextMenu}
-        className={`rounded-tr rounded-br ${isLastInGroup && "mb-4"} px-4 flex ${
-          isInviteLink ? "items-start" : "items-center"
-        } flex-row hover:bg-basalt group transition duration-200`}
+        className={`rounded-tr rounded-br ${isLastInGroup && "mb-4"} px-4 flex items-start flex-row ${isEditingMessage && "bg-basalt"} hover:bg-basalt group transition duration-200`}
       >
         {isFirstInGroup ? (
-          <div className="flex-shrink-0">
+          <div className="flex-shrink-0 mt-1">
             <ImageProfile src={message.senderImage} showStatus={false} />
           </div>
         ) : (
-          <div className="min-w-[40px] max-w-[40px] flex justify-center">
+          <div className="min-w-[40px] max-w-[40px] flex justify-center items-center h-[22px] mt-[2px]">
             {!isInviteLink && (
               <div className="opacity-0 group-hover:opacity-100 text-xs text-gray-300 transition duration-200">
                 {message.createdAt}
@@ -91,7 +125,7 @@ export default function Message({
           </div>
         )}
 
-        <div className="relative w-full min-w-[120px] px-3 py-1 rounded-2xl">
+        <div className="relative w-full min-w-0 overflow-hidden px-3 py-1 rounded-2xl">
           {isFirstInGroup && (
             <div className={`flex items-center gap-2 text-sm font-semibold text-emerald-400 mb-0.5 ${isInviteLink ? "mb-2" : ""}`}>
               <div>{message.senderUsername}</div>
@@ -110,9 +144,21 @@ export default function Message({
               {message.message}
             </a>
           ) : (
-            <p className="text-[14px] text-gray-100 leading-snug break-words">
-              {message.message}
-            </p>
+            <>
+              {isEditingMessage ? (
+                <div className="flex flex-col gap-1">
+                  <TextArea defaultValue={message.message} onChange={(e) => setNewMessage(e.target.value)} onKeyDown={(e) => handleKeyDown(e)} maxLength={2000} />
+                  <div className="text-xs">escape to <button onClick={() => setIsEditingMessage(false)} className="text-blue-400 hover:underline">cancel</button> • enter to <button className="text-blue-400 hover:underline">save</button></div>
+                </div>
+              ): (
+                <div className="select-text w-full text-[14px] text-gray-100 leading-snug break-words">
+                  {message.message}
+                  {message.isEdited && (
+                    <span className="text-gray-500 text-xs pl-1">(edited)</span>
+                  )}
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>
@@ -126,14 +172,11 @@ export default function Message({
         </Modal>
       )}
       <ActionMenu isOpen={isActionMenuOpen} onClose={() => setIsActionMenuOpen(false)} position={pos}>
-        <ActionMenuButton text="Edit Message" svgPaths={icons.pen} isVisible={currentUser?.id === message.senderId} />
+        <ActionMenuButton text="Edit Message" svgPaths={icons.pen} onClick={handleEditMessage} isVisible={currentUser?.id === message.senderId} />
         <ActionMenuButton text="Reply" svgPaths={icons.reply} />
         <ActionMenuButton text="Copy Text" svgPaths={icons.copy} onClick={handleCopyText} />
-        {/* <ActionMenuButton text="Pin Message" svgPaths={icons.pen} /> */}
         <ActionMenuButton text="Delete Message" isDanger svgPaths={icons.delete} onClick={handleDeleteMessage} isVisible={currentUser?.id === message.senderId} />
       </ActionMenu>
     </>
   );
 }
-
-

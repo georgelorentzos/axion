@@ -67,6 +67,7 @@ def fetch_channel_messages(
             "senderId": message.sender_id,
             "channelId": message.channel_id,
             "message": message.message,
+            "isEdited": message.is_edited,
             "createdAt": message.created_at.strftime("%H:%M"),
             "senderUsername": message.sender.username,
             "senderImage": message.sender.profile_image
@@ -213,3 +214,67 @@ async def delete_channel_message(
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail="Failed to delete message due to internal server error.")
+
+@router.patch("/community/{community_id}/channels/{channel_id}/messages/{message_id}", status_code=200)
+@limiter.limit("120/minute")
+async def edit_channel_message(
+    request: Request,
+    community_id: str,
+    channel_id: str,
+    message_id: str,
+    req: MessageRequest,
+    current_user_id: str = Depends(get_user_id_from_token),
+    db: Session = Depends(get_db)
+) -> Dict[str, bool]:
+    current_user = db.query(User).filter(
+        User.id == current_user_id
+    ).first()
+    if not current_user:
+        raise HTTPException(status_code=404, detail="Detail user not found.")
+    
+    community = db.query(Community).filter(
+        Community.id == community_id
+    ).first()
+    if not community:
+        raise HTTPException(status_code=404, detail="Community not found.")
+    
+    channel = db.query(CommunityChannel).filter(
+        CommunityChannel.community_id == community.id,
+        CommunityChannel.id == channel_id
+    ).first()
+    if not channel:
+        raise HTTPException(status_code=404, detail="Channel not found.")
+    
+    message = db.query(ChannelMessage).filter(
+        ChannelMessage.channel_id == channel.id,
+        ChannelMessage.id == message_id
+    ).first()
+    if not message:
+        raise HTTPException(status_code=404, detail="Message not found.")
+    
+    if current_user.id != message.sender.id:
+        raise HTTPException(status_code=403, detail="You cant delete messages from another user.")
+
+    try:
+        message.message = req.message
+        message.is_edited = True
+        db.commit()
+
+        community_members = db.query(CommunityMember).filter(
+            CommunityMember.community_id == community.id
+        ).all()
+        await asyncio.gather(*[
+            manager.broadcast_to_user(community_member.user_id, {
+                "type": "channelMessageEdited",
+                "id": message.id,
+                "message": message.message,
+                "isEdited": message.is_edited,
+            })
+            for community_member in community_members
+        ])
+        return {
+            "success": True
+        }
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Failed to edit message due to internal server error.")

@@ -74,6 +74,8 @@ export const api = {
       request(`/api/chat/${userId}/messages?limit=${limit}&offset=${offset}`),
     delete: (recipientId: string, messageId: string) =>
       request(`/api/chat/${recipientId}/messages/${messageId}`, { method: "DELETE" }),
+    edit: (recipientId: string, messageId: string, message: string) =>
+      request(`/api/chat/${recipientId}/messages/${messageId}`, { method: "PATCH", body: { message } }),
     conversations: () => request("/api/my/conversations"),
     deleteConversation: (userId: string) =>
       request(`/api/conversation/${userId}`, { method: "DELETE" }),
@@ -86,6 +88,8 @@ export const api = {
       request(`/api/community/${communityId}/channels/${channelId}/messages?limit=${limit}&offset=${offset}`),
     delete: (communityId: string, channelId: string, messageId: string) =>
       request(`/api/community/${communityId}/channels/${channelId}/messages/${messageId}`, { method: "DELETE" }),
+    edit: (communityId: string, channelId: string, messageId: string, message: string) =>
+      request(`/api/community/${communityId}/channels/${channelId}/messages/${messageId}`, { method: "PATCH", body: { message } }),
   },
 
   communities: {
