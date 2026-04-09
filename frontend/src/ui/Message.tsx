@@ -99,16 +99,20 @@ export default function Message({
 
   }, [isEditingMessage])
 
+  const handleEditSave = () => {
+    setIsEditingMessage(false);
+    if (communityId && channelId) {
+      api.channelMessages.edit(communityId, channelId, message.id, newMessage);
+    } else {
+      if (!message.recipientId) return;
+      api.directMessages.edit(message.recipientId, message.id, newMessage);
+    }
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      setIsEditingMessage(false);
-        if (communityId && channelId) {
-          api.channelMessages.edit(communityId, channelId, message.id, newMessage);
-        } else {
-          if (!message.recipientId) return;
-          api.directMessages.edit(message.recipientId, message.id, newMessage);
-        }
+      handleEditSave();
     }
   }
 
@@ -155,7 +159,7 @@ export default function Message({
               {isEditingMessage ? (
                 <div className="flex flex-col gap-1">
                   <TextArea defaultValue={message.message} onChange={(e) => setNewMessage(e.target.value)} onKeyDown={(e) => handleKeyDown(e)} maxLength={2000} />
-                  <div className="text-xs">escape to <button onClick={() => setIsEditingMessage(false)} className="text-blue-400 hover:underline">cancel</button> • enter to <button className="text-blue-400 hover:underline">save</button></div>
+                  <div className="text-xs">escape to <button onClick={() => setIsEditingMessage(false)} className="text-blue-400 hover:underline">cancel</button> • enter to <button onClick={() => handleEditSave()} className="text-blue-400 hover:underline">save</button></div>
                 </div>
               ): (
                 <div className="select-text w-full text-[14px] text-gray-100 leading-snug break-words">
