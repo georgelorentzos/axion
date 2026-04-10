@@ -167,7 +167,7 @@ export default function Message({
   return (
     <div onContextMenu={handleContextMenu} className={`${isReplyMessage && "bg-basalt"} rounded-tr rounded-br ${isLastInGroup && "mb-4"} px-4 flex flex-col items-start flex-row ${isEditingMessage && "bg-basalt"} hover:bg-basalt group transition duration-200`}>
     {message.replyToId && isFirstInGroup && (
-        <div className="flex items-center gap-1 ml-[52px] text-xs mb-1">
+        <div className="flex items-center gap-1 ml-[52px] text-xs mt-1">
           <Icon svgPaths={icons.reply} className="size-3 text-gray-500" />
           <ImageProfile showStatus={false} src={message.replyToImage} height={16} width={16} />
           <span className="font-semibold text-emerald">{message.replyToUsername}</span>
