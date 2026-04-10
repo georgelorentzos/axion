@@ -141,6 +141,7 @@ class CommunityRole(Base):
     __tablename__ = "community_roles"
     id = Column(String, primary_key=True, default=lambda: generate(NUMERIC_ALPHABET, 20))
     role_name = Column(String, nullable=False)
+    color = Column(String)
     permissions = Column(JSONB, nullable=False, default=lambda: [])
     community_id = Column(String, ForeignKey("communities.id"), nullable=False)
     community = relationship("Community", back_populates="roles")

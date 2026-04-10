@@ -37,7 +37,8 @@ export default function RoleBadge({ member, role }: RoleBadgeProps) {
     };
 
     return (
-        <div className="flex items-center gap-2 text-xs px-2 py-2 rounded bg-onyx text-gray-100">
+        <div className="flex items-center gap-1 text-xs px-2 py-2 rounded bg-onyx text-gray-100">
+            <div className={`w-[12px] h-[12px] bg-[#${role.color}] rounded-full`}></div>
             {role.name}
             {(currentUser?.id === community?.ownerId ||
             currentUser?.permissions?.includes(PERMISSIONS.ADMINISTRATOR) ||

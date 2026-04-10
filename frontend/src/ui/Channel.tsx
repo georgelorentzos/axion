@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { type Channel } from "../features/community/types/channel";
-import ActionMenu from "./actionmenu/ActionMenu";
-import ActionMenuButton from "./actionmenu/ActionMenuButton";
+import ActionMenu from "./action-menu/ActionMenu";
+import ActionMenuButton from "./action-menu/ActionMenuButton";
 import { api } from "../api/client";
 import { useParams } from "react-router-dom";
 import { useChannels } from "../features/community/contexts/useChannels";

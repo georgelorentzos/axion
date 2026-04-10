@@ -15,6 +15,9 @@ import { type Role } from "../../../types/role";
 import { api } from "../../../../../api/client";
 import Icon from "../../../../../ui/Icon";
 import { icons } from "../../../../../constants/Icons";
+import ColorSwatch from "../../../../../ui/color-picker/ColorSwatch";
+import { colors } from "../../../../../constants/colors";
+import ColorPalette from "../../../../../ui/color-picker/ColorPalette";
 
 interface RolesContentProps {
     onChildModalChange?: (isOpen: boolean) => void;
@@ -32,6 +35,8 @@ export default function RolesContent({ onChildModalChange }: RolesContentProps) 
     const [deletingRole, setDeletingRole] = useState<Role | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
     const filteredRoles = roles.filter(role => role.name.startsWith(searchQuery.toLowerCase()))
+    const [selectedColor, setSelectedColor] = useState("F3F4F6");
+    const [showPicker, setShowPicker] = useState(false);
 
     useEffect(() => {
         onChildModalChange?.(!!deletingRole);
@@ -49,19 +54,20 @@ export default function RolesContent({ onChildModalChange }: RolesContentProps) 
             const updated = prev.includes(permission)
                 ? prev.filter(p => p !== permission)
                 : [...prev, permission];
-            checkForChanges(roleName, updated);
+            checkForChanges(roleName, selectedColor, updated);
             return updated;
         });
     };
 
-    const checkForChanges = (name: string, permissions: string[]) => {
+    const checkForChanges = (name: string, color: string , permissions: string[]) => {
         if (editingRole) {
             const nameChanged = name !== editingRole.name;
+            const colorChanged = color !== editingRole.color;
             const originalPerms = Array.isArray(editingRole.permissions) ? editingRole.permissions : [];
             const permsChanged = permissions.length !== originalPerms.length ||
                 permissions.some(p => !originalPerms.includes(p)) ||
                 originalPerms.some(p => !permissions.includes(p));
-            setHasUnsavedChanges(nameChanged || permsChanged);
+            setHasUnsavedChanges(nameChanged || colorChanged || permsChanged);
         } else {
             setHasUnsavedChanges(name.trim() !== '' || permissions.length > 0);
         }
@@ -84,8 +90,8 @@ export default function RolesContent({ onChildModalChange }: RolesContentProps) 
         if (!communityId) return;
         try {
             const { response, data } = editingRole
-                ? await api.roles.update(communityId, editingRole.id, trimmed, permissionString)
-                : await api.roles.create(communityId, trimmed, permissionString);
+                ? await api.roles.update(communityId, editingRole.id, trimmed, selectedColor, permissionString)
+                : await api.roles.create(communityId, trimmed, selectedColor, permissionString);
 
             if (response.ok) {
                 if (editingRole) {
@@ -113,6 +119,7 @@ export default function RolesContent({ onChildModalChange }: RolesContentProps) 
     const handleReset = () => {
         if (editingRole) {
             setRoleName(editingRole.name);
+            setSelectedColor(editingRole.color || "F3F4F6");
             setSelectedPermissions(
                 Array.isArray(editingRole.permissions) ? [...editingRole.permissions] : []
             );
@@ -128,6 +135,7 @@ export default function RolesContent({ onChildModalChange }: RolesContentProps) 
         setIsCreateRole(true);
         setEditingRole(null);
         setRoleName('');
+        setSelectedColor("F3F4F6");
         setSelectedPermissions([]);
         setHasUnsavedChanges(false);
         setError('');
@@ -137,6 +145,7 @@ export default function RolesContent({ onChildModalChange }: RolesContentProps) 
         setIsCreateRole(true);
         setEditingRole(role);
         setRoleName(role.name);
+        setSelectedColor(role.color || "F3F4F6");
         setSelectedPermissions(
             Array.isArray(role.permissions)
                 ? [...role.permissions]
@@ -152,6 +161,7 @@ export default function RolesContent({ onChildModalChange }: RolesContentProps) 
         setIsCreateRole(false);
         setEditingRole(null);
         setRoleName('');
+        setSelectedColor("F3F4F6");
         setSelectedPermissions([]);
         setHasUnsavedChanges(false);
         setError('');
@@ -161,11 +171,16 @@ export default function RolesContent({ onChildModalChange }: RolesContentProps) 
         const newName = e.target.value;
         setRoleName(newName);
         setError('');
-        checkForChanges(newName, selectedPermissions);
+        checkForChanges(newName, selectedColor, selectedPermissions);
+    };
+
+    const handleColorChange = (color: string) => {
+        setSelectedColor(color);
+        checkForChanges(roleName, color, selectedPermissions);
     };
 
     const createRoleContent = (
-        <div className="px-6 flex flex-col gap-2 w-full">
+        <div className="px-6 flex flex-col gap-2 w-full h-full min-h-0">
             <div className="flex gap-2">
                 <div>{editingRole ? "Edit Role" : "Create Role"}</div>
                 <button
@@ -176,90 +191,125 @@ export default function RolesContent({ onChildModalChange }: RolesContentProps) 
                     Back
                 </button>
             </div>
-            <div>Role Name</div>
-            <div className="flex flex-col gap-1">
-                <Input
-                    placeholder="Role Name"
-                    value={roleName}
-                    onChange={handleNameChange}
-                    maxLength={20}
-                />
-            </div>
-            <div className="rounded-lg flex flex-col overflow-y-auto max-h-[calc(100vh-200px)]">
-                <PermissionsSection title="GENERAL">
-                    <PermissionItem
-                        onClick={() => togglePermission(PERMISSIONS.MANAGE_CHANNELS)}
-                        active={selectedPermissions.includes(PERMISSIONS.MANAGE_CHANNELS)}
-                        text="Manage Channels"
-                        description="Allows members to create, edit, or delete channels."
+            <div className="flex-1 min-h-0 overflow-y-auto flex flex-col gap-2">
+                <div>Role Name</div>
+                <div className="flex flex-col gap-1">
+                    <Input
+                        placeholder="Role Name"
+                        value={roleName}
+                        onChange={handleNameChange}
+                        maxLength={20}
                     />
-                    <PermissionItem
-                        onClick={() => togglePermission(PERMISSIONS.MANAGE_ROLES)}
-                        active={selectedPermissions.includes(PERMISSIONS.MANAGE_ROLES)}
-                        text="Manage Roles"
-                        description="Allows members to create, edit, or delete roles lower than their highest role."
-                    />
-                    <PermissionItem
-                        onClick={() => togglePermission(PERMISSIONS.MANAGE_COMMUNITY)}
-                        active={selectedPermissions.includes(PERMISSIONS.MANAGE_COMMUNITY)}
-                        text="Manage Community"
-                        description="Allows members to edit community settings, such as the community name and description."
-                    />
-                    <PermissionItem
-                        onClick={() => togglePermission(PERMISSIONS.VIEW_LOGS)}
-                        active={selectedPermissions.includes(PERMISSIONS.VIEW_LOGS)}
-                        text="View Logs"
-                        description="Allows members to view system logs."
-                    />
-                </PermissionsSection>
-                <PermissionsSection title="MEMBERSHIP">
-                    <PermissionItem
-                        onClick={() => togglePermission(PERMISSIONS.KICK)}
-                        active={selectedPermissions.includes(PERMISSIONS.KICK)}
-                        text="Kick"
-                        description="Allows members to remove other members from the community."
-                    />
-                    <PermissionItem
-                        onClick={() => togglePermission(PERMISSIONS.BAN)}
-                        active={selectedPermissions.includes(PERMISSIONS.BAN)}
-                        text="Ban"
-                        description="Allows members to permanently ban other members from the community."
-                    />
-                </PermissionsSection>
-                <PermissionsSection title="TEXT CHANNEL">
-                    <PermissionItem
-                        onClick={() => togglePermission(PERMISSIONS.SEND_MESSAGES)}
-                        active={selectedPermissions.includes(PERMISSIONS.SEND_MESSAGES)}
-                        text="Send Messages"
-                        description="Allows members to send messages in text channels."
-                    />
-                    <PermissionItem
-                        onClick={() => togglePermission(PERMISSIONS.SEND_LINKS)}
-                        active={selectedPermissions.includes(PERMISSIONS.SEND_LINKS)}
-                        text="Send Links"
-                        description="Allows members to send links that display embedded content."
-                    />
-                    <PermissionItem
-                        onClick={() => togglePermission(PERMISSIONS.ATTACH_FILES)}
-                        active={selectedPermissions.includes(PERMISSIONS.ATTACH_FILES)}
-                        text="Attach Files"
-                        description="Allows members to upload files and media in text channels."
-                    />
-                    <PermissionItem
-                        onClick={() => togglePermission(PERMISSIONS.MANAGE_MESSAGES)}
-                        active={selectedPermissions.includes(PERMISSIONS.MANAGE_MESSAGES)}
-                        text="Manage Messages"
-                        description="Allows members to delete or pin messages from other members."
-                    />
-                </PermissionsSection>
-                <PermissionsSection title="ADVANCED">
-                    <PermissionItem
-                        onClick={() => togglePermission(PERMISSIONS.ADMINISTRATOR)}
-                        active={selectedPermissions.includes(PERMISSIONS.ADMINISTRATOR)}
-                        text="Administrator"
-                        description="Grants all permissions and bypasses all channel-specific restrictions. This is a dangerous permission to grant."
-                    />
-                </PermissionsSection>
+                </div>
+                <div className="flex flex-col gap-2">
+                    <div>Role Color</div>
+                    <div className="text-gray-500 text-xs">Members use the color of the highest role they have on the roles list.</div>
+                    <div className="flex gap-2">
+                        <div className="flex gap-2">
+                            <div className="w-[66px] h-[50px]">
+                                <ColorSwatch color="F3F4F6" onClick={() => handleColorChange("F3F4F6")} isSelected={selectedColor === "F3F4F6"} />
+                            </div>
+                        <div className="relative">
+                            <div className="w-[66px] h-[50px]">
+                                <ColorSwatch color={selectedColor && selectedColor !== "F3F4F6" ? selectedColor : ""} onClick={() => setShowPicker(true)} />
+                            </div>
+                            <ColorPalette
+                                isOpen={showPicker}
+                                initialColor={selectedColor}
+                                onChange={(hex) => handleColorChange(hex)}
+                                onClose={() => setShowPicker(false)}
+                            />
+                        </div>
+                        </div>
+                        <div className="flex flex-col gap-2">
+                            {colors.map((row, i) => (
+                                <div key={i} className="flex gap-2">
+                                    {row.map(color => (
+                                        <div className="w-[20px] h-[20px] ">
+                                            <ColorSwatch key={color} color={color} onClick={() => handleColorChange(color)} isSelected={selectedColor === color} />
+                                        </div>
+                                    ))}
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+                <div className="rounded-lg flex flex-col">
+                    <PermissionsSection title="GENERAL">
+                        <PermissionItem
+                            onClick={() => togglePermission(PERMISSIONS.MANAGE_CHANNELS)}
+                            active={selectedPermissions.includes(PERMISSIONS.MANAGE_CHANNELS)}
+                            text="Manage Channels"
+                            description="Allows members to create, edit, or delete channels."
+                        />
+                        <PermissionItem
+                            onClick={() => togglePermission(PERMISSIONS.MANAGE_ROLES)}
+                            active={selectedPermissions.includes(PERMISSIONS.MANAGE_ROLES)}
+                            text="Manage Roles"
+                            description="Allows members to create, edit, or delete roles lower than their highest role."
+                        />
+                        <PermissionItem
+                            onClick={() => togglePermission(PERMISSIONS.MANAGE_COMMUNITY)}
+                            active={selectedPermissions.includes(PERMISSIONS.MANAGE_COMMUNITY)}
+                            text="Manage Community"
+                            description="Allows members to edit community settings, such as the community name and description."
+                        />
+                        <PermissionItem
+                            onClick={() => togglePermission(PERMISSIONS.VIEW_LOGS)}
+                            active={selectedPermissions.includes(PERMISSIONS.VIEW_LOGS)}
+                            text="View Logs"
+                            description="Allows members to view system logs."
+                        />
+                    </PermissionsSection>
+                    <PermissionsSection title="MEMBERSHIP">
+                        <PermissionItem
+                            onClick={() => togglePermission(PERMISSIONS.KICK)}
+                            active={selectedPermissions.includes(PERMISSIONS.KICK)}
+                            text="Kick"
+                            description="Allows members to remove other members from the community."
+                        />
+                        <PermissionItem
+                            onClick={() => togglePermission(PERMISSIONS.BAN)}
+                            active={selectedPermissions.includes(PERMISSIONS.BAN)}
+                            text="Ban"
+                            description="Allows members to permanently ban other members from the community."
+                        />
+                    </PermissionsSection>
+                    <PermissionsSection title="TEXT CHANNEL">
+                        <PermissionItem
+                            onClick={() => togglePermission(PERMISSIONS.SEND_MESSAGES)}
+                            active={selectedPermissions.includes(PERMISSIONS.SEND_MESSAGES)}
+                            text="Send Messages"
+                            description="Allows members to send messages in text channels."
+                        />
+                        <PermissionItem
+                            onClick={() => togglePermission(PERMISSIONS.SEND_LINKS)}
+                            active={selectedPermissions.includes(PERMISSIONS.SEND_LINKS)}
+                            text="Send Links"
+                            description="Allows members to send links that display embedded content."
+                        />
+                        <PermissionItem
+                            onClick={() => togglePermission(PERMISSIONS.ATTACH_FILES)}
+                            active={selectedPermissions.includes(PERMISSIONS.ATTACH_FILES)}
+                            text="Attach Files"
+                            description="Allows members to upload files and media in text channels."
+                        />
+                        <PermissionItem
+                            onClick={() => togglePermission(PERMISSIONS.MANAGE_MESSAGES)}
+                            active={selectedPermissions.includes(PERMISSIONS.MANAGE_MESSAGES)}
+                            text="Manage Messages"
+                            description="Allows members to delete or pin messages from other members."
+                        />
+                    </PermissionsSection>
+                    <PermissionsSection title="ADVANCED">
+                        <PermissionItem
+                            onClick={() => togglePermission(PERMISSIONS.ADMINISTRATOR)}
+                            active={selectedPermissions.includes(PERMISSIONS.ADMINISTRATOR)}
+                            text="Administrator"
+                            description="Grants all permissions and bypasses all channel-specific restrictions. This is a dangerous permission to grant."
+                        />
+                    </PermissionsSection>
+                </div>
             </div>
             <UnsavedChangesBar isVisible={hasUnsavedChanges} onReset={handleReset} onSave={handleSaveRole} error={error} />
         </div>
@@ -288,8 +338,7 @@ export default function RolesContent({ onChildModalChange }: RolesContentProps) 
                             {filteredRoles.map((role) => (
                                 <RoleCard
                                     key={role.id}
-                                    id={role.id}
-                                    name={role.name}
+                                    role={role}
                                     onClick={() => handleOpenEditRole(role)}
                                     onDelete={() => setDeletingRole(role)}
                                 />
@@ -310,14 +359,14 @@ export default function RolesContent({ onChildModalChange }: RolesContentProps) 
         <div className="flex gap-2 justify-start items-start h-full min-h-0">
             {isCreateRole ? createRoleContent : defaultContent}
             <Modal isOpen={!!deletingRole} onClose={() => setDeletingRole(null)}>
-                <Delete 
-                title={`Delete ${deletingRole?.name}`}
-                onConfirm={async () => {
-                  if (!deletingRole?.id || !communityId) return;
-                  const { data } = await api.roles.delete(communityId, deletingRole.id);
-                  setRoles(prev => prev.filter(r => r.id !== data.id));
-                  setDeletingRole(null);
-                }}
+                <Delete
+                    title={`Delete ${deletingRole?.name}`}
+                    onConfirm={async () => {
+                        if (!deletingRole?.id || !communityId) return;
+                        const { data } = await api.roles.delete(communityId, deletingRole.id);
+                        setRoles(prev => prev.filter(r => r.id !== data.id));
+                        setDeletingRole(null);
+                    }}
                 />
             </Modal>
         </div>

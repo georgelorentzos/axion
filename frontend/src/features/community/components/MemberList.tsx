@@ -2,8 +2,8 @@ import { useMembers } from "../contexts/useMembers";
 import UserCard from "../../../ui/UserCard";
 import MemberPreview from "./memberpreview/MemberPreview";
 import React, { useState, useEffect, useRef } from "react";
-import ActionMenu from "../../../ui/actionmenu/ActionMenu";
-import ActionMenuButton from "../../../ui/actionmenu/ActionMenuButton";
+import ActionMenu from "../../../ui/action-menu/ActionMenu";
+import ActionMenuButton from "../../../ui/action-menu/ActionMenuButton";
 import { useCurrentUser } from "../../user/contexts/useCurrentUser";
 import { useNavigate } from "react-router-dom";
 import { useAllFriends } from "../../home/contexts/useAllFriends";
@@ -66,7 +66,7 @@ export default function MemberList() {
         return member.id !== currentUser?.id && member.id !== community?.ownerId;
     };
 
-    const renderUserCardActionContent = (member: User) => {
+    const renderUserCardActionContent = (member: User, color?: string) => {
         const isFriend = allFriends.some(friend => friend.id === member.id);
         const isTargetable = isMemberTargetable(member);
 
@@ -74,6 +74,7 @@ export default function MemberList() {
             <>
                 <UserCard
                     user={member}
+                    usernameColor={color}
                     onClick={() => {
                         setActiveMemberId(prev =>
                             prev === member.id ? null : member.id
@@ -176,7 +177,7 @@ export default function MemberList() {
                                                     else memberRefs.current.delete(member.id);
                                                 }}
                                             >
-                                                {renderUserCardActionContent(member)}
+                                                {renderUserCardActionContent(member, role.color)}
                                             </div>
                                         ))}
                                     </div>

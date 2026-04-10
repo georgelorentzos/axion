@@ -1,8 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
 import UserCard from '../../../../ui/UserCard';
 import SearchBar from '../../../../ui/SearchBar';
-import ActionMenu from '../../../../ui/actionmenu/ActionMenu';
-import ActionMenuButton from '../../../../ui/actionmenu/ActionMenuButton';
+import ActionMenu from '../../../../ui/action-menu/ActionMenu';
+import ActionMenuButton from '../../../../ui/action-menu/ActionMenuButton';
 import { useAllFriends } from '../../contexts/useAllFriends';
 import { useCurrentUser } from '../../../user/contexts/useCurrentUser';
 import { type User } from '../../../user/types/user';

@@ -121,10 +121,10 @@ export const api = {
 
   roles: {
     get: (communityId: string) => request(`/api/community/${communityId}/roles`),
-    create: (communityId: string, name: string, permissions: string) =>
-      request(`/api/community/${communityId}/roles`, { method: "POST", body: { name, permissions } }),
-    update: (communityId: string, roleId: string, name: string, permissions: string) =>
-      request(`/api/community/${communityId}/roles/${roleId}`, { method: "PATCH", body: { name, permissions } }),
+    create: (communityId: string, name: string, color: string, permissions: string) =>
+      request(`/api/community/${communityId}/roles`, { method: "POST", body: { name, color, permissions } }),
+    update: (communityId: string, roleId: string, name: string, color: string, permissions: string) =>
+      request(`/api/community/${communityId}/roles/${roleId}`, { method: "PATCH", body: { name, color, permissions } }),
     delete: (communityId: string, roleId: string) =>
       request(`/api/community/${communityId}/roles/${roleId}`, { method: "DELETE" }),
   },

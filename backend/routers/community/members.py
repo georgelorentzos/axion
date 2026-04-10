@@ -48,6 +48,7 @@ def get_community_members(request: Request,
                     {
                         "id": member_role.role.id,
                         "name": member_role.role.role_name,
+                        "color": member_role.role.color,
                     } for member_role in community_member.member_roles
                 ]
             } for community_member in community_members

@@ -55,6 +55,7 @@ async def create_role(request: Request,
     try:
         new_role = CommunityRole(
             role_name=role_name,
+            color=req.color,
             permissions=req.permissions.split("|") if req.permissions else [],
             community_id=community.id,
         )
@@ -107,6 +108,7 @@ async def create_role(request: Request,
                 "role": {
                     "id": new_role.id,
                     "name": new_role.role_name,
+                    "color": new_role.color,
                     "permissions": new_role.permissions
                 }
             })
@@ -119,6 +121,7 @@ async def create_role(request: Request,
             "role": {
                 "id": new_role.id,
                 "name": new_role.role_name,
+                "color": new_role.color,
                 "permissions": new_role.permissions
             }
         }
@@ -175,6 +178,7 @@ async def update_role(request: Request,
 
     try:
         role.role_name = role_name
+        role.color = req.color
         role.permissions = req.permissions.split("|") if req.permissions else []
 
         all_community_members = db.query(CommunityMember).filter(
@@ -187,6 +191,7 @@ async def update_role(request: Request,
                 "role": {
                     "id": role.id,
                     "name": role.role_name,
+                    "color": role.color,
                     "permissions": role.permissions
                 }
             })
@@ -220,6 +225,7 @@ async def update_role(request: Request,
             "role": {
                 "id": role.id,
                 "name": role.role_name,
+                "color": role.color,
                 "permissions": role.permissions
             }
         }
@@ -257,6 +263,7 @@ def fetch_roles(request: Request,
             {
                 "id": role.id,
                 "name": role.role_name,
+                "color": role.color,
                 "permissions": role.permissions,
             } for role in community_roles
         ]

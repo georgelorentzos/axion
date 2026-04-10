@@ -35,7 +35,7 @@ export default function AddRole({ member, isOpen, onClose }: AddRoleProps) {
                     if (hasRole) {
                         return { ...m, roles: m.roles?.filter(r => r.id !== role.id) };
                     } else {
-                        return { ...m, roles: [...(m.roles || []), { id: role.id, name: role.name }] };
+                        return { ...m, roles: [...(m.roles || []), { id: role.id, name: role.name, color: role.color }] };
                     }
                 }
             )
@@ -55,8 +55,7 @@ export default function AddRole({ member, isOpen, onClose }: AddRoleProps) {
                         handleManageRole(role);
                     }}
                     key={role.id} 
-                    id={role.id} 
-                    name={role.name} 
+                    role={role}
                     hover="hover:bg-outline" />
                 ))}
             </div>
