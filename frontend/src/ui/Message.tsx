@@ -167,7 +167,7 @@ export default function Message({
   return (
     <div onContextMenu={handleContextMenu} className={`${isReplyMessage && "bg-basalt"} rounded-tr rounded-br ${isLastInGroup && "mb-4"} px-4 flex flex-col items-start flex-row ${isEditingMessage && "bg-basalt"} hover:bg-basalt group transition duration-200`}>
     {message.replyToId && isFirstInGroup && (
-        <div className="flex items-center gap-1 ml-[52px] text-xs">
+        <div className="flex items-center gap-1 ml-[52px] text-xs mb-1">
           <Icon svgPaths={icons.reply} className="size-3 text-gray-500" />
           <ImageProfile showStatus={false} src={message.replyToImage} height={16} width={16} />
           <span className="font-semibold text-emerald">{message.replyToUsername}</span>
@@ -175,7 +175,7 @@ export default function Message({
         </div>
       )}
       <div
-        className={`flex items-start flex-row`}
+        className={`flex items-start flex-row w-full overflow-hidden`}
       >
         {isFirstInGroup ? (
           <div className="flex-shrink-0 mt-1">
@@ -191,7 +191,7 @@ export default function Message({
           </div>
         )}
         
-        <div className="relative w-auto min-w-0 overflow-hidden px-3 py-1 rounded-2xl">
+        <div className="relative flex-1 min-w-0 overflow-hidden px-3 py-1 rounded-2xl">
           {isFirstInGroup && (
             <div
               className={`flex items-center gap-2 text-sm text-emerald-400 mb-0.5 ${isInviteLink ? "mb-2" : ""}`}
