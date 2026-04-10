@@ -68,8 +68,8 @@ export const api = {
   },
 
   directMessages: {
-    send: (recipientId: string, message: string) =>
-      request(`/api/chat/${recipientId}/messages`, { method: "POST", body: { message } }),
+    send: (recipientId: string, message: string, replyToId?: string) =>
+      request(`/api/chat/${recipientId}/messages`, { method: "POST", body: { message, reply_to_id: replyToId } }),
     get: (userId: string, limit = 50, offset = 0) =>
       request(`/api/chat/${userId}/messages?limit=${limit}&offset=${offset}`),
     delete: (recipientId: string, messageId: string) =>
@@ -82,8 +82,8 @@ export const api = {
   },
 
   channelMessages: {
-    send: (communityId: string, channelId: string, message: string) =>
-      request(`/api/community/${communityId}/channels/${channelId}/messages`, { method: "POST", body: { message } }),
+    send: (communityId: string, channelId: string, message: string, replyToId?: string) =>
+      request(`/api/community/${communityId}/channels/${channelId}/messages`, { method: "POST", body: { message, reply_to_id: replyToId } }),
     get: (communityId: string, channelId: string, limit = 50, offset = 0) =>
       request(`/api/community/${communityId}/channels/${channelId}/messages?limit=${limit}&offset=${offset}`),
     delete: (communityId: string, channelId: string, messageId: string) =>

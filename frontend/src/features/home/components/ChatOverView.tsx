@@ -1,20 +1,17 @@
-import { useCurrentUser } from '../../user/contexts/useCurrentUser'
 import UserCard from '../../../ui/UserCard'
 import SearchBar from '../../../ui/SearchBar'
 import { useConversations } from '../contexts/useConversations';
 import { useNavigate } from "react-router-dom";
-import { useEffect, useRef, useState } from 'react';
-import notificationSound from '../../../assets/sounds/notification.mp3';
+import { useRef, useState } from 'react';
 import CurrentUserCard from "../../../ui/CurrentUserCard";
 import { api } from '../../../api/client';
 import { icons } from '../../../constants/Icons';
 import Icon from '../../../ui/Icon';
 
 export default function ChatOverView() {
-    const { currentUser } = useCurrentUser();
-    const { conversations, setConversations, loading } = useConversations();
+    const { conversations, loading } = useConversations();
     const [searchQuery, setSearchQuery] = useState('');
-    const filtered = conversations.filter(dm => dm.user.username.toLowerCase().startsWith(searchQuery.toLowerCase()));
+    const filtered = conversations.filter(dm => dm.user.username?.toLowerCase().startsWith(searchQuery.toLowerCase()));
     const navigate = useNavigate();
     const audioRef = useRef<HTMLAudioElement>(null);
 
@@ -26,67 +23,6 @@ export default function ChatOverView() {
             console.error("Error deleting conversation:", error);
         }
     };
-
-    useEffect(() => {
-        const handleMessage = (event: MessageEvent) => {
-            try {
-                const data = JSON.parse(event.data);
-                if (data.type === 'newDirectMessage') {
-                    setConversations(prev => {
-                        const existing = prev.find(dm => dm.user.id === data.id);
-                        if (existing) {
-                            const updated = { ...existing, latestMessage: data.latestMessage };
-                            return [updated, ...prev.filter(dm => dm.user.id !== data.id)];
-                        }
-                        return [
-                            {
-                                user: {
-                                    id: data.id,
-                                    username: data.username,
-                                    image: data.image,
-                                    isOnline: data.isOnline,
-                                    createdAt: data.createdAt,
-                                },
-                                latestMessage: data.latestMessage,
-                            },
-                            ...prev
-                        ];
-                    });
-                }
-                if (data.type === 'conversationDeleted') {
-                    setConversations(prev => prev.filter(dm => dm.user.id !== data.id));
-                    navigate('/');
-                }
-                if (data.type === 'messageSent') {
-                    if (data.senderId !== currentUser?.id && audioRef.current) {
-                        audioRef.current.src = notificationSound;
-                        audioRef.current.play().catch(() => {});
-                    }
-                }
-                if (data.type === 'userOnline') {
-                    setConversations(prev =>
-                        prev.map(dm =>
-                            dm.user.id === data.id ? { ...dm, user: { ...dm.user, isOnline: true } } : dm
-                        )
-                    );
-                }
-                if (data.type === 'userOffline') {
-                    setConversations(prev =>
-                        prev.map(dm =>
-                            dm.user.id === data.id ? { ...dm, user: { ...dm.user, isOnline: false } } : dm
-                        )
-                    );
-                }
-            } catch (error) {
-                console.error('Error parsing WebSocket message:', error);
-            }
-        };
-        const ws = window._ws?.ws;
-        if (ws) {
-            ws.addEventListener('message', handleMessage);
-            return () => ws.removeEventListener('message', handleMessage);
-        }
-    }, [currentUser?.id]);
 
     return (
         <div className="w-[370px] h-screen border-r border-outline flex flex-col">

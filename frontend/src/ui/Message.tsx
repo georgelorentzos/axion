@@ -11,6 +11,7 @@ import { api } from "../api/client";
 import { type Message } from "../types/message";
 import { useCurrentUser } from "../features/user/contexts/useCurrentUser";
 import TextArea from "./TextArea";
+import Icon from "./Icon";
 
 type MessageProps = {
   message: Message;
@@ -28,7 +29,7 @@ export default function Message({
   const isLink =
     message.message?.startsWith("http://") ||
     message.message?.startsWith("https://");
-  const parts = message.message.split("/join/")[1]?.split("/");
+  const parts = message.message?.split("/join/")[1]?.split("/");
   const messageCommunityId = parts?.[0];
 
   const [linkModal, setLinkModal] = useState({ isOpen: false, link: "" });
@@ -37,6 +38,7 @@ export default function Message({
   const { communityId, channelId } = useParams();
   const { currentUser } = useCurrentUser();
   const [isEditingMessage, setIsEditingMessage] = useState(false);
+  const [isReplyMessage, setIsReplyMessage] = useState(false);
   const [newMessage, setNewMessage] = useState(message.message);
 
   const handleLinkClick = (
@@ -82,6 +84,7 @@ export default function Message({
     setIsActionMenuOpen(false);
     setNewMessage(message.message);
     window.dispatchEvent(new CustomEvent("closeAllEdits"));
+    window.dispatchEvent(new CustomEvent("cancelReply"));
     setIsEditingMessage(true);
   };
 
@@ -98,10 +101,34 @@ export default function Message({
         setIsEditingMessage(false);
       }
     };
-
+    
     document.addEventListener("keydown", handleEscape);
-    return () => document.removeEventListener("keydown", handleEscape);
+    return () => {
+      document.removeEventListener("keydown", handleEscape);
+    }
   }, [isEditingMessage]);
+
+
+  useEffect(() => {
+    if (!isReplyMessage) return;
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setIsReplyMessage(false);
+        window.dispatchEvent(new CustomEvent("cancelReply"));
+      }
+    };
+    
+    document.addEventListener("keydown", handleEscape);
+    return () => {
+      document.removeEventListener("keydown", handleEscape);
+    }
+  }, [isReplyMessage]);
+
+  useEffect(() => {
+      const cancelReply = () => setIsReplyMessage(false);
+      window.addEventListener("cancelReply", cancelReply);
+      return () => window.removeEventListener("cancelReply", cancelReply);
+  }, []);
 
   const handleEditSave = () => {
     setIsEditingMessage(false);
@@ -125,11 +152,30 @@ export default function Message({
     }
   };
 
+  const handleReply = () => {
+    setIsActionMenuOpen(false);
+    window.dispatchEvent(new CustomEvent("closeAllEdits"));
+    window.dispatchEvent(new CustomEvent("replyToMessage", {
+      detail: {
+        id: message.id,
+        senderUsername: message.senderUsername
+      }
+    }));
+    setIsReplyMessage(true);
+  };
+
   return (
-    <>
+    <div onContextMenu={handleContextMenu} className={`${isReplyMessage && "bg-basalt"} rounded-tr rounded-br ${isLastInGroup && "mb-4"} px-4 flex flex-col items-start flex-row ${isEditingMessage && "bg-basalt"} hover:bg-basalt group transition duration-200`}>
+    {message.replyToId && isFirstInGroup && (
+        <div className="flex items-center gap-1 ml-[52px] text-xs">
+          <Icon svgPaths={icons.reply} className="size-3 text-gray-500" />
+          <ImageProfile showStatus={false} src={message.replyToImage} height={16} width={16} />
+          <span className="font-semibold text-emerald">{message.replyToUsername}</span>
+          <span className="truncate max-w-[300px] text-gray-100">{message.replyToMessage}</span>
+        </div>
+      )}
       <div
-        onContextMenu={handleContextMenu}
-        className={`rounded-tr rounded-br ${isLastInGroup && "mb-4"} px-4 flex items-start flex-row ${isEditingMessage && "bg-basalt"} hover:bg-basalt group transition duration-200`}
+        className={`flex items-start flex-row`}
       >
         {isFirstInGroup ? (
           <div className="flex-shrink-0 mt-1">
@@ -144,15 +190,15 @@ export default function Message({
             )}
           </div>
         )}
-
-        <div className="relative w-full min-w-0 overflow-hidden px-3 py-1 rounded-2xl">
+        
+        <div className="relative w-auto min-w-0 overflow-hidden px-3 py-1 rounded-2xl">
           {isFirstInGroup && (
             <div
-              className={`flex items-center gap-2 text-sm font-semibold text-emerald-400 mb-0.5 ${isInviteLink ? "mb-2" : ""}`}
+              className={`flex items-center gap-2 text-sm text-emerald-400 mb-0.5 ${isInviteLink ? "mb-2" : ""}`}
             >
-              <div>{message.senderUsername}</div>
+              <div className="font-semibold">{message.senderUsername}</div>
               <div className="text-gray-500 text-xs">{message.createdAt}</div>
-            </div>
+              </div>
           )}
 
           {isInviteLink ? (
@@ -298,7 +344,11 @@ export default function Message({
           onClick={handleEditMessage}
           isVisible={currentUser?.id === message.senderId}
         />
-        <ActionMenuButton text="Reply" svgPaths={icons.reply} />
+        <ActionMenuButton 
+        text="Reply" 
+        svgPaths={icons.reply} 
+        onClick={handleReply}
+        />
         <ActionMenuButton
           text="Copy Text"
           svgPaths={icons.copy}
@@ -312,6 +362,6 @@ export default function Message({
           isVisible={currentUser?.id === message.senderId}
         />
       </ActionMenu>
-    </>
+    </div>
   );
 }

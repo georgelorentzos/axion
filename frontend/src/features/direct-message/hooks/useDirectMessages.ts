@@ -11,7 +11,7 @@ export function useDirectMessages() {
     const [isLoading, setIsLoading] = useState(false);
     const offsetRef = useRef(0);
     const prevUserIdRef = useRef<string | undefined>(undefined);
-
+    
     useLayoutEffect(() => {
         if (!userId) return;
 
@@ -84,9 +84,25 @@ export function useDirectMessages() {
                             createdAt: data.createdAt,
                             senderUsername: data.senderUsername,
                             senderImage: data.senderImage,
+                            replyToId: data.replyToId,
+                            replyToUsername: data.replyToUsername,
+                            replyToImage: data.replyToImage,
+                            replyToMessage: data.replyToMessage,
                         },
                     ];
                 });
+            }
+            if (data.type === "unreadDirectMessages") {
+                window.dispatchEvent(new CustomEvent("unreadDirectMessages", {
+                    detail: {
+                        id: data.id,
+                        username: data.username,
+                        image: data.image,
+                        isOnline: data.isOnline,
+                        createdAt: data.createdAt,
+                        unreadCount: 1,
+                    }
+                }));
             }
             if (data.type === "directMessageDeleted") {
                 setMessages(prev => prev.filter(m => m.id !== data.id));

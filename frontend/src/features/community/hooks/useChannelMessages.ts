@@ -84,6 +84,10 @@ export function useChannelMessages() {
                             createdAt: data.createdAt,
                             senderUsername: data.senderUsername,
                             senderImage: data.senderImage,
+                            replyToId: data.replyToId,
+                            replyToUsername: data.replyToUsername,
+                            replyToImage: data.replyToImage,
+                            replyToMessage: data.replyToMessage,
                         },
                     ];
                 });

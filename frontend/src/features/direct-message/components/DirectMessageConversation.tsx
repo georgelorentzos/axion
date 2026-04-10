@@ -111,8 +111,12 @@ export default function DirectMessageConversation() {
                   {messages.map((message, index) => {
                     const prevMessage = messages[index - 1];
                     const nextMessage = messages[index + 1];
-                    const isFirstInGroup = !prevMessage || prevMessage.senderId !== message.senderId;
-                    const isLastInGroup = !nextMessage || nextMessage.senderId !== message.senderId;
+                    const isReply = !!message.replyToId;
+                    const prevIsReply = !!prevMessage?.replyToId;
+                    const nextIsReply = !!nextMessage?.replyToId;
+
+                    const isFirstInGroup = isReply || prevIsReply || !prevMessage || prevMessage.senderId !== message.senderId;
+                    const isLastInGroup = isReply || nextIsReply || !nextMessage || nextMessage.senderId !== message.senderId;
 
                     return (
                             <Message

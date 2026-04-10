@@ -70,7 +70,11 @@ def fetch_channel_messages(
             "isEdited": message.is_edited,
             "createdAt": message.created_at.strftime("%H:%M"),
             "senderUsername": message.sender.username,
-            "senderImage": message.sender.profile_image
+            "senderImage": message.sender.profile_image,
+            "replyToId": message.reply_to_id,
+            "replyToUsername": message.reply_to.sender.username if message.reply_to else None,
+            "replyToImage": message.reply_to.sender.profile_image if message.reply_to else None,
+            "replyToMessage": message.reply_to.message if message.reply_to else None,
         } for message in messages
     ]
 
@@ -124,6 +128,7 @@ async def send_channel_message(
             channel_id=channel.id,
             community_id=community.id,
             message=req.message,
+            reply_to_id=req.reply_to_id,
         )
         db.add(new_message)
         db.commit()
@@ -141,7 +146,11 @@ async def send_channel_message(
                 "message": req.message,
                 "createdAt": datetime.now().strftime("%H:%M"),
                 "senderUsername": new_message.sender.username,
-                "senderImage": new_message.sender.profile_image
+                "senderImage": new_message.sender.profile_image,
+                "replyToId": new_message.reply_to_id,
+                "replyToUsername": new_message.reply_to.sender.username if new_message.reply_to else None,
+                "replyToImage": new_message.reply_to.sender.profile_image if new_message.reply_to else None,
+                "replyToMessage": new_message.reply_to.message if new_message.reply_to else None,
             })
             for community_member in community_members
         ])

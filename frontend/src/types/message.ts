@@ -8,4 +8,8 @@ export type Message = {
   senderImage: string;
   channelId?: string;
   recipientId?: string;
+  replyToId?: string;
+  replyToUsername?: string;
+  replyToImage?: string;
+  replyToMessage?: string;
 };

@@ -1,4 +1,4 @@
-import { type Conversation } from '../../features/direct-message/types/conversation';
+import { type Conversation } from './types/conversation';
 import { useLocation } from 'react-router-dom';
 
 type ConversationButtonProps = {

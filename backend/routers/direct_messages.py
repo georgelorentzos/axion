@@ -37,7 +37,8 @@ async def send_message(
     new_direct_message = DirectMessage(
         sender_id=current_user.id,
         recipient_id=recipient.id,
-        message=req.message
+        message=req.message,
+        reply_to_id=req.reply_to_id
     )
 
     existing_conversation = db.query(ConversationHistory).filter(
@@ -71,18 +72,23 @@ async def send_message(
             "recipientId": recipient.id,
             "message": req.message,
             "createdAt": datetime.now().strftime("%H:%M"),
+            "senderUsername": new_direct_message.sender.username,
+            "senderImage": new_direct_message.sender.profile_image,
+            "replyToId": new_direct_message.reply_to_id,
+            "replyToUsername": new_direct_message.reply_to.sender.username if new_direct_message.reply_to else None,
+            "replyToImage": new_direct_message.reply_to.sender.profile_image if new_direct_message.reply_to else None,
+            "replyToMessage": new_direct_message.reply_to.message if new_direct_message.reply_to else None,
         }
 
         await asyncio.gather(
             manager.broadcast_to_user(current_user.id, message_data),
             manager.broadcast_to_user(recipient.id, message_data),
             manager.broadcast_to_user(recipient.id, {
-                "type": "newDirectMessage",
+                "type": "unreadDirectMessages",
                 "id": current_user.id,
                 "username": current_user.username,
                 "image": current_user.profile_image,
                 "isOnline": current_user.is_online,
-                "latestMessage": req.message,
                 "createdAt": current_user.created_at.year,
             }),
         )
@@ -151,7 +157,11 @@ def get_messages(
             "isEdited": message.is_edited,
             "createdAt": message.created_at.strftime("%H:%M"),
             "senderUsername": message.sender.username,
-            "senderImage": message.sender.profile_image
+            "senderImage": message.sender.profile_image,
+            "replyToId": message.reply_to_id,
+            "replyToUsername": message.reply_to.sender.username if message.reply_to else None,
+            "replyToImage": message.reply_to.sender.profile_image if message.reply_to else None,
+            "replyToMessage": message.reply_to.message if message.reply_to else None,
         } for message in messages
     ]
 
