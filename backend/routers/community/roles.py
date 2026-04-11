@@ -91,9 +91,9 @@ async def create_role(request: Request,
             manager.broadcast_to_user(uid, {
                 "type": "newLog",
                 "log": new_log.log,
-                "description": f"{', '.join(req.permissions.split('|'))}" if req.permissions else "",
+                "image": current_user.profile_image,
+                "note": f"{', '.join(req.permissions.split('|'))}" if req.permissions else "",
                 "createdAt": new_log.created_at.strftime("%D %H:%M"),
-                "userImgUrl": current_user.profile_image
             })
             for uid in log_user_ids
         ])
@@ -105,12 +105,10 @@ async def create_role(request: Request,
         await asyncio.gather(*[
             manager.broadcast_to_user(m.user_id, {
                 "type": "roleCreated",
-                "role": {
-                    "id": new_role.id,
-                    "name": new_role.role_name,
-                    "color": new_role.color,
-                    "permissions": new_role.permissions
-                }
+                "id": new_role.id,
+                "name": new_role.role_name,
+                "color": new_role.color,
+                "permissions": new_role.permissions
             })
             for m in all_community_members
         ])
@@ -118,12 +116,10 @@ async def create_role(request: Request,
         db.commit()
         return {
             "success": True,
-            "role": {
-                "id": new_role.id,
-                "name": new_role.role_name,
-                "color": new_role.color,
-                "permissions": new_role.permissions
-            }
+            "id": new_role.id,
+            "name": new_role.role_name,
+            "color": new_role.color,
+            "permissions": new_role.permissions
         }
     except Exception as e:
         db.rollback()
@@ -183,17 +179,14 @@ async def update_role(request: Request,
 
         all_community_members = db.query(CommunityMember).filter(
             CommunityMember.community_id == community.id,
-            CommunityMember.user_id != current_user.id
         ).all()
         await asyncio.gather(*[
             manager.broadcast_to_user(m.user_id, {
                 "type": "roleUpdated",
-                "role": {
-                    "id": role.id,
-                    "name": role.role_name,
-                    "color": role.color,
-                    "permissions": role.permissions
-                }
+                "id": role.id,
+                "name": role.role_name,
+                "color": role.color,
+                "permissions": role.permissions
             })
             for m in all_community_members
         ])
@@ -222,12 +215,10 @@ async def update_role(request: Request,
         db.commit()
         return {
             "success": True,
-            "role": {
-                "id": role.id,
-                "name": role.role_name,
-                "color": role.color,
-                "permissions": role.permissions
-            }
+            "id": role.id,
+            "name": role.role_name,
+            "color": role.color,
+            "permissions": role.permissions
         }
     except Exception as e:
         db.rollback()
@@ -345,9 +336,9 @@ async def delete_role(request: Request,
             manager.broadcast_to_user(uid, {
                 "type": "newLog",
                 "log": new_log.log,
-                "description": "",
+                "image": current_user.profile_image,
+                "note": new_log.description,
                 "createdAt": new_log.created_at.strftime("%D %H:%M"),
-                "userImgUrl": current_user.profile_image
             })
             for uid in log_user_ids
         ])

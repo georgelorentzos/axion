@@ -10,7 +10,7 @@ export default function LogsContent() {
   const filteredLogs = logs.filter(
     (log) =>
       log.log.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (log.description ?? "").toLowerCase().includes(searchQuery.toLowerCase())
+      (log.note ?? "").toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
@@ -33,10 +33,7 @@ export default function LogsContent() {
             {filteredLogs.map((log, index) => (
               <LogCard
                 key={index}
-                log={log.log}
-                description={log.description}
-                userImgUrl={log.userImgUrl}
-                createdAt={log.createdAt}
+                log={log}
               />
             ))}
             {filteredLogs.length === 0 && searchQuery && (

@@ -45,8 +45,7 @@ async def ally(
             existing.status = "friends"
             db.commit()
             return {
-                "success": True,
-                "message": "Friend request accepted"
+                "success": True
             }
         else:
             raise HTTPException(status_code=400, detail="Request already exists.")
@@ -65,8 +64,7 @@ async def ally(
         })
 
         return {
-            "success": True,
-            "message": "Friend request sent"
+            "success": True
         }
     except Exception:
         db.rollback()
@@ -112,16 +110,14 @@ async def cancel_ally(
             })
 
             return {
-                "success": True,
-                "message": "Friend request canceled"
+                "success": True
             }
         except Exception:
             db.rollback()
             raise HTTPException(status_code=500, detail="Failed to cancel request.")
     else:
         return {
-            "success": True,
-            "message": "Request already canceled"
+            "success": True
         }
 
 @router.delete("/ally/reject", status_code=200)
@@ -155,8 +151,7 @@ async def ally_reject(
         })
 
         return {
-            "success": True,
-            "message": "Friend request rejected"
+            "success": True
         }
     except Exception:
         db.rollback()
@@ -210,8 +205,7 @@ async def ally_accept(
         })
 
         return {
-            "success": True,
-            "message": "Friend request accepted."
+            "success": True
         }
     except Exception:
         db.rollback()
@@ -397,8 +391,7 @@ async def ally_remove(
         })
 
         return {
-            "success": True,
-            "message": "Friend removed."
+            "success": True
         }
     except Exception:
         db.rollback()

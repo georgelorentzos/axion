@@ -33,11 +33,13 @@ export function useRoles() {
             const data = JSON.parse(event.data);
 
             if (data.type === "roleCreated") {
-                setRoles(prev => [...prev, data.role]);
+                setRoles(prev => [...prev, { id: data.id, name: data.name, color: data.color, permissions: data.permissions }]);
             }
-
             if (data.type === "roleUpdated") {
-                setRoles(prev => prev.map(r => r.id === data.role.id ? data.role : r));
+                setRoles(prev => prev.map(r => r.id === data.id
+                    ? { ...r, name: data.name, color: data.color, permissions: data.permissions }
+                    : r
+                ));
             }
 
             if (data.type === "roleDeleted") {

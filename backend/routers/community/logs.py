@@ -52,9 +52,9 @@ def fetch_logs(request: Request,
         "logs": [
             {
                 "log": log.log,
-                "description": log.description,
+                "image": log.user.profile_image,
+                "note": log.description,
                 "createdAt": log.created_at.strftime("%D %H:%M"),
-                "userImgUrl": log.user.profile_image,
             } for log in community_logs
         ]
     }

@@ -46,9 +46,9 @@ export function useBans() {
                     {
                         id: data.id,
                         username: data.username,
-                        description: data.description,
+                        image: data.image,
+                        note: data.note,
                         createdAt: data.createdAt,
-                        userImgUrl: data.userImgUrl,
                     },
                     ...prev
                 ] )

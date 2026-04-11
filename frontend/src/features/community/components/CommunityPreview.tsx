@@ -51,7 +51,7 @@ export default function CommunityPreview({ joinBtn, community: communityProp, sk
         navigate("/auth");
         return;
       }
-      if (data.status === "banned_member") {
+      if (!data.success) {
         setBanReason(data.reason);
         setIsBannedModalOpen(true);
         return;

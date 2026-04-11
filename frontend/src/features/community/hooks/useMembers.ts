@@ -54,6 +54,15 @@ export function useMembers() {
                     roles: m.roles?.filter(r => r.id !== data.id)
                 })));
             }
+            if (data.type === "roleUpdated") {
+                setMembers(prev => prev.map(
+                    m => ({
+                        ...m,
+                        roles: m.roles?.map(r => r.id === data.id
+                            ? { ...r, name: data.name, color: data.color, permissions: data.permissions } : r
+                    )
+                })));
+            }
             if (data.type === "memberOnline") {
                 setMembers(prev => prev.map(m =>
                     m.id === data.memberId ? { ...m, isOnline: true } : m
@@ -71,7 +80,7 @@ export function useMembers() {
             ws.addEventListener("message", handleMessage);
             return () => ws.removeEventListener("message", handleMessage);
         }
-    }, []);
+    }, [communityId]);
 
     return { members, setMembers, onlineMembers, offlineMembers };
 }

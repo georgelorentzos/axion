@@ -275,9 +275,9 @@ async def update_community(
                 manager.broadcast_to_user(uid, {
                     "type": "newLog",
                     "log": new_log.log,
-                    "description": "",
+                    "image": current_user.profile_image,
+                    "note": new_log.description,
                     "createdAt": new_log.created_at.strftime("%D %H:%M"),
-                    "userImgUrl": current_user.profile_image
                 })
                 for uid in log_user_ids
             ])
@@ -348,9 +348,7 @@ async def join_community(request: Request,
     if banned_member:
         return {
             "success": False,
-            "reason": banned_member.reason,
-            "message": "You are Banned",
-            "status": "banned_member"
+            "reason": banned_member.reason
         }
 
     existing_member = db.query(CommunityMember).filter(
@@ -360,9 +358,7 @@ async def join_community(request: Request,
 
     if existing_member:
         return {
-            "success": False,
-            "message": "Already a member",
-            "status": "existing_member"
+            "success": False
         }
 
     try:
@@ -415,9 +411,9 @@ async def join_community(request: Request,
             manager.broadcast_to_user(uid, {
                 "type": "newLog",
                 "log": new_log.log,
-                "description": "",
+                "image": current_user.profile_image,
+                "note": new_log.description,
                 "createdAt": new_log.created_at.strftime("%D %H:%M"),
-                "userImgUrl": current_user.profile_image
             })
             for uid in log_user_ids
         ])
@@ -476,8 +472,7 @@ async def leave_community(request: Request,
             for member in members_to_notify
         ])
         return {
-            "success": True,
-            "status": "left"
+            "success": True
         }
     except Exception as e:
         db.rollback()

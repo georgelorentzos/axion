@@ -94,13 +94,14 @@ export default function RolesContent({ onChildModalChange }: RolesContentProps) 
                 : await api.roles.create(communityId, trimmed, selectedColor, permissionString);
 
             if (response.ok) {
+                const savedRole = { id: data.id, name: data.name, color: data.color, permissions: data.permissions };
                 if (editingRole) {
                     setRoles(prev =>
-                        prev.map(r => (r.id === editingRole.id ? data.role : r))
+                        prev.map(r => (r.id === editingRole.id ? savedRole : r))
                     );
-                    setEditingRole(data.role);
+                    setEditingRole(savedRole);
                 } else {
-                    setRoles(prev => [...prev, data.role]);
+                    setRoles(prev => [...prev, savedRole]);
                     setIsCreateRole(false);
                     setEditingRole(null);
                     setRoleName('');

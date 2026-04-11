@@ -1,34 +1,31 @@
 import SearchBar from "../../../../../ui/SearchBar";
-import UserCard from "../../../../../ui/UserCard";
+import BanCard from "../../../../../ui/BanCard";
 import { useBans } from "../../../contexts/useBans";
 import { useState } from "react";
-import { useParams } from "react-router-dom";
-import { api } from "../../../../../api/client";
+import ActionMenu from "../../../../../ui/action-menu/ActionMenu";
+import ActionMenuButton from "../../../../../ui/action-menu/ActionMenuButton";
+import Icon from "../../../../../ui/Icon";
+import { icons } from "../../../../../constants/Icons";
+import Modal from "../../../../../ui/modal/Modal";
+import MemberAction from "../../../../../ui/modal/content/MemberAction";
+import { type Ban } from "../../../types/ban";
 
 export default function BansContent() {
-  const { bans, setBans } = useBans();
+  const { bans } = useBans();
   const [searchQuery, setSearchQuery] = useState("");
-  const { communityId } = useParams();
+  const [isActionMenuOpen, setIsActionMenuOpen] = useState(false);
+  const [pos, setPos] = useState<{ x:number, y:number }>({ x:0, y:0 });
+  const [isUnBanConfirmModalOpen, setIsUnBanConfirmModalOpen] = useState(false);
+  const [userToUnban, setUserToUnban] = useState<Ban>();
 
   const filteredBans = bans.filter(
     (ban) =>
       ban.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (ban.description ?? "").toLowerCase().includes(searchQuery.toLowerCase())
+      (ban.note ?? "").toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const handleUnBan = async (id: string) => {
-    if (!communityId) return;
-    try {
-      const { data } = await api.bans.unban(communityId, id);
-      if (data.success) {
-        setBans(prev => prev.filter(ban => ban.id !== data.id));
-      }
-    } catch (error) {
-      console.log("failed to unban: ", error);
-    }
-  };
-
   return (
+    <>
     <div className="flex gap-2 justify-start items-start h-full min-h-0">
       <div className="px-6 flex flex-col gap-2 w-full h-full min-h-0">
         <div>Community Bans</div>
@@ -47,22 +44,21 @@ export default function BansContent() {
           </div>
 
           <div className="flex-1 min-h-0 overflow-y-auto flex flex-col py-2">
-            {filteredBans.map((ban, index) => (
-              <UserCard
-                key={index}
-                title={ban.username}
-                description={ban.description}
-                imageUrl={ban.userImgUrl}
-                joinedAtText={ban.createdAt}
-                showStatus={false}
+            {filteredBans.map(ban => (
+              <BanCard
+                key={ban.id}
+                ban={ban}
               >
                 <button
-                  onClick={() => handleUnBan(ban.id)}
-                  className="text-gray-500 hover:text-gray-300 text-sm transition duration-300"
+                  onClick={(e: React.MouseEvent) => {
+                    setPos({ x:e.clientX, y:e.clientY});
+                    setUserToUnban(ban);
+                    setIsActionMenuOpen(true)
+                  }}
                 >
-                  Unban
+                  <Icon svgPaths={icons.verticalDots} className="size-5 text-gray-500 hover:text-gray-300 transition duration-300" />
                 </button>
-              </UserCard>
+              </BanCard>
             ))}
             {filteredBans.length === 0 && searchQuery && (
               <div className="text-gray-500 transition duration-300 py-2.5 px-4 flex justify-between items-center w-full rounded-lg hover:bg-basalt">
@@ -78,5 +74,20 @@ export default function BansContent() {
         </div>
       </div>
     </div>
+    <Modal isOpen={isUnBanConfirmModalOpen} onClose={() => setIsUnBanConfirmModalOpen(false)}>
+      <MemberAction onClose={() => {
+        setIsUnBanConfirmModalOpen(false);
+      }}
+      action="unban"
+      user={userToUnban}
+       />
+    </Modal>
+    <ActionMenu isOpen={isActionMenuOpen} onClose={() => setIsActionMenuOpen(false)} position={pos}>
+      <ActionMenuButton text="Unban" svgPaths={icons.ban} onClick={() => {
+        setIsActionMenuOpen(false);
+        setIsUnBanConfirmModalOpen(true);
+      }} />
+    </ActionMenu>
+    </>
   );
 }

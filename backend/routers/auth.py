@@ -97,7 +97,6 @@ def verify_token(request: Request, req: CreateToken, db: Session = Depends(get_d
 
     return {
         "success": True,
-        "message": "Sign in successful",
         "token": token
     }
 
@@ -114,7 +113,6 @@ def validate_token(request: Request, req: ValidateToken, db: Session = Depends(g
 
         return {
             "success": True,
-            "message": "Token is valid",
             "id": user.id,
             "username": user.username,
             "email": user.email

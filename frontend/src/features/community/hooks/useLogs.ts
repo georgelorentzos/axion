@@ -45,9 +45,9 @@ export function useLogs() {
                 setLogs(prev => [
                     {
                         log: data.log,
-                        description: data.description,
+                        image: data.image,
+                        note: data.note,
                         createdAt: data.createdAt,
-                        userImgUrl: data.userImgUrl,
                     },
                     ...prev
                 ] )
