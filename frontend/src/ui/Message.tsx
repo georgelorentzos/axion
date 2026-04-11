@@ -12,6 +12,8 @@ import { type Message } from "../types/message";
 import { useCurrentUser } from "../features/user/contexts/useCurrentUser";
 import TextArea from "./TextArea";
 import Icon from "./Icon";
+import { useRoles } from "../features/community/contexts/useRoles";
+import { useMembers } from "../features/community/contexts/useMembers";
 
 type MessageProps = {
   message: Message;
@@ -35,11 +37,14 @@ export default function Message({
   const [linkModal, setLinkModal] = useState({ isOpen: false, link: "" });
   const [isActionMenuOpen, setIsActionMenuOpen] = useState(false);
   const [pos, setPos] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
-  const { communityId, channelId } = useParams();
+  const { communityId, channelId, userId } = useParams();
   const { currentUser } = useCurrentUser();
   const [isEditingMessage, setIsEditingMessage] = useState(false);
   const [isReplyMessage, setIsReplyMessage] = useState(false);
   const [newMessage, setNewMessage] = useState(message.message);
+  const { onlineMembers, offlineMembers } = useMembers();
+  const { roles } = useRoles();
+  const [senderColor, setSenderColor] = useState("");
 
   const handleLinkClick = (
     e: React.MouseEvent<HTMLAnchorElement>,
@@ -164,6 +169,28 @@ export default function Message({
     setIsReplyMessage(true);
   };
 
+  useEffect(() => {
+    if (!communityId) {
+      setSenderColor("");
+      return;
+    }
+
+    const allMembers = [...onlineMembers, ...offlineMembers];
+    const sender = allMembers.find(m => m.id === message.senderId);
+    if (!sender?.roles?.length) {
+      setSenderColor("");
+      return;
+    }
+
+    for (const role of roles) {
+      if (sender.roles.some(r => r.id === role.id) && role.color) {
+        setSenderColor(role.color);
+        return;
+      }
+    }
+    setSenderColor("");
+  }, [communityId, onlineMembers, offlineMembers, roles, message.senderId])
+
   return (
     <div onContextMenu={handleContextMenu} className={`${isReplyMessage && "bg-basalt"} rounded-tr rounded-br ${isLastInGroup && "mb-4"} px-4 flex flex-col items-start flex-row ${isEditingMessage && "bg-basalt"} hover:bg-basalt group transition duration-200`}>
     {message.replyToId && isFirstInGroup && (
@@ -196,7 +223,7 @@ export default function Message({
             <div
               className={`flex items-center gap-2 text-sm text-emerald-400 mb-0.5 ${isInviteLink ? "mb-2" : ""}`}
             >
-              <div className="font-semibold">{message.senderUsername}</div>
+              <div className={`font-semibold ${senderColor ? `text-[#${senderColor}]` : `text-gray-100` }`}>{message.senderUsername}</div>
               <div className="text-gray-500 text-xs">{message.createdAt}</div>
               </div>
           )}
