@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import ImageProfile from "./ImageProfile";
-import CommunityPreview from "../features/community/components/CommunityPreview";
+import UserAvatar from "./avatar/UserAvatar";
+import CommunityCard from "./card/CommunityCard";
 import Modal from "./modal/Modal";
 import LinkAlert from "./modal/content/LinkAlert";
 import ActionMenu from "./action-menu/ActionMenu";
@@ -37,7 +37,7 @@ export default function Message({
   const [linkModal, setLinkModal] = useState({ isOpen: false, link: "" });
   const [isActionMenuOpen, setIsActionMenuOpen] = useState(false);
   const [pos, setPos] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
-  const { communityId, channelId, userId } = useParams();
+  const { communityId, channelId } = useParams();
   const { currentUser } = useCurrentUser();
   const [isEditingMessage, setIsEditingMessage] = useState(false);
   const [isReplyMessage, setIsReplyMessage] = useState(false);
@@ -77,10 +77,10 @@ export default function Message({
   const handleDeleteMessage = () => {
     setIsActionMenuOpen(false);
     if (communityId && channelId) {
-      api.channelMessages.delete(communityId, channelId, message.id);
+      api.channels.deleteMessage(communityId, channelId, message.id);
     } else {
       if (message.recipientId) {
-        api.directMessages.delete(message.recipientId, message.id);
+        api.messages.delete(message.recipientId, message.id);
       }
     }
   };
@@ -138,7 +138,7 @@ export default function Message({
   const handleEditSave = () => {
     setIsEditingMessage(false);
     if (communityId && channelId) {
-      api.channelMessages.edit(
+      api.channels.editMessage(
         communityId,
         channelId,
         message.id,
@@ -146,7 +146,7 @@ export default function Message({
       );
     } else {
       if (!message.recipientId) return;
-      api.directMessages.edit(message.recipientId, message.id, newMessage);
+      api.messages.edit(message.recipientId, message.id, newMessage);
     }
   };
 
@@ -196,7 +196,7 @@ export default function Message({
     {message.replyToId && isFirstInGroup && (
         <div className="flex items-center gap-1 ml-[52px] text-xs mt-1">
           <Icon svgPaths={icons.reply} className="size-3 text-gray-500" />
-          <ImageProfile showStatus={false} src={message.replyToImage} height={16} width={16} />
+          <UserAvatar showStatus={false} src={message.replyToImage} height={16} width={16} />
           <span className="font-semibold text-emerald">{message.replyToUsername}</span>
           <span className="truncate max-w-[300px] text-gray-100">{message.replyToMessage}</span>
         </div>
@@ -206,7 +206,7 @@ export default function Message({
       >
         {isFirstInGroup ? (
           <div className="flex-shrink-0 mt-1">
-            <ImageProfile src={message.senderImage} showStatus={false} />
+            <UserAvatar src={message.senderImage} showStatus={false} />
           </div>
         ) : (
           <div className="min-w-[40px] max-w-[40px] flex justify-center items-center h-[22px] mt-[2px]">
@@ -257,7 +257,7 @@ export default function Message({
                   </div>
                 </div>
               ) : (
-                <CommunityPreview joinBtn community={communityData} />
+                <CommunityCard joinBtn community={communityData} />
               )}
             </>
           ) : isLink ? (

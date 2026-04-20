@@ -1,5 +1,5 @@
 import SearchBar from "../../../../../ui/SearchBar";
-import BanCard from "../../../../../ui/BanCard";
+import BanCard from "../../../../../ui/card/BanCard";
 import { useBans } from "../../../contexts/useBans";
 import { useState } from "react";
 import ActionMenu from "../../../../../ui/action-menu/ActionMenu";
@@ -21,7 +21,7 @@ export default function BansContent() {
   const filteredBans = bans.filter(
     (ban) =>
       ban.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (ban.note ?? "").toLowerCase().includes(searchQuery.toLowerCase())
+      (ban.reason ?? "").toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
@@ -63,11 +63,6 @@ export default function BansContent() {
             {filteredBans.length === 0 && searchQuery && (
               <div className="text-gray-500 transition duration-300 py-2.5 px-4 flex justify-between items-center w-full rounded-lg hover:bg-basalt">
                 No results found
-              </div>
-            )}
-            {filteredBans.length === 0 && !searchQuery && (
-              <div className="text-gray-500 transition duration-300 py-2.5 px-4 flex justify-between items-center w-full rounded-lg hover:bg-basalt">
-                No bans yet
               </div>
             )}
           </div>

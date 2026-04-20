@@ -1,5 +1,5 @@
 import SearchBar from "../../../../../ui/SearchBar";
-import LogCard from "../../../../../ui/LogCard";
+import LogCard from "../../../../../ui/card/LogCard";
 import { useLogs } from "../../../contexts/useLogs";
 import { useState } from "react";
 
@@ -9,7 +9,7 @@ export default function LogsContent() {
 
   const filteredLogs = logs.filter(
     (log) =>
-      log.log.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      log.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (log.note ?? "").toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -24,9 +24,11 @@ export default function LogsContent() {
           <SearchBar onSearch={(value: string) => setSearchQuery(value)} />
           <br />
           <div className="text-gray-500 text-[12px] border-b border-outline pb-2">
-            {logs.length && logs.length > 1
-            ? `${logs.length} Logs`
-            : `${logs.length} Log`}
+            {logs.length === 0
+              ? '0 Logs'
+              : logs.length > 1
+                  ? `${logs.length} Logs`
+                  : `${logs.length} Log`}
           </div>
 
           <div className="flex-1 min-h-0 overflow-y-auto flex flex-col py-2">

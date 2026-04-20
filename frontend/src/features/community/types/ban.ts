@@ -2,6 +2,6 @@ export type Ban = {
     id: string;
     username: string,
     image: string;
-    note: string,
+    reason: string,
     createdAt: string;
 }

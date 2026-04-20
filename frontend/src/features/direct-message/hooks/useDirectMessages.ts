@@ -10,55 +10,64 @@ export function useDirectMessages() {
     const [hasMore, setHasMore] = useState(true);
     const [isLoading, setIsLoading] = useState(false);
     const offsetRef = useRef(0);
-    const prevUserIdRef = useRef<string | undefined>(undefined);
+    const previousUserIdRef = useRef<string | undefined>(undefined);
     
     useLayoutEffect(() => {
         if (!userId) return;
 
-        if (prevUserIdRef.current !== userId) {
+        if (previousUserIdRef.current !== userId) {
             setMessages([]);
             setIsMessagesLoaded(false);
             setHasMore(true);
             setIsLoading(false);
             offsetRef.current = 0;
-            prevUserIdRef.current = userId;
+            previousUserIdRef.current = userId;
         }
 
-        const fetchInitial = async () => {
+        const fetchInitialMessages = async () => {
             setIsLoading(true);
             try {
-                const { response, data } = await api.directMessages.get(userId, 50, 0);
+                const { response, data } = await api.messages.get(userId, 50, 0);
                 if (!response.ok) return;
-                const fetched = data.messages || [];
-                setMessages(fetched);
+                
+                const fetchedMessages = data.messages || [];
+                setMessages(fetchedMessages);
                 setIsMessagesLoaded(true);
-                offsetRef.current = fetched.length;
-                if (fetched.length < 50) setHasMore(false);
+                offsetRef.current = fetchedMessages.length;
+                
+                if (fetchedMessages.length < 50) {
+                    setHasMore(false);
+                }
             } catch (error) {
                 console.error('Error fetching direct messages:', error);
             } finally {
                 setIsLoading(false);
             }
         };
-        fetchInitial();
+        
+        fetchInitialMessages();
     }, [userId]);
 
-    const loadMore = useCallback(async () => {
+    const loadMoreMessages = useCallback(async () => {
         if (!userId || !hasMore || isLoading) return;
 
         setIsLoading(true);
         try {
-            const { response, data } = await api.directMessages.get(userId, 10, offsetRef.current);
+            const { response, data } = await api.messages.get(userId, 10, offsetRef.current);
             if (!response.ok) {
                 setHasMore(false);
                 return;
             }
-            const older = data.messages || [];
+            
+            const olderMessages = data.messages || [];
 
-            if (older.length < 10) setHasMore(false);
-            if (older.length > 0) {
-                setMessages(prev => [...older, ...prev]);
-                offsetRef.current += older.length;
+            if (olderMessages.length < 10) {
+                setHasMore(false);
+            }
+            
+            if (olderMessages.length > 0) {
+                setMessages(previousMessages => [...olderMessages, ...previousMessages]);
+                offsetRef.current += olderMessages.length;
             }
         } catch (error) {
             console.error('Error fetching older direct messages:', error);
@@ -71,27 +80,27 @@ export function useDirectMessages() {
     useEffect(() => {
         const handleMessage = async (event: MessageEvent) => {
             const data = JSON.parse(event.data);
+            
             if (data.type === "newDirectMessage") {
-                setMessages(currentMessages => {
-                    return [
-                        ...currentMessages,
-                        {
-                            id: data.id,
-                            senderId: data.senderId,
-                            recipientId: data.recipientId,
-                            message: data.message,
-                            isEdited: data.isEdited,
-                            createdAt: data.createdAt,
-                            senderUsername: data.senderUsername,
-                            senderImage: data.senderImage,
-                            replyToId: data.replyToId,
-                            replyToUsername: data.replyToUsername,
-                            replyToImage: data.replyToImage,
-                            replyToMessage: data.replyToMessage,
-                        },
-                    ];
-                });
+                setMessages(currentMessages => [
+                    ...currentMessages,
+                    {
+                        id: data.id,
+                        senderId: data.senderId,
+                        recipientId: data.recipientId,
+                        message: data.message,
+                        isEdited: data.isEdited,
+                        createdAt: data.createdAt,
+                        senderUsername: data.senderUsername,
+                        senderImage: data.senderImage,
+                        replyToId: data.replyToId,
+                        replyToUsername: data.replyToUsername,
+                        replyToImage: data.replyToImage,
+                        replyToMessage: data.replyToMessage,
+                    },
+                ]);
             }
+            
             if (data.type === "unreadDirectMessages") {
                 window.dispatchEvent(new CustomEvent("unreadDirectMessages", {
                     detail: {
@@ -104,25 +113,41 @@ export function useDirectMessages() {
                     }
                 }));
             }
+            
             if (data.type === "directMessageDeleted") {
-                setMessages(prev => prev.filter(m => m.id !== data.id));
+                setMessages(previousMessages => 
+                    previousMessages.filter(message => message.id !== data.id)
+                );
             }
+            
             if (data.type === "directMessageEdited") {
-                setMessages(prev => prev.map(
-                    message => message.id === data.id ? {
-                        ...message,
-                        message: data.message,
-                        isEdited: data.isEdited
-                    } : message
-                ))
+                setMessages(previousMessages => 
+                    previousMessages.map(message => 
+                        message.id === data.id 
+                            ? {
+                                ...message,
+                                message: data.message,
+                                isEdited: data.isEdited
+                              }
+                            : message
+                    )
+                );
             }
         };
-        const ws = window._ws?.ws;
-        if (ws) {
-            ws.addEventListener("message", handleMessage);
-            return () => ws.removeEventListener("message", handleMessage);
+        
+        const webSocket = window._ws?.ws;
+        if (webSocket) {
+            webSocket.addEventListener("message", handleMessage);
+            return () => webSocket.removeEventListener("message", handleMessage);
         }
     }, [userId]);
 
-    return { messages, setMessages, isMessagesLoaded, hasMore, isLoading, loadMore };
+    return { 
+        messages, 
+        setMessages, 
+        isMessagesLoaded, 
+        hasMore, 
+        isLoading, 
+        loadMoreMessages 
+    };
 }

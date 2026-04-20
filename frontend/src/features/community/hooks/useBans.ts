@@ -12,7 +12,7 @@ export function useBans() {
     const { community } = useCommunity();
     const { currentUser } = useCurrentUser();
 
-    const canView = useMemo(() => {
+    const canViewBans = useMemo(() => {
         if (!currentUser || !community) return false;
         if (currentUser.id === community.ownerId) return true;
         if (currentUser.permissions?.includes(PERMISSIONS.BAN)) return true;
@@ -21,45 +21,48 @@ export function useBans() {
     }, [currentUser, community]);
 
     useEffect(() => {
-        if (!communityId || !canView) return;
+        if (!communityId || !canViewBans) return;
 
         const fetchBans = async () => {
-            try{
-                const { data } = await api.bans.get(communityId);
+            try {
+                const { data } = await api.bans.getAll(communityId);
                 if (data.success) {
                     setBans(data.bans.reverse());
                 }
             } catch (error) {
-                console.log("error fetching bans ", error)
+                console.log("error fetching bans: ", error);
             }
         };
+        
         fetchBans();
-    }, [communityId, canView]);
+    }, [communityId, canViewBans]);
 
     useEffect(() => {
-        if (!communityId || !canView) return;
+        if (!communityId || !canViewBans) return;
 
         const handleMessage = (event: MessageEvent) => {
             const data = JSON.parse(event.data);
+            
             if (data.type === "newBan") {
-                setBans(prev => [
+                setBans(previousBans => [
                     {
                         id: data.id,
                         username: data.username,
                         image: data.image,
-                        note: data.note,
+                        reason: data.reason,
                         createdAt: data.createdAt,
                     },
-                    ...prev
-                ] )
+                    ...previousBans
+                ]);
             }
+        };
+        
+        const webSocket = window._ws?.ws;
+        if (webSocket) {
+            webSocket.addEventListener("message", handleMessage);
+            return () => webSocket.removeEventListener("message", handleMessage);
         }
-        const ws = window._ws?.ws;
-        if (ws) {
-            ws.addEventListener("message", handleMessage);
-            return () => ws.removeEventListener("message", handleMessage);
-        }
-    }, [canView]);
+    }, [communityId, canViewBans]);
 
-    return { bans, setBans, canView };
+    return { bans, setBans, canViewBans };
 }

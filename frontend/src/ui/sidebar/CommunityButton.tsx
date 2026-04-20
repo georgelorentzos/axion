@@ -2,7 +2,7 @@ import { useLocation } from 'react-router-dom';
 import Modal from '../modal/Modal';
 import AddCommunity from '../modal/content/AddCommunity';
 import { useState } from 'react';
-import CommunityProfile from '../../features/community/components/CommunityProfile';
+import CommunityAvatar from '../avatar/CommunityAvatar';
 import { icons } from '../../constants/Icons';
 import Icon from '../Icon';
 
@@ -95,9 +95,9 @@ export default function CommunityButton({
                     onClick={onClick}
                 >
                   {communityImage ? (
-                    <CommunityProfile src={`${apiUrl}${communityImage}`} />
+                    <CommunityAvatar src={`${apiUrl}${communityImage}`} />
                   ) : (
-                    <CommunityProfile name={communityName?.charAt(0).toUpperCase()} />
+                    <CommunityAvatar name={communityName?.charAt(0).toUpperCase()} />
                   )}
                 </button>
             </div>

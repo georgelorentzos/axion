@@ -1,6 +1,6 @@
 export type Log = {
-    log: string,
-    image: string;
+    title: string,
     note: string,
+    image: string;
     createdAt: string;
 }

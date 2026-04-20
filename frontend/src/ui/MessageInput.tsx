@@ -30,7 +30,7 @@ export default function MessageInput({ value: propValue, recipient_id }: Message
 
         try {
             if (communityId && channelId) {
-                const { data } = await api.channelMessages.send(communityId, channelId, message, replyInfo?.id);
+                const { data } = await api.channels.sendMessage(communityId, channelId, message, replyInfo?.id);
                 if (data.success) {
                     window.dispatchEvent(new CustomEvent("cancelReply"));
                     valueRef.current = '';
@@ -38,7 +38,7 @@ export default function MessageInput({ value: propValue, recipient_id }: Message
                     playSendSound();
                 }
             } else {
-                const { data } = await api.directMessages.send(recipient_id, message, replyInfo?.id);
+                const { data } = await api.messages.send(recipient_id, message, replyInfo?.id);
                 if (data.success) {
                     window.dispatchEvent(new CustomEvent("cancelReply"));
                     valueRef.current = '';
@@ -91,11 +91,11 @@ export default function MessageInput({ value: propValue, recipient_id }: Message
                 </button>
             </div>
         )}
-        <div className={`${replyInfo ? "rounded-b" : "rounded-lg"} border border-outline flex items-center bg-basalt px-4 gap-2 w-full min-h-[60px] h-auto`}>
+        <div className={`${replyInfo ? "rounded-b" : "rounded-lg"} border border-outline flex items-center bg-basalt pl-2 pr-4 gap-2 w-full min-h-[60px] h-auto`}>
             <audio ref={audioRef} preload="auto" />
-            <button>
+            {/* <button>
                 <Icon svgPaths={icons.add} className="size-5 text-gray-500 hover:text-gray-300 transition duration-300" />
-            </button>
+            </button> */}
             <TextArea
                 maxLength={2000}
                 placeholder='Message'

@@ -34,12 +34,12 @@ export default function CommunityList() {
             if (userId) return;
             playReceiveSound();
             setConversations(prev => {
-                const exists = prev.some(c => c.id === data.id);
+                const exists = prev.some(community => community.id === data.id);
                 if (exists) {
-                    return prev.map(c =>
-                        c.id === data.id
-                            ? { ...c, unreadCount: c.unreadCount + 1 }
-                            : c
+                    return prev.map(community =>
+                        community.id === data.id
+                            ? { ...community, unreadCount: community.unreadCount + 1 }
+                            : community
                     );
                 } else {
                     return [...prev, data];
@@ -61,35 +61,35 @@ export default function CommunityList() {
                 conversations.map((dm, index) => (
                     <ConversationButton key={index} conversation={dm} onClick={() => {
                         navigate(`/chat/${dm.id}`);
-                        setConversations(prev => prev.filter(c => c.id !== dm.id));
+                        setConversations(prev => prev.filter(community => community.id !== dm.id));
                     }}/>
                 ))
             )}
 
-            {communities?.map(c => (
+            {communities?.map(community => (
                 <CommunityButton
                     onClick={() => {
-                        const community = {
-                            id: c.id,
-                            name: c.name,
-                            image: c.image,
-                            createdAt: c.createdAt,
-                            ownerId: c.ownerId,
+                        const communityState = {
+                            id: community.id,
+                            name: community.name,
+                            image: community.image,
+                            createdAt: community.createdAt,
+                            ownerId: community.ownerId,
                         }
                         const stored = JSON.parse(localStorage.getItem("communities") || "[]");
-                        const match = stored.find((item: { communityId: string }) => item.communityId === c.id);
+                        const match = stored.find((item: { communityId: string }) => item.communityId === community.id);
 
                         navigate(match?.channelId 
-                            ? `/community/${c.id}/${match.channelId}` 
-                            : `/community/${c.id}`, 
-                            { state: { community } }
+                            ? `/community/${community.id}/${match.channelId}` 
+                            : `/community/${community.id}`, 
+                            { state: { communityState } }
                         );
                     }} 
-                    key={c.id}
+                    key={community.id}
                     isCommunity
-                    communityId={c.id}
-                    communityImage={c.image}
-                    communityName={c.name}
+                    communityId={community.id}
+                    communityImage={community.image}
+                    communityName={community.name}
                 />
             ))}
   

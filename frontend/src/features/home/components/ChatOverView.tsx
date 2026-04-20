@@ -1,15 +1,15 @@
-import UserCard from '../../../ui/UserCard'
+import UserCard from '../../../ui/card/UserCard';
 import SearchBar from '../../../ui/SearchBar'
 import { useConversations } from '../contexts/useConversations';
 import { useNavigate } from "react-router-dom";
 import { useRef, useState } from 'react';
-import CurrentUserCard from "../../../ui/CurrentUserCard";
+import CurrentUserCard from '../../../ui/card/CurrentUserCard';
 import { api } from '../../../api/client';
 import { icons } from '../../../constants/Icons';
 import Icon from '../../../ui/Icon';
 
 export default function ChatOverView() {
-    const { conversations, loading } = useConversations();
+    const { conversations, isLoading } = useConversations();
     const [searchQuery, setSearchQuery] = useState('');
     const filtered = conversations.filter(dm => dm.user.username?.toLowerCase().startsWith(searchQuery.toLowerCase()));
     const navigate = useNavigate();
@@ -17,12 +17,12 @@ export default function ChatOverView() {
 
     const handleDeleteConversation = async (userId: string) => {
         try {
-            const { response } = await api.directMessages.deleteConversation(userId);
+            const { response } = await api.conversations.delete(userId);
             if (!response.ok) throw new Error(`Failed to delete conversation (${response.status})`);
         } catch (error) {
             console.error("Error deleting conversation:", error);
         }
-    };
+    }; 
 
     return (
         <div className="w-[370px] h-screen border-r border-outline flex flex-col">
@@ -31,7 +31,7 @@ export default function ChatOverView() {
                 <div className="text-gray-100">Direct Messages</div>
             </div>
 
-            {!loading && conversations.length >= 1 && (
+            {!isLoading && conversations.length >= 1 && (
                 <div className='px-2 pt-2'>
                     <SearchBar onSearch={(value: string) => setSearchQuery(value)} />
                 </div>
@@ -42,8 +42,8 @@ export default function ChatOverView() {
                         <div className="text-gray-400 text-sm">No results found</div>
                     </div>
                 )}
-                {!loading && !searchQuery && conversations.length === 0 && (
-                    <div className='flex-1 flex flex-col justify-center items-center mt-[80px]'>
+                {!isLoading && !searchQuery && conversations.length === 0 && (
+                    <div className='flex-1 flex flex-col justify-center items-center mt-[68px]'>
                         <div className="text-gray-400 text-sm">No messages yet</div>
                     </div>
                 )}

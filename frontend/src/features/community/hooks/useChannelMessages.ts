@@ -10,55 +10,70 @@ export function useChannelMessages() {
     const [hasMore, setHasMore] = useState(true);
     const [isLoading, setIsLoading] = useState(false);
     const offsetRef = useRef(0);
-    const prevChannelIdRef = useRef<string | undefined>(undefined);
+    const previousChannelIdRef = useRef<string | undefined>(undefined);
 
     useLayoutEffect(() => {
         if (!communityId || !channelId) return;
 
-        if (prevChannelIdRef.current !== channelId) {
+        if (previousChannelIdRef.current !== channelId) {
             setMessages([]);
             setIsMessagesLoaded(false);
             setHasMore(true);
             setIsLoading(false);
             offsetRef.current = 0;
-            prevChannelIdRef.current = channelId;
+            previousChannelIdRef.current = channelId;
         }
 
-        const fetchInitial = async () => {
+        const fetchInitialMessages = async () => {
             setIsLoading(true);
             try {
-                const { response, data } = await api.channelMessages.get(communityId, channelId, 50, 0);
+                const { response, data } = await api.channels.getMessages(communityId, channelId, 50, 0);
                 if (!response.ok) return;
-                const fetched = data.messages || [];
-                setMessages(fetched);
+                
+                const fetchedMessages = data.messages || [];
+                setMessages(fetchedMessages);
                 setIsMessagesLoaded(true);
-                offsetRef.current = fetched.length;
-                if (fetched.length < 50) setHasMore(false);
+                offsetRef.current = fetchedMessages.length;
+                
+                if (fetchedMessages.length < 50) {
+                    setHasMore(false);
+                }
             } catch (error) {
                 console.error('Error fetching channel messages:', error);
             } finally {
                 setIsLoading(false);
             }
         };
-        fetchInitial();
+        
+        fetchInitialMessages();
     }, [communityId, channelId]);
 
-    const loadMore = useCallback(async () => {
+    const loadMoreMessages = useCallback(async () => {
         if (!communityId || !channelId || !hasMore || isLoading) return;
 
         setIsLoading(true);
         try {
-            const { response, data } = await api.channelMessages.get(communityId, channelId, 10, offsetRef.current);
+            const { response, data } = await api.channels.getMessages(
+                communityId, 
+                channelId, 
+                10, 
+                offsetRef.current
+            );
+            
             if (!response.ok) {
                 setHasMore(false);
                 return;
             }
-            const older = data.messages || [];
+            
+            const olderMessages = data.messages || [];
 
-            if (older.length < 10) setHasMore(false);
-            if (older.length > 0) {
-                setMessages(prev => [...older, ...prev]);
-                offsetRef.current += older.length;
+            if (olderMessages.length < 10) {
+                setHasMore(false);
+            }
+            
+            if (olderMessages.length > 0) {
+                setMessages(previousMessages => [...olderMessages, ...previousMessages]);
+                offsetRef.current += olderMessages.length;
             }
         } catch (error) {
             console.error('Error fetching older channel messages:', error);
@@ -71,46 +86,61 @@ export function useChannelMessages() {
     useEffect(() => {
         const handleMessage = async (event: MessageEvent) => {
             const data = JSON.parse(event.data);
+            
             if (data.type === "newChannelMessage") {
-                setMessages(currentMessages => {
-                    return [
-                        ...currentMessages,
-                        {
-                            id: data.id,
-                            senderId: data.senderId,
-                            channelId: data.channelId,
-                            message: data.message,
-                            isEdited: data.isEdited,
-                            createdAt: data.createdAt,
-                            senderUsername: data.senderUsername,
-                            senderImage: data.senderImage,
-                            replyToId: data.replyToId,
-                            replyToUsername: data.replyToUsername,
-                            replyToImage: data.replyToImage,
-                            replyToMessage: data.replyToMessage,
-                        },
-                    ];
-                });
-            }
-            if (data.type === "channelMessageDeleted") {
-                setMessages(prev => prev.filter(m => m.id !== data.id));
-            }
-            if (data.type === "channelMessageEdited") {
-                setMessages(prev => prev.map(
-                    message => message.id === data.id ? {
-                        ...message,
+                setMessages(currentMessages => [
+                    ...currentMessages,
+                    {
+                        id: data.id,
+                        senderId: data.senderId,
+                        channelId: data.channelId,
                         message: data.message,
-                        isEdited: data.isEdited
-                    } : message
-                ));
+                        isEdited: data.isEdited,
+                        createdAt: data.createdAt,
+                        senderUsername: data.senderUsername,
+                        senderImage: data.senderImage,
+                        replyToId: data.replyToId,
+                        replyToUsername: data.replyToUsername,
+                        replyToImage: data.replyToImage,
+                        replyToMessage: data.replyToMessage,
+                    },
+                ]);
+            }
+            
+            if (data.type === "channelMessageDeleted") {
+                setMessages(previousMessages => 
+                    previousMessages.filter(message => message.id !== data.id)
+                );
+            }
+            
+            if (data.type === "channelMessageEdited") {
+                setMessages(previousMessages => 
+                    previousMessages.map(message => 
+                        message.id === data.id 
+                            ? {
+                                ...message,
+                                message: data.message,
+                                isEdited: data.isEdited
+                              }
+                            : message
+                    )
+                );
             }
         };
-        const ws = window._ws?.ws;
-        if (ws) {
-            ws.addEventListener("message", handleMessage);
-            return () => ws.removeEventListener("message", handleMessage);
+        
+        const webSocket = window._ws?.ws;
+        if (webSocket) {
+            webSocket.addEventListener("message", handleMessage);
+            return () => webSocket.removeEventListener("message", handleMessage);
         }
     }, [communityId]);
 
-    return { messages, setMessages, isMessagesLoaded, hasMore, isLoading, loadMore };
+    return { 
+        messages, 
+        setMessages, 
+        isMessagesLoaded, 
+        hasMore, 
+        isLoading, 
+        loadMoreMessages 
+    };
 }

@@ -26,6 +26,7 @@ export function useCommunity() {
         console.log("failed to fetch community data: ", error);
       }
     };
+    
     fetchCommunityData();
   }, [communityId]);
 

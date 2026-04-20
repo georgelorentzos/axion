@@ -10,13 +10,15 @@ export function useUser() {
 
     useLayoutEffect(() => {
         if (!userId) return;
-        const fetchUser = async () => {
-            try{
-                const { data } = await api.users.profile(userId);
+        
+        const fetchUserData = async () => {
+            try {
+                const { data } = await api.users.get(userId);
                 if (!data.success) {
                     navigate("/");
                     return;
                 }
+                
                 setUser({
                     id: data.id,
                     username: data.username,
@@ -28,23 +30,31 @@ export function useUser() {
                 console.error('Error fetching user:', error);
             }
         };
-        fetchUser();
-    }, [userId]);
+        
+        fetchUserData();
+    }, [userId, navigate]);
 
     useEffect(() => {
         const handleMessage = async (event: MessageEvent) => {
             const data = JSON.parse(event.data);
+            
             if (data.type === 'userOnline') {
-                setUser(prev => prev ? { ...prev, isOnline: true } : null);
+                setUser(previousUser => 
+                    previousUser ? { ...previousUser, isOnline: true } : null
+                );
             }
+            
             if (data.type === 'userOffline') {
-                setUser(prev => prev ? { ...prev, isOnline: false } : null);
+                setUser(previousUser => 
+                    previousUser ? { ...previousUser, isOnline: false } : null
+                );
             }
         };
-        const ws = window._ws?.ws;
-        if (ws) {
-            ws.addEventListener("message", handleMessage);
-            return () => ws.removeEventListener("message", handleMessage);
+        
+        const webSocket = window._ws?.ws;
+        if (webSocket) {
+            webSocket.addEventListener("message", handleMessage);
+            return () => webSocket.removeEventListener("message", handleMessage);
         }
     }, [userId]);
 

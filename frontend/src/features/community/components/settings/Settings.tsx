@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import SettingsSection from "../../../../ui/settings/SettingsSection";
 import SettingsItem from "../../../../ui/settings/SettingsItem";
 import ProfileContent from "../settings/content/Profile";
@@ -33,7 +33,6 @@ export default function CommunitySettingsModal({
     const [showFade, setShowFade] = useState(false);
     const [selectedTab, setSelectedTab] = useState("Profile");
     const [isDeleteCommunityModal, setIsDeleteCommunityModal] = useState(false);
-    const [childModalCount, setChildModalCount] = useState(0);
     const navigate = useNavigate();
     const { setCommunities } = useCommunities();
     const { currentUser } = useCurrentUser();
@@ -45,12 +44,6 @@ export default function CommunitySettingsModal({
     const canKick = isOwner || isAdmin || currentUser?.permissions?.includes(PERMISSIONS.KICK);
     const canBan = isOwner || isAdmin || currentUser?.permissions?.includes(PERMISSIONS.BAN);
     const canViewLogs = isOwner || isAdmin || currentUser?.permissions?.includes(PERMISSIONS.VIEW_LOGS);
-
-    const hasChildModalOpen = isDeleteCommunityModal || childModalCount > 0;
-
-    const registerChildModal = useCallback((isOpen: boolean) => {
-        setChildModalCount((prev) => (isOpen ? prev + 1 : Math.max(0, prev - 1)));
-    }, []);
 
     useEffect(() => {
         if (isOpen) {
@@ -69,9 +62,9 @@ export default function CommunitySettingsModal({
             case "Profile":
                 return <ProfileContent community={community} onCommunityUpdate={onCommunityUpdate} />;
             case "Roles":
-                return <RolesContent onChildModalChange={registerChildModal} />;
+                return <RolesContent />;
             case "Members":
-                return <MembersContent onChildModalChange={registerChildModal} />;
+                return <MembersContent />;
             case "Logs":
                 return <LogsContent />;
             case "Bans":
@@ -82,7 +75,7 @@ export default function CommunitySettingsModal({
     const handleDeleteCommunity = async () => {
         if (!community?.id) return;
         try {
-            const { response, data } = await api.communities.delete(community.id, community.name);
+            const { response, data } = await api.communities.delete(community.id);
             if (response.ok) {
                 navigate("/");
                 setCommunities((prev) => prev?.filter((c) => c.id !== data.id) || null);
@@ -122,7 +115,7 @@ export default function CommunitySettingsModal({
             </div>
             <div className="pt-16 w-[920px]">
                 {renderContent()}
-                <ModalCloseButton onClose={hasChildModalOpen ? () => {} : onClose} top="top-4" right="right-4" />
+                <ModalCloseButton onClose={onClose} top="top-4" right="right-4" />
             </div>
             <Modal isOpen={isDeleteCommunityModal} onClose={() => setIsDeleteCommunityModal(false)}>
                 <Delete

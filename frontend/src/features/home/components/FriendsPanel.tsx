@@ -1,21 +1,21 @@
 import HeaderButton from './HeaderButton'
 import { useState } from 'react'
-import AddFriendContent from './content/AddFriendContent'
-import PendingContent from './content/PendingContent'
-import AllFriendsContent from './content/AllFriendsContent'
-import OnlineFriendsContent from './content/OnlineFriendsContent'
+import AddFriend from './content/AddFriend'
+import Pending from './content/Pending'
+import AllFriends from './content/AllFriends'
+import OnlineFriends from './content/OnlineFriends'
 export default function FriendsPanel() {
     const [selectedTab, setSelectedTab] = useState('Online');
-    const renderContent = () => {
+    const render = () => {
         switch(selectedTab) {
             case 'Online':
-                return <OnlineFriendsContent />;
+                return <OnlineFriends />;
             case 'All Friends':
-                return <AllFriendsContent />;
+                return <AllFriends />;
             case 'Pending':
-                return <PendingContent />;
+                return <Pending />;
             case 'Add Friend':
-                return <AddFriendContent />;
+                return <AddFriend />;
             default:
                 return null;
         }
@@ -29,7 +29,7 @@ export default function FriendsPanel() {
                 <HeaderButton text="Add Friend" selected={selectedTab === 'Add Friend'} onClick={() => setSelectedTab('Add Friend')} />
             </div>
             <div className="flex-1 overflow-y-auto">
-                {renderContent()}
+                {render()}
             </div>
         </div>
     );

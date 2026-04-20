@@ -1,12 +1,12 @@
 import { useMembers } from "../contexts/useMembers";
-import UserCard from "../../../ui/UserCard";
+import UserCard from "../../../ui/card/UserCard";
 import MemberPreview from "./memberpreview/MemberPreview";
 import React, { useState, useEffect, useRef } from "react";
 import ActionMenu from "../../../ui/action-menu/ActionMenu";
 import ActionMenuButton from "../../../ui/action-menu/ActionMenuButton";
 import { useCurrentUser } from "../../user/contexts/useCurrentUser";
 import { useNavigate } from "react-router-dom";
-import { useAllFriends } from "../../home/contexts/useAllFriends";
+import { useFriends } from "../../home/hooks/useFriends";
 import { api } from "../../../api/client";
 import { useCommunity } from "../contexts/useCommunity";
 import Modal from "../../../ui/modal/Modal";
@@ -25,7 +25,7 @@ export default function MemberList() {
     const [pos, setPos] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
     const { currentUser } = useCurrentUser();
     const navigate = useNavigate();
-    const { allFriends, setAllFriends } = useAllFriends();
+    const { friends, setFriends } = useFriends();
     const { community } = useCommunity();
     const [actionUser, setActionUser] = useState<User | null>(null);
     const [isKickModalOpen, setIsKickModalOpen] = useState(false);
@@ -67,7 +67,7 @@ export default function MemberList() {
     };
 
     const renderUserCardActionContent = (member: User, color?: string) => {
-        const isFriend = allFriends.some(friend => friend.id === member.id);
+        const isFriend = friends.some(friend => friend.id === member.id);
         const isTargetable = isMemberTargetable(member);
 
         return (
@@ -104,7 +104,7 @@ export default function MemberList() {
                         <ActionMenuButton
                             onClick={() => {
                                 if (!currentUser?.id) return;
-                                api.friends.sendRequest(currentUser.id, member.id);
+                                api.friends.add(member.id);
                                 setActionMenuMemberId(null);
                             }}
                             text="Add Friend"
@@ -114,8 +114,8 @@ export default function MemberList() {
                         <ActionMenuButton
                             onClick={() => {
                                 if (!currentUser?.id) return;
-                                api.friends.remove(currentUser.id, member.id);
-                                setAllFriends(friends => friends.filter(friend => friend.id !== member.id));
+                                api.friends.remove(member.id);
+                                setFriends(friends => friends.filter(friend => friend.id !== member.id));
                                 setActionMenuMemberId(null);
                             }}
                             text="Unfriend"
@@ -159,9 +159,9 @@ export default function MemberList() {
                             {roles.map(role => {
                                 const roleMembers = onlineMembers.filter(member =>
                                     !assignedMemberIds.has(member.id) &&
-                                    member.roles?.some(r => r.id === role.id)
+                                    member.roles?.some(memberRole => memberRole.id === role.id)
                                 );
-                                roleMembers.forEach(m => assignedMemberIds.add(m.id));
+                                roleMembers.forEach(member => assignedMemberIds.add(member.id));
                                 if (roleMembers.length === 0) return null;
                                 return (
                                     <div key={role.id}>

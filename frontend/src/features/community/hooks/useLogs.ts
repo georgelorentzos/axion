@@ -12,7 +12,7 @@ export function useLogs() {
     const { community } = useCommunity();
     const { currentUser } = useCurrentUser();
 
-    const canView = useMemo(() => {
+    const canViewLogs = useMemo(() => {
         if (!currentUser || !community) return false;
         if (currentUser.id === community.ownerId) return true;
         if (currentUser.permissions?.includes(PERMISSIONS.VIEW_LOGS)) return true;
@@ -21,44 +21,47 @@ export function useLogs() {
     }, [currentUser, community]);
 
     useEffect(() => {
-        if (!communityId || !canView) return;
+        if (!communityId || !canViewLogs) return;
 
         const fetchLogs = async () => {
-            try{
-                const { data } = await api.logs.get(communityId);
+            try {
+                const { data } = await api.logs.getAll(communityId);
                 if (data.success) {
                     setLogs(data.logs.reverse());
                 }
             } catch (error) {
-                console.log("error fetching logs ", error)
+                console.log("error fetching logs: ", error);
             }
         };
+        
         fetchLogs();
-    }, [communityId, canView]);
+    }, [communityId, canViewLogs]);
 
     useEffect(() => {
-        if (!communityId || !canView) return;
+        if (!communityId || !canViewLogs) return;
 
         const handleMessage = (event: MessageEvent) => {
             const data = JSON.parse(event.data);
+            
             if (data.type === "newLog") {
-                setLogs(prev => [
+                setLogs(previousLogs => [
                     {
-                        log: data.log,
+                        title: data.title,
                         image: data.image,
                         note: data.note,
                         createdAt: data.createdAt,
                     },
-                    ...prev
-                ] )
+                    ...previousLogs
+                ]);
             }
-        }
-        const ws = window._ws?.ws;
-        if (ws) {
-            ws.addEventListener("message", handleMessage);
-            return () => ws.removeEventListener("message", handleMessage);
-        }
-    }, [canView]);
+        };
 
-    return { logs, setLogs, canView };
+        const webSocket = window._ws?.ws;
+        if (webSocket) {
+            webSocket.addEventListener("message", handleMessage);
+            return () => webSocket.removeEventListener("message", handleMessage);
+        }
+    }, [communityId, canViewLogs]);
+
+    return { logs, setLogs, canViewLogs };
 }

@@ -43,7 +43,7 @@ export default function MemberAction({ user, onClose, action }: MemberActionProp
         }
         return;
       }
-      const apiCall = cached.current.action === "kick" ? api.members.kick : api.members.ban;
+      const apiCall = cached.current.action === "kick" ? api.members.kick : api.bans.ban;
       const { response } = await apiCall(communityId, cachedUser.id, reason || "No Reason");
       if (response.ok) {
         setMembers(prev => prev.filter(m => m.id !== cachedUser.id));

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import Input from "../../../../../ui/Input";
-import CommunityPreview from "../../CommunityPreview";
+import CommunityCard from "../../../../../ui/card/CommunityCard";
 import Button from "../../../../../ui/Button";
 import UnsavedChangesBar from "../../../../../ui/UnsavedChangesBar";
 import { useCommunities } from "../../../../../ui/sidebar/contexts/useCommunities";
@@ -11,21 +11,21 @@ import { api } from "../../../../../api/client";
 
 type ProfileContentProps = {
     community?: Community;
-    onCommunityUpdate: (data: Community) => void;
+    onCommunityUpdate: (community: Community) => void;
 }
 
 export default function ProfileContent({ community, onCommunityUpdate }: ProfileContentProps) {
     const navigate = useNavigate();
     const location = useLocation();
-    const [name, setName] = useState(community?.name || null);
-    const [communityImage, setCommunityImage] = useState<string | null>(
-        community?.image ? community.image : null
-    );
-    const [communityImageFile, setCommunityImageFile] = useState<File | null>(null);
-    const [imageChanged, setImageChanged] = useState(false);
-    const [unsavedChangesBarIsVisible, setUnsavedChangesBarIsVisible] = useState(false);
     const { updateCommunity } = useCommunities();
     const { members, onlineMembers } = useMembers();
+
+    const [name, setName] = useState(community?.name || "");
+    const [image, setImage] = useState<string | null>(community?.image || null);
+    const [imageFile, setImageFile] = useState<File | null>(null);
+    const [imageChanged, setImageChanged] = useState(false);
+    const [imageRemoved, setImageRemoved] = useState(false);
+    const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
     const handleFileUpload = () => {
         const input = document.createElement("input");
@@ -36,84 +36,86 @@ export default function ProfileContent({ community, onCommunityUpdate }: Profile
         input.addEventListener("change", () => {
             const file = input.files?.[0] || null;
             if (file) {
-                setCommunityImageFile(file);
-                setCommunityImage(URL.createObjectURL(file));
+                setImageFile(file);
+                setImage(URL.createObjectURL(file));
                 setImageChanged(true);
-                setUnsavedChangesBarIsVisible(true);
+                setImageRemoved(false);
+                setHasUnsavedChanges(true);
             }
         });
     };
 
-    const handleNewName = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setName(e.target.value);
-        const nameChanged = e.target.value !== community?.name;
-        setUnsavedChangesBarIsVisible(nameChanged || imageChanged);
+    const handleNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setName(event.target.value);
+        const nameChanged = event.target.value !== community?.name;
+        setHasUnsavedChanges(nameChanged || imageChanged || imageRemoved);
+    };
+
+    const handleRemoveIcon = () => {
+        setImage(null);
+        setImageFile(null);
+        setImageRemoved(true);
+        setImageChanged(true);
+        setHasUnsavedChanges(true);
     };
 
     const handleReset = () => {
-        setUnsavedChangesBarIsVisible(false);
+        setName(community?.name || "");
+        setImage(community?.image || null);
+        setImageFile(null);
         setImageChanged(false);
-        setCommunityImageFile(null);
-        setCommunityImage(community?.image ? community.image : null);
-        setName(community?.name || null);
+        setImageRemoved(false);
+        setHasUnsavedChanges(false);
     };
 
     const handleSave = async () => {
         try {
-            const formData = new FormData();
-            formData.append("community_name", name || "");
+            if (imageRemoved) {
+                await api.communities.removeImage(community?.id!);
+            }
 
-            if (communityImageFile) {
-                formData.append("community_image", communityImageFile);
-            } else if (communityImage === null && community?.image) {
-                formData.append("remove_image", "true");
+            const formData = new FormData();
+            formData.append("name", name);
+
+            if (imageFile) {
+                formData.append("image", imageFile);
             }
 
             const { response, data } = await api.communities.update(community?.id!, formData);
 
-            if (response.ok) {
-                setUnsavedChangesBarIsVisible(false);
-                setCommunityImageFile(null);
-                setImageChanged(false);
+            if (!response.ok) return;
 
-                const updatedData: Community = {
-                    id: data.id,
-                    name: data.name,
-                    image: data.image,
-                    createdAt: data.createdAt,
-                    ownerId: data.ownerId,
-                };
+            const newImage = imageRemoved ? "" : (data.image || image || "");
 
-                if (data.image) {
-                    setCommunityImage(data.image);
-                }
+            const updatedCommunity: Community = {
+                id: community?.id || "",
+                name: name,
+                image: newImage,
+                createdAt: community?.createdAt || "",
+                ownerId: community?.ownerId || "",
+            };
 
-                onCommunityUpdate(updatedData);
-                updateCommunity(updatedData);
+            setImage(newImage || null);
+            setHasUnsavedChanges(false);
+            setImageFile(null);
+            setImageChanged(false);
+            setImageRemoved(false);
 
-                navigate(location.pathname, {
-                    replace: true,
-                    state: {
-                        community: {
-                            ...location.state?.community,
-                            id: data.id,
-                            name: data.name,
-                            image: data.image,
-                            createdAt: data.createdAt,
-                            ownerId: data.ownerId,
-                        }
+            onCommunityUpdate(updatedCommunity);
+            updateCommunity(updatedCommunity);
+
+            navigate(location.pathname, {
+                replace: true,
+                state: {
+                    community: {
+                        ...location.state?.community,
+                        ...updatedCommunity,
                     }
-                });
-            }
+                }
+            });
         } catch (error) {
-            console.log("error update community: ", error);
+            console.error("Failed to update community:", error);
         }
-    };
-
-    const handleRemoveIcon = () => {
-        setCommunityImage(null);
-        setImageChanged(true);
-        setUnsavedChangesBarIsVisible(true);
     };
 
     return (
@@ -127,8 +129,8 @@ export default function ProfileContent({ community, onCommunityUpdate }: Profile
                 <div>Name</div>
                 <Input
                     placeholder="Community Name"
-                    value={name || ""}
-                    onChange={handleNewName}
+                    value={name}
+                    onChange={handleNameChange}
                     maxLength={20}
                 />
                 <br />
@@ -140,23 +142,23 @@ export default function ProfileContent({ community, onCommunityUpdate }: Profile
                     <div className="max-w-[170.48px] w-full">
                         <Button text="Change Icon" isGreen onClick={handleFileUpload} />
                     </div>
-                    {(community?.image || communityImage && !UnsavedChangesBar) && (
+                    {image && (
                         <Button text="Remove Icon" onClick={handleRemoveIcon} />
                     )}
                 </div>
             </div>
-            <div className="pr-6">
-                <CommunityPreview community={{
+            <div className="pr-12">
+                <CommunityCard community={{
                     id: community?.id || "",
-                    name: name || "",
-                    image: communityImage ?? "",
+                    name: name,
+                    image: image || "",
                     onlineMembers: String(onlineMembers.length),
                     totalMembers: String(members.length),
                     createdAt: community?.createdAt || "",
                     ownerId: community?.ownerId || "",
                 }} skipFetch />
             </div>
-            <UnsavedChangesBar isVisible={unsavedChangesBarIsVisible} onReset={handleReset} onSave={handleSave} />
+            <UnsavedChangesBar isVisible={hasUnsavedChanges} onReset={handleReset} onSave={handleSave} />
         </div>
     );
 }

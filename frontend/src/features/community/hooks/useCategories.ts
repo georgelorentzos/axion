@@ -11,42 +11,55 @@ export function useCategories() {
 
     useEffect(() => {
         if (!communityId) return;
-        const handleCategories = async () => {
+        
+        const fetchCategories = async () => {
             try {
-                const { data } = await api.categories.get(communityId);
+                const { data } = await api.categories.getAll(communityId);
                 setCategories(data.categories);
             } catch (error) {
                 console.log("error failed to fetch categories: ", error);
             }
         };
-        handleCategories();
-    }, [communityId])
+        
+        fetchCategories();
+    }, [communityId]);
 
     useEffect(() => {
         if (!communityId) return;
+        
         const handleMessage = async (event: MessageEvent) => {
             const data = JSON.parse(event.data);
+            
             if (data.type === "categoryCreated") {
-                setCategories(prev => [
-                    ...(prev || []), {
+                setCategories(previousCategories => [
+                    ...(previousCategories || []), 
+                    {
                         id: data.id,
                         name: data.name
                     }
                 ]);
             }
+            
             if (data.type === "categoryDeleted") {
-                setCategories(prev => prev?.filter(c => c.id !== data.id) || null);
-                setChannels(prev => prev?.map(
-                    c => c.categoryId === data.id ? { ...c, categoryId: null } : c 
-                ) || null);
+                setCategories(previousCategories => 
+                    previousCategories?.filter(category => category.id !== data.id) || null
+                );
+                setChannels(previousChannels => 
+                    previousChannels?.map(channel => 
+                        channel.categoryId === data.id 
+                            ? { ...channel, categoryId: null } 
+                            : channel 
+                    ) || null
+                );
             }
         };
-        const ws = window._ws?.ws;
-        if (ws) {
-            ws.addEventListener("message", handleMessage);
-            return () => ws.removeEventListener("message", handleMessage);
+        
+        const webSocket = window._ws?.ws;
+        if (webSocket) {
+            webSocket.addEventListener("message", handleMessage);
+            return () => webSocket.removeEventListener("message", handleMessage);
         }
-    }, [communityId]);
+    }, [communityId, setChannels]);
 
     return { categories, setCategories };
 }

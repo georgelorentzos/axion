@@ -10,7 +10,7 @@ export function usePending() {
     const fetchPending = async () => {
       setIsLoading(true);
       try {
-        const { data } = await api.friends.pending();
+        const { data } = await api.pending.getAll();
         setPending(data.pending || []);
       } catch (err) {
         console.error('Failed to fetch pending:', err);
@@ -28,16 +28,16 @@ export function usePending() {
         const data = JSON.parse(event.data);
 
         setPending(prev =>
-          prev.map(p => {
-            if (p.id === (data.id)) {
-              if (data.type === 'pendingOnline') return { ...p, isOnline: true };
-              if (data.type === 'pendingOffline') return { ...p, isOnline: false };
+          prev.map(pending => {
+            if (pending.id === (data.id)) {
+              if (data.type === 'pendingOnline') return { ...pending, isOnline: true };
+              if (data.type === 'pendingOffline') return { ...pending, isOnline: false };
             }
-            return p;
+            return pending;
           })
         );
 
-        if (data.type === 'allyRequest') {
+        if (data.type === 'allyRequestSent') {
           setPending(prev => {
             if (prev.find(p => p.id === data.id)) return prev;
             return [
@@ -45,14 +45,14 @@ export function usePending() {
                 id: data.id,
                 username: data.username,
                 image: data.image,
-                isOnline: true,
+                isOnline: data.isOnline,
                 createdAt: data.createdAt
               },
               ...prev
             ];
           });
-        } else if (data.type === 'allyCancelRequest') {
-          setPending(prev => prev.filter(p => p.id !== data.id));
+        } else if (data.type === 'allyRequestDeleted') {
+          setPending(prev => prev.filter(pending => pending.id !== data.id));
         }
       } catch (error) {
         console.error('Parse error:', error);

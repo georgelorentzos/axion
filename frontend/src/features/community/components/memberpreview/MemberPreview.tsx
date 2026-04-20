@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import ImageProfile from "../../../../ui/ImageProfile";
+import UserAvatar from "../../../../ui/avatar/UserAvatar";
 import Button from "../../../../ui/Button";
 import Input from "../../../../ui/Input";
 import { api } from "../../../../api/client";
@@ -43,7 +43,7 @@ export default function MemberPreview({ member, isOpen }: MemberPreviewProps) {
     const handleSendMessage = async () => {
         if (!messageValue.trim() || !currentUser) return;
         try {
-            await api.directMessages.send(currentUser.id, member.id, messageValue);
+            await api.messages.send(currentUser.id, member.id, messageValue);
             navigate(`/chat/${member.id}`);
             setMessageValue("");
         } catch (error) {
@@ -59,7 +59,7 @@ export default function MemberPreview({ member, isOpen }: MemberPreviewProps) {
         >
             <div className="flex flex-col gap-2">
                 <div className="flex items-center gap-2">
-                    <ImageProfile
+                    <UserAvatar
                         width={70}
                         height={70}
                         src={member.image}

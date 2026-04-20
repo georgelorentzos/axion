@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../../../api/client";
 import { useCurrentUser } from "../../user/contexts/useCurrentUser";
@@ -6,7 +6,7 @@ import { type Conversation } from "../types/conversation";
 
 export function useConversations() {
     const [conversations, setConversations] = useState<Conversation[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [isLoading, setIsLoading] = useState(true);
     const navigate = useNavigate();
     const { currentUser } = useCurrentUser();
     const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -16,59 +16,100 @@ export function useConversations() {
     }, []);
 
     useEffect(() => {
-        const loadConversations = async () => {
+        const fetchConversations = async () => {
             try {
-                const { data } = await api.directMessages.conversations();
+                const { data } = await api.conversations.getAll();
                 setConversations(
-                    (data.conversations || []).map((c: any) => ({
+                    (data.conversations || []).map((conversationData: any) => ({
                         user: {
-                            id: c.id,
-                            username: c.username,
-                            image: c.image,
-                            isOnline: c.isOnline,
-                            createdAt: c.createdAt,
+                            id: conversationData.id,
+                            username: conversationData.username,
+                            image: conversationData.image,
+                            isOnline: conversationData.isOnline,
+                            createdAt: conversationData.createdAt,
                         },
-                        latestMessage: c.latestMessage,
+                        latestMessage: conversationData.latestMessage,
                     }))
                 );
             } catch (error) {
                 console.error('Fetch conversations error:', error);
                 setConversations([]);
             } finally {
-                setLoading(false);
+                setIsLoading(false);
             }
         };
-        loadConversations();
+        
+        fetchConversations();
     }, []);
 
     useEffect(() => {
         const handleMessage = (event: MessageEvent) => {
             const data = JSON.parse(event.data);
+
+            if (data.type === 'conversationUpdated') {
+                setConversations(previousConversations => {
+                    const conversationExists = previousConversations.find(
+                        conversation => conversation.user.id === data.id
+                    );
+                    
+                    if (conversationExists) {
+                        return previousConversations.map(conversation =>
+                            conversation.user.id === data.id
+                                ? { ...conversation, latestMessage: data.latestMessage }
+                                : conversation
+                        );
+                    }
+                    
+                    return [
+                        {
+                            user: {
+                                id: data.id,
+                                username: data.username,
+                                image: data.image,
+                                isOnline: data.isOnline,
+                                createdAt: data.createdAt,
+                            },
+                            latestMessage: data.latestMessage,
+                        },
+                        ...previousConversations,
+                    ];
+                });
+            }
+
             if (data.type === 'conversationDeleted') {
-                setConversations(prev => prev.filter(dm => dm.user.id !== data.id));
+                setConversations(previousConversations => 
+                    previousConversations.filter(conversation => conversation.user.id !== data.id)
+                );
                 navigate('/');
             }
+
             if (data.type === 'userOnline') {
-                setConversations(prev =>
-                    prev.map(dm =>
-                        dm.user.id === data.id ? { ...dm, user: { ...dm.user, isOnline: true } } : dm
+                setConversations(previousConversations =>
+                    previousConversations.map(conversation =>
+                        conversation.user.id === data.id
+                            ? { ...conversation, user: { ...conversation.user, isOnline: true } }
+                            : conversation
                     )
                 );
             }
+
             if (data.type === 'userOffline') {
-                setConversations(prev =>
-                    prev.map(dm =>
-                        dm.user.id === data.id ? { ...dm, user: { ...dm.user, isOnline: false } } : dm
+                setConversations(previousConversations =>
+                    previousConversations.map(conversation =>
+                        conversation.user.id === data.id
+                            ? { ...conversation, user: { ...conversation.user, isOnline: false } }
+                            : conversation
                     )
                 );
             }
         };
-        const ws = window._ws?.ws;
-        if (ws) {
-            ws.addEventListener('message', handleMessage);
-            return () => ws.removeEventListener('message', handleMessage);
+
+        const webSocket = window._ws?.ws;
+        if (webSocket) {
+            webSocket.addEventListener('message', handleMessage);
+            return () => webSocket.removeEventListener('message', handleMessage);
         }
     }, [currentUser?.id, navigate]);
 
-    return { conversations, setConversations, loading };
+    return { conversations, setConversations, isLoading };
 }

@@ -3,12 +3,12 @@ import { createRoot } from "react-dom/client";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 import Auth from "./features/auth/Auth";
-import NotFound from "./features/auth/NotFound";
+import NotFound from "./pages/NotFound";
 import MagicLink from "./features/auth/MagicLink";
 import Logout from "./features/auth/Logout";
 import FriendsPanel from "./features/home/components/FriendsPanel";
-import DirectMessageConversation from "./features/direct-message/components/DirectMessageConversation";
-import JoinCommunity from "./features/community/pages/JoinCommunity";
+import Chat from "./features/direct-message/components/Chat";
+import JoinCommunity from "./pages/JoinCommunity";
 
 import { ProtectedRoute, PublicRoute } from "./features/user/hooks/useRouteGuards";
 import { UserProvider } from "./features/user/contexts/useCurrentUser";
@@ -59,7 +59,7 @@ function App() {
           }
         >
           <Route path="/" element={<FriendsPanel />} />
-          <Route path="/chat/:userId" element={<DirectMessageConversation />} />
+          <Route path="/chat/:userId" element={<Chat />} />
         </Route>
 
         <Route

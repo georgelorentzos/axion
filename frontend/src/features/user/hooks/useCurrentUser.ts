@@ -40,7 +40,7 @@ export function useCurrentUser(): UseCurrentUserReturn {
 
         const fetchCommunityPermissions = async () => {
             try {
-                const { data } = await api.members.myPermissions(communityId);
+                const { data } = await api.permissions.getAll(communityId);
                 setCurrentUser(prev => {
                     if (!prev) return null;
                     return {
@@ -57,13 +57,14 @@ export function useCurrentUser(): UseCurrentUserReturn {
     }, [communityId, currentUser]);
 
     useEffect(() => {
-        if (!currentUser) return;
+        if (!currentUser || !communityId) return;
         const handleMessage = async (event: MessageEvent) => {
             const data = JSON.parse(event.data);
             if (data.type === "permissionsUpdated" && data.communityId === communityId) {
+                const { data: response } = await api.permissions.getAll(communityId);
                 setCurrentUser(prev => {
                     if (!prev) return null;
-                    return { ...prev, permissions: data.permissions };
+                    return { ...prev, permissions: response.permissions || [] };
                 });
             }
         };

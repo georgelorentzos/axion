@@ -38,7 +38,7 @@ export const api = {
     login: (email: string) =>
       request("/api/auth", { method: "POST", body: { email } }),
     verifyToken: (token: string) =>
-      request("/api/verify-token", { method: "POST", body: { token, type: "Auth" } }),
+      request("/api/verify-token", { method: "POST", body: { token } }),
     validateToken: (token: string) =>
       request("/api/validate-token", { method: "POST", body: { token } }),
   },
@@ -47,116 +47,124 @@ export const api = {
     me: () => request("/api/me"),
     search: (search: string) =>
       request(`/api/users/search?search=${encodeURIComponent(search)}`),
-    profile: (userId: string) => request(`/api/users/${userId}`),
+    get: (userId: string) => request(`/api/users/${userId}`),
   },
 
   friends: {
-    sendRequest: (requesterId: string, addresseeId: string) =>
-      request("/api/ally", { method: "POST", body: { requester_id: requesterId, addressee_id: addresseeId } }),
-    cancelRequest: (requesterId: string, addresseeId: string) =>
-      request("/api/ally/cancel", { method: "DELETE", body: { requester_id: requesterId, addressee_id: addresseeId } }),
-    rejectRequest: (requesterId: string, addresseeId: string) =>
-      request("/api/ally/reject", { method: "DELETE", body: { requester_id: requesterId, addressee_id: addresseeId } }),
-    acceptRequest: (requesterId: string, addresseeId: string) =>
-      request("/api/ally/accept", { method: "POST", body: { requester_id: requesterId, addressee_id: addresseeId } }),
-    remove: (requesterId: string, addresseeId: string) =>
-      request("/api/ally/remove", { method: "DELETE", body: { requester_id: requesterId, addressee_id: addresseeId } }),
-    myRequests: () => request("/api/my/ally/requests"),
-    pending: () => request("/api/my/pending"),
-    all: () => request("/api/my/friends/all"),
-    online: () => request("/api/my/friends/online"),
+    getAll: () => request("/api/friends"),
+    add: (userId: string) =>
+      request(`/api/friends/${userId}`, { method: "POST" }),
+    remove: (userId: string) =>
+      request(`/api/friends/${userId}`, { method: "DELETE" }),
   },
 
-  directMessages: {
-    send: (recipientId: string, message: string, replyToId?: string) =>
-      request(`/api/chat/${recipientId}/messages`, { method: "POST", body: { message, reply_to_id: replyToId } }),
+  pending: {
+    getAll: () => request("/api/pending"),
+    accept: (userId: string) =>
+      request(`/api/pending/${userId}`, { method: "PATCH" }),
+    reject: (userId: string) =>
+      request(`/api/pending/${userId}`, { method: "DELETE" }),
+  },
+
+  conversations: {
+    getAll: () => request("/api/conversations"),
+    delete: (userId: string) =>
+      request(`/api/conversations/${userId}`, { method: "DELETE" }),
+  },
+
+  messages: {
+    send: (userId: string, message: string, replyToId?: string) =>
+      request(`/api/chat/${userId}/messages`, { method: "POST", body: { message, reply_to_id: replyToId } }),
     get: (userId: string, limit = 50, offset = 0) =>
       request(`/api/chat/${userId}/messages?limit=${limit}&offset=${offset}`),
-    delete: (recipientId: string, messageId: string) =>
-      request(`/api/chat/${recipientId}/messages/${messageId}`, { method: "DELETE" }),
-    edit: (recipientId: string, messageId: string, message: string) =>
-      request(`/api/chat/${recipientId}/messages/${messageId}`, { method: "PATCH", body: { message } }),
-    conversations: () => request("/api/my/conversations"),
-    deleteConversation: (userId: string) =>
-      request(`/api/conversation/${userId}`, { method: "DELETE" }),
-  },
-
-  channelMessages: {
-    send: (communityId: string, channelId: string, message: string, replyToId?: string) =>
-      request(`/api/community/${communityId}/channels/${channelId}/messages`, { method: "POST", body: { message, reply_to_id: replyToId } }),
-    get: (communityId: string, channelId: string, limit = 50, offset = 0) =>
-      request(`/api/community/${communityId}/channels/${channelId}/messages?limit=${limit}&offset=${offset}`),
-    delete: (communityId: string, channelId: string, messageId: string) =>
-      request(`/api/community/${communityId}/channels/${channelId}/messages/${messageId}`, { method: "DELETE" }),
-    edit: (communityId: string, channelId: string, messageId: string, message: string) =>
-      request(`/api/community/${communityId}/channels/${channelId}/messages/${messageId}`, { method: "PATCH", body: { message } }),
+    delete: (userId: string, messageId: string) =>
+      request(`/api/chat/${userId}/messages/${messageId}`, { method: "DELETE" }),
+    edit: (userId: string, messageId: string, message: string) =>
+      request(`/api/chat/${userId}/messages/${messageId}`, { method: "PATCH", body: { message } }),
   },
 
   communities: {
-    create: (formData: FormData) =>
-      request("/api/community/create", { method: "POST", body: formData, isFormData: true }),
-    mine: () => request("/api/my/communities"),
-    get: (communityId: string) => request(`/api/community/${communityId}`),
-    update: (communityId: string, formData: FormData) =>
-      request(`/api/community/${communityId}`, { method: "PATCH", body: formData, isFormData: true }),
-    join: (communityId: string) =>
-      request(`/api/community/${communityId}/join`, { method: "PATCH" }),
-    leave: (communityId: string) =>
-      request(`/api/community/${communityId}/leave`, { method: "DELETE" }),
-    delete: (communityId: string, communityName: string) =>
-      request(`/api/community/${communityId}?community_name=${encodeURIComponent(communityName)}`, { method: "DELETE" }),
-  },
-
-  members: {
-    get: (communityId: string) => request(`/api/community/${communityId}/members`),
-    kick: (communityId: string, memberId: string, reason?: string) =>
-      request(`/api/community/${communityId}/members/${memberId}/kick`, { method: "DELETE", body: { reason: reason || "No Reason" } }),
-    ban: (communityId: string, memberId: string, reason?: string) =>
-      request(`/api/community/${communityId}/members/${memberId}/ban`, { method: "DELETE", body: { reason: reason || "No Reason" } }),
-    toggleRole: (communityId: string, userId: string, roleId: string) =>
-      request(`/api/community/${communityId}/members/${userId}/roles/${roleId}`, { method: "PATCH" }),
-    myPermissions: (communityId: string) =>
-      request(`/api/community/${communityId}/permissions`),
-  },
-
-  roles: {
-    get: (communityId: string) => request(`/api/community/${communityId}/roles`),
-    create: (communityId: string, name: string, color: string, permissions: string) =>
-      request(`/api/community/${communityId}/roles`, { method: "POST", body: { name, color, permissions } }),
-    update: (communityId: string, roleId: string, name: string, color: string, permissions: string) =>
-      request(`/api/community/${communityId}/roles/${roleId}`, { method: "PATCH", body: { name, color, permissions } }),
-    delete: (communityId: string, roleId: string) =>
-      request(`/api/community/${communityId}/roles/${roleId}`, { method: "DELETE" }),
-  },
-
-  bans: {
-    get: (communityId: string) => request(`/api/community/${communityId}/bans`),
-    unban: (communityId: string, userId: string) =>
-      request(`/api/community/${communityId}/bans/${userId}`, { method: "DELETE" }),
-  },
-
-  logs: {
-    get: (communityId: string) => request(`/api/community/${communityId}/logs`),
-  },
-
-  categories: {
-    create: (communityId: string, categoryName: string) =>
-      request(`/api/community/${communityId}/categories`, { method: "POST", body: { category_name: categoryName } }),
-    delete: (communityId: string, categoryId: string) =>
-      request(`/api/community/${communityId}/categories/${categoryId}`, { method: "DELETE" }),
-    get: (communityId: string) =>
-      request(`/api/community/${communityId}/categories`, { method: "GET" }),
+      create: (formData: FormData) =>
+        request("/api/communities", { method: "POST", body: formData, isFormData: true }),
+      getAll: () => request("/api/communities"),
+      get: (communityId: string) =>
+        request(`/api/communities/${communityId}`),
+      update: (communityId: string, formData: FormData) =>
+        request(`/api/communities/${communityId}`, { method: "PATCH", body: formData, isFormData: true }),
+      removeImage: (communityId: string) =>
+        request(`/api/communities/${communityId}/image`, { method: "DELETE" }),
+      join: (communityId: string) =>
+        request(`/api/communities/${communityId}/join`, { method: "POST" }),
+      leave: (communityId: string) =>
+        request(`/api/communities/${communityId}`, { method: "DELETE" }),
+      delete: (communityId: string) =>
+        request(`/api/communities/${communityId}`, { method: "DELETE" }),
   },
 
   channels: {
-      get: (communityId: string) =>
-        request(`/api/community/${communityId}/channels`, { method: "GET" }),
-      getOne: (communityId: string, channelId: string) =>
-        request(`/api/community/${communityId}/channels/${channelId}`, { method: "GET" }),
-      create: (communityId: string, channelName: string, categoryId?: string) =>
-        request(`/api/community/${communityId}/channels`, { method: "POST", body: { channel_name: channelName, category_id: categoryId || null } }),
-      delete: (communityId: string, channelId: string) =>
-        request(`/api/community/${communityId}/channels/${channelId}`, { method: "DELETE" }),
+    getAll: (communityId: string) =>
+      request(`/api/communities/${communityId}/channels`),
+    get: (communityId: string, channelId: string) =>
+      request(`/api/communities/${communityId}/channels/${channelId}`),
+    create: (communityId: string, channelName: string, categoryId?: string) =>
+      request(`/api/communities/${communityId}/channels`, { method: "POST", body: { channel_name: channelName, category_id: categoryId || null } }),
+    delete: (communityId: string, channelId: string) =>
+      request(`/api/communities/${communityId}/channels/${channelId}`, { method: "DELETE" }),
+    sendMessage: (communityId: string, channelId: string, message: string, replyToId?: string) =>
+      request(`/api/communities/${communityId}/channels/${channelId}/messages`, { method: "POST", body: { message, reply_to_id: replyToId } }),
+    getMessages: (communityId: string, channelId: string, limit = 50, offset = 0) =>
+      request(`/api/communities/${communityId}/channels/${channelId}/messages?limit=${limit}&offset=${offset}`),
+    deleteMessage: (communityId: string, channelId: string, messageId: string) =>
+      request(`/api/communities/${communityId}/channels/${channelId}/messages/${messageId}`, { method: "DELETE" }),
+    editMessage: (communityId: string, channelId: string, messageId: string, message: string) =>
+      request(`/api/communities/${communityId}/channels/${channelId}/messages/${messageId}`, { method: "PATCH", body: { message } }),
   },
 
+  categories: {
+    getAll: (communityId: string) =>
+      request(`/api/communities/${communityId}/categories`),
+    create: (communityId: string, categoryName: string) =>
+      request(`/api/communities/${communityId}/categories`, { method: "POST", body: { category_name: categoryName } }),
+    delete: (communityId: string, categoryId: string) =>
+      request(`/api/communities/${communityId}/categories/${categoryId}`, { method: "DELETE" }),
+  },
+
+  members: {
+    getAll: (communityId: string) =>
+      request(`/api/communities/${communityId}/members`),
+    kick: (communityId: string, memberId: string, reason?: string) =>
+      request(`/api/communities/${communityId}/members/${memberId}`, { method: "DELETE", body: { reason: reason || "No Reason" } }),
+    toggleRole: (communityId: string, userId: string, roleId: string) =>
+      request(`/api/communities/${communityId}/members/${userId}/roles/${roleId}`, { method: "PATCH" }),
+  },
+
+  permissions: {
+     getAll: (communityId: string) =>
+      request(`/api/communities/${communityId}/permissions`),
+  },
+
+  roles: {
+    getAll: (communityId: string) =>
+      request(`/api/communities/${communityId}/roles`),
+    create: (communityId: string, name: string, color: string, permissions: string) =>
+      request(`/api/communities/${communityId}/roles`, { method: "POST", body: { name, color, permissions } }),
+    update: (communityId: string, roleId: string, name: string, color: string, permissions: string) =>
+      request(`/api/communities/${communityId}/roles/${roleId}`, { method: "PATCH", body: { name, color, permissions } }),
+    delete: (communityId: string, roleId: string) =>
+      request(`/api/communities/${communityId}/roles/${roleId}`, { method: "DELETE" }),
+  },
+
+  bans: {
+    getAll: (communityId: string) =>
+      request(`/api/communities/${communityId}/bans`),
+    ban: (communityId: string, userId: string, reason?: string) =>
+      request(`/api/communities/${communityId}/bans/${userId}`, { method: "POST", body: { reason: reason || "No Reason" } }),
+    unban: (communityId: string, userId: string) =>
+      request(`/api/communities/${communityId}/bans/${userId}`, { method: "DELETE" }),
+  },
+
+  logs: {
+    getAll: (communityId: string) =>
+      request(`/api/communities/${communityId}/logs`),
+  },
 };

@@ -11,7 +11,7 @@ export function useChannels() {
         if (!communityId) return;
         const handleChannels = async () => {
             try {
-                const { data } = await api.channels.get(communityId);
+                const { data } = await api.channels.getAll(communityId);
                 setChannels(data.channels);
             } catch (error) {
                 console.log("error failed to fetch channels: ", error);

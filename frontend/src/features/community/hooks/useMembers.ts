@@ -5,21 +5,23 @@ import { api } from "../../../api/client";
 
 export function useMembers() {
     const [members, setMembers] = useState<User[]>([]);
-    const onlineMembers = members.filter(m => m.isOnline);
-    const offlineMembers = members.filter(m => !m.isOnline);
+    const onlineMembers = members.filter(member => member.isOnline);
+    const offlineMembers = members.filter(member => !member.isOnline);
     const { communityId } = useParams();
 
     useEffect(() => {
         if (!communityId) return;
-        const fetchmembers = async () => {
+        
+        const fetchMembers = async () => {
             try {
-                const { data } = await api.members.get(communityId);
+                const { data } = await api.members.getAll(communityId);
                 setMembers(data.members || []);
             } catch (error) {
                 console.log("error fetching members: ", error);
             }
         };
-        fetchmembers();
+        
+        fetchMembers();
     }, [communityId]);
 
     useEffect(() => {
@@ -27,9 +29,10 @@ export function useMembers() {
         
         const handleMessage = (event: MessageEvent) => {
             const data = JSON.parse(event.data);
-            if (data.type === "userJoined") {
-                setMembers(prev => [
-                    ...prev,
+            
+            if (data.type === "memberJoined") {
+                setMembers(previousMembers => [
+                    ...previousMembers,
                     {
                         id: data.id,
                         username: data.username,
@@ -39,46 +42,74 @@ export function useMembers() {
                     }
                 ]);
             }
-            if (data.type === "userLeft") {
-                setMembers(prev => prev.filter(m => m.id !== data.memberId));
+            
+            if (data.type === "memberLeft") {
+                setMembers(previousMembers => 
+                    previousMembers.filter(member => member.id !== data.id)
+                );
             }
+            
             if (data.type === "memberRolesUpdated") {
-                setMembers(prev => prev.map(m => {
-                    if (m.id !== data.memberId) return m;
-                    return { ...m, roles: data.roles };
-                }));
+                setMembers(previousMembers => 
+                    previousMembers.map(member => {
+                        if (member.id !== data.id) return member;
+                        return { ...member, roles: data.roles };
+                    })
+                );
             }
+            
             if (data.type === "roleDeleted") {
-                setMembers(prev => prev.map(m => ({
-                    ...m,
-                    roles: m.roles?.filter(r => r.id !== data.id)
-                })));
+                setMembers(previousMembers => 
+                    previousMembers.map(member => ({
+                        ...member,
+                        roles: member.roles?.filter(role => role.id !== data.id)
+                    }))
+                );
             }
+            
             if (data.type === "roleUpdated") {
-                setMembers(prev => prev.map(
-                    m => ({
-                        ...m,
-                        roles: m.roles?.map(r => r.id === data.id
-                            ? { ...r, name: data.name, color: data.color, permissions: data.permissions } : r
-                    )
-                })));
+                setMembers(previousMembers => 
+                    previousMembers.map(member => ({
+                        ...member,
+                        roles: member.roles?.map(role => 
+                            role.id === data.id
+                                ? { 
+                                    ...role, 
+                                    name: data.name, 
+                                    color: data.color, 
+                                    permissions: data.permissions 
+                                  }
+                                : role
+                        )
+                    }))
+                );
             }
+            
             if (data.type === "memberOnline") {
-                setMembers(prev => prev.map(m =>
-                    m.id === data.memberId ? { ...m, isOnline: true } : m
-                ));
+                setMembers(previousMembers => 
+                    previousMembers.map(member =>
+                        member.id === data.id 
+                            ? { ...member, isOnline: true } 
+                            : member
+                    )
+                );
             }
+            
             if (data.type === "memberOffline") {
-                setMembers(prev => prev.map(m =>
-                    m.id === data.memberId ? { ...m, isOnline: false } : m
-                ));
+                setMembers(previousMembers => 
+                    previousMembers.map(member =>
+                        member.id === data.id 
+                            ? { ...member, isOnline: false } 
+                            : member
+                    )
+                );
             }
         };
 
-        const ws = window._ws?.ws;
-        if (ws) {
-            ws.addEventListener("message", handleMessage);
-            return () => ws.removeEventListener("message", handleMessage);
+        const webSocket = window._ws?.ws;
+        if (webSocket) {
+            webSocket.addEventListener("message", handleMessage);
+            return () => webSocket.removeEventListener("message", handleMessage);
         }
     }, [communityId]);
 

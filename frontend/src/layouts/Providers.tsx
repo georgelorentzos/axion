@@ -1,6 +1,5 @@
 import { UserProvider as CurrentUserProvider } from '../features/user/contexts/useCurrentUser';
-import { OnlineFriendsProvider } from '../features/home/contexts/useOnlineFriends';
-import { AllFriendsProvider } from '../features/home/contexts/useAllFriends';
+import { FriendsProvider } from '../features/home/contexts/useFriends';
 import { PendingProvider } from '../features/home/contexts/usePending';
 import { ConversationsProvider } from '../features/home/contexts/useConversations';
 import { CommunitiesProvider } from '../ui/sidebar/contexts/useCommunities';
@@ -17,8 +16,7 @@ import { ChannelsProvider } from '../features/community/contexts/useChannels';
 
 export const MainWithProviders = ({ children }: { children: React.ReactNode }) => (
   <CurrentUserProvider>
-    <OnlineFriendsProvider>
-      <AllFriendsProvider>
+    <FriendsProvider>
         <PendingProvider>
           <DirectMessagesProvider>
           <ConversationsProvider>
@@ -46,7 +44,6 @@ export const MainWithProviders = ({ children }: { children: React.ReactNode }) =
           </ConversationsProvider>
           </DirectMessagesProvider>
         </PendingProvider>
-      </AllFriendsProvider>
-    </OnlineFriendsProvider>
+    </FriendsProvider>
   </CurrentUserProvider>
 );

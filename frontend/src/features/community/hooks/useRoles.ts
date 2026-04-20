@@ -10,9 +10,9 @@ export function useRoles() {
     useEffect(() => {
         if (!communityId) return;
         
-        const handleFetchRoles = async () => {
+        const fetchRoles = async () => {
             try {
-                const { response, data } = await api.roles.get(communityId);
+                const { response, data } = await api.roles.getAll(communityId);
                 if (response.ok) {
                     setRoles(data.roles);
                 }
@@ -20,35 +20,55 @@ export function useRoles() {
                 console.log("failed to fetch roles: ", error);
             }
         };
-        handleFetchRoles();
+        
+        fetchRoles();
     }, [communityId]);
 
     useEffect(() => {
         if (!communityId) return;
 
-        const ws = window._ws?.ws;
-        if (!ws) return;
+        const webSocket = window._ws?.ws;
+        if (!webSocket) return;
 
         const handleMessage = (event: MessageEvent) => {
             const data = JSON.parse(event.data);
 
             if (data.type === "roleCreated") {
-                setRoles(prev => [...prev, { id: data.id, name: data.name, color: data.color, permissions: data.permissions }]);
+                setRoles(previousRoles => [
+                    ...previousRoles, 
+                    { 
+                        id: data.id, 
+                        name: data.name, 
+                        color: data.color, 
+                        permissions: data.permissions 
+                    }
+                ]);
             }
+
             if (data.type === "roleUpdated") {
-                setRoles(prev => prev.map(r => r.id === data.id
-                    ? { ...r, name: data.name, color: data.color, permissions: data.permissions }
-                    : r
-                ));
+                setRoles(previousRoles => 
+                    previousRoles.map(role => 
+                        role.id === data.id
+                            ? { 
+                                ...role, 
+                                name: data.name, 
+                                color: data.color, 
+                                permissions: data.permissions 
+                              }
+                            : role
+                    )
+                );
             }
 
             if (data.type === "roleDeleted") {
-                setRoles(prev => prev.filter(r => r.id !== data.id));
+                setRoles(previousRoles => 
+                    previousRoles.filter(role => role.id !== data.id)
+                );
             }
         };
 
-        ws.addEventListener("message", handleMessage);
-        return () => ws.removeEventListener("message", handleMessage);
+        webSocket.addEventListener("message", handleMessage);
+        return () => webSocket.removeEventListener("message", handleMessage);
     }, [communityId]);
 
     return { roles, setRoles };

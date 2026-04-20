@@ -1,4 +1,4 @@
-import CurrentUserCard from "../../../ui/CurrentUserCard";
+import CurrentUserCard from "../../../ui/card/CurrentUserCard";
 import { useLocation, useParams } from "react-router-dom";
 import React, { useState, useRef, useEffect } from "react";
 import CommunitySettingsModal from "./settings/Settings";
@@ -32,8 +32,8 @@ export default function ChannelList() {
   const { community, setCommunity } = useCommunity();
   const navigate = useNavigate();
   const { currentUser } = useCurrentUser();
-  const { categories, setCategories } = useCategories();
-  const { channels, setChannels } = useChannels();
+  const { categories } = useCategories();
+  const { channels } = useChannels();
 
   const isOwner = community?.ownerId === currentUser?.id;
   const isAdmin = currentUser?.permissions?.includes(PERMISSIONS.ADMINISTRATOR);
@@ -90,8 +90,9 @@ export default function ChannelList() {
   };
 
   const handleCommunityLeave = async () => {
+    if (!communityId) return;
     try {
-      const { response } = await api.communities.leave(community?.id!);
+      const { response } = await api.communities.leave(communityId);
       if (response.ok) {
         navigate("/");
         setCommunities(prev => prev?.filter(c => c.id !== community?.id) || null);
@@ -103,19 +104,13 @@ export default function ChannelList() {
 
   const handleCreateCategory = async (name: string) => {
     if (!communityId) return;
-    const { data } = await api.categories.create(communityId, name);
-    if (data.success) {
-      setCategories(prev => [...(prev || []), { id: data.id, name: data.name }]);
-    }
+    await api.categories.create(communityId, name);
     setIsCreateCategoryModalOpen(false);
   };
 
   const handleCreateChannel = async (name: string) => {
     if (!communityId) return;
-    const { data } = await api.channels.create(communityId, name);
-    if (data.success) {
-      setChannels(prev => [...(prev || []), { id: data.id, name: data.name, categoryId: data.categoryId }]);
-    }
+    await api.channels.create(communityId, name);
     setIsCreateChannelModalOpen(false);
   };
 

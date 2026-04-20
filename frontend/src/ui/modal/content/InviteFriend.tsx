@@ -1,14 +1,16 @@
 import { useState, useRef } from "react";
-import { useAllFriends } from "../../../features/home/contexts/useAllFriends";
+import { useFriends } from "../../../features/home/hooks/useFriends";
 import { useParams } from "react-router-dom";
-import UserCard from "../../../ui/UserCard";
+import UserCard from "../../card/UserCard";
 import Input from "../../../ui/Input";
 import Button from "../../../ui/Button";
 import SearchBar from "../../../ui/SearchBar";
 import { api } from "../../../api/client";
+import Icon from "../../Icon";
+import { icons } from "../../../constants/Icons";
 
 export default function InviteFriend() {
-    const { allFriends } = useAllFriends();
+    const { friends } = useFriends();
     const [copied, setCopied] = useState(false);
     const sentIdsRef = useRef<Set<string>>(new Set());
     const [sentIds, setSentIds] = useState<Set<string>>(new Set());
@@ -16,7 +18,7 @@ export default function InviteFriend() {
     const domainUrl =
         typeof window !== "undefined" ? window.location.origin : "";
     const [searchQuery, setSearchQuery] = useState("");
-    const filtered = allFriends.filter(friend =>
+    const filtered = friends.filter(friend =>
         friend.username.startsWith(searchQuery.toLowerCase())
     );
 
@@ -29,7 +31,7 @@ export default function InviteFriend() {
     const handleInvite = async (userId: string) => {
         if (!communityId || sentIdsRef.current.has(userId)) return;
         try {
-            await api.directMessages.send(userId, `${domainUrl}/join/${communityId}`);
+            await api.messages.send(userId, `${domainUrl}/join/${communityId}`);
             sentIdsRef.current.add(userId);
             setSentIds(new Set(sentIdsRef.current));
             setTimeout(() => {
@@ -47,7 +49,7 @@ export default function InviteFriend() {
                 <div className="font-bold text-[20px]">Invite Friends</div>
                 <div className="text-gray-500">Share this link with others.</div>
             </div>
-            {allFriends && allFriends.length > 0 && (
+            {friends && friends.length > 0 && (
                 <>
                     <SearchBar onSearch={(value: string) => setSearchQuery(value)} />
                     <div className="w-full max-h-[200px] h-auto border border-outline rounded-xl overflow-y-auto flex flex-col gap-2 p-2">
@@ -57,13 +59,15 @@ export default function InviteFriend() {
                         {filtered.map((friend) => (
                             <div key={friend.id} className="min-h-[50px] shrink-0">
                                 <UserCard user={friend}>
-                                    <div className="w-[80px]">
-                                        <Button
-                                            text={sentIds.has(friend.id) ? "Sent" : "Send"}
-                                            isGreen
-                                            onClick={() => handleInvite(friend.id)}
+                                    <button
+                                        onClick={() => handleInvite(friend.id)}
+                                        className={`text-gray-500 transition duration-200 ${sentIds.has(friend.id) ? "cursor-default" : "hover:text-gray-300 cursor-pointer"}`}
+                                    >
+                                        <Icon
+                                            svgPaths={sentIds.has(friend.id) ? icons.accept : icons.send}
+                                            className="w-5 h-5"
                                         />
-                                    </div>
+                                    </button>
                                 </UserCard>
                             </div>
                         ))}

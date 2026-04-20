@@ -9,7 +9,7 @@ export function useCommunities() {
     useEffect(() => {
         const handleCommunities = async () => {
             try {
-                const { data } = await api.communities.mine();
+                const { data } = await api.communities.getAll();
                 setCommunities(data.communities || []);
             } catch (error) {
                 console.error('Fetch all friends error:', error);
@@ -27,14 +27,14 @@ export function useCommunities() {
         image: string;
     }) => {
         setCommunities(prev =>
-            prev?.map(c =>
-                c.id === updatedCommunity.id
+            prev?.map(community =>
+                community.id === updatedCommunity.id
                     ? {
-                        ...c,
+                        ...community,
                         name: updatedCommunity.name,
                         image: updatedCommunity.image
                     }
-                    : c
+                    : community
             ) || null
         );
     };
@@ -43,15 +43,15 @@ export function useCommunities() {
         const handleMessage = async (event: MessageEvent) => {
             const data = JSON.parse(event.data);
             if (data.type === "communityDeleted") {
-                setCommunities(communities => communities?.filter(c => c.id !== data.id) || null);
+                setCommunities(communities => communities?.filter(community => community.id !== data.id) || null);
             }
             if (data.type === "communityUpdated") {
-                setCommunities(prev => prev?.map(c =>
-                    c.id === data.id ? { ...c, name: data.name, image: data.image } : c
+                setCommunities(prev => prev?.map(community =>
+                    community.id === data.id ? { ...community, name: data.name, image: data.image } : community
                 ) || null);
             }
             if (data.type === "memberKicked" || data.type === "memberBanned") {
-                setCommunities(prev => prev?.filter(c => c.id !== data.id) || null);
+                setCommunities(prev => prev?.filter(community => community.id !== data.id) || null);
             }
         }
         const ws = window._ws?.ws;

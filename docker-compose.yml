@@ -4,7 +4,7 @@ services:
     environment:
       POSTGRES_DB: axion_db
       POSTGRES_USER: axion_user
-      POSTGRES_PASSWORD: "Axion#2026Secure!"
+      POSTGRES_PASSWORD: "kX9#mP2$vL7@nQ4&wR8!jT5^"
     ports:
       - "5432:5432"
     volumes:
@@ -21,8 +21,6 @@ services:
       - ./backend/.env
     ports:
       - "8000:8000"
-    volumes:
-      - ./backend:/app
     depends_on:
       postgres:
         condition: service_healthy

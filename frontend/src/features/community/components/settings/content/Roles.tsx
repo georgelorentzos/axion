@@ -5,7 +5,7 @@ import PermissionItem from "../../../../../ui/permission/PermissionItem";
 import PermissionsSection from "../../../../../ui/permission/PermissionSection";
 import { PERMISSIONS } from "../../../../../constants/permissions";
 import { useParams } from "react-router-dom";
-import RoleCard from "../../../../../ui/RoleCard";
+import RoleCard from "../../../../../ui/card/RoleCard";
 import UnsavedChangesBar from "../../../../../ui/UnsavedChangesBar";
 import Modal from "../../../../../ui/modal/Modal";
 import Delete from "../../../../../ui/modal/content/Delete";
@@ -19,11 +19,7 @@ import ColorSwatch from "../../../../../ui/color-picker/ColorSwatch";
 import { colors } from "../../../../../constants/colors";
 import ColorPalette from "../../../../../ui/color-picker/ColorPalette";
 
-interface RolesContentProps {
-    onChildModalChange?: (isOpen: boolean) => void;
-}
-
-export default function RolesContent({ onChildModalChange }: RolesContentProps) {
+export default function RolesContent() {
     const [isCreateRole, setIsCreateRole] = useState(false);
     const [editingRole, setEditingRole] = useState<Role | null>(null);
     const [selectedPermissions, setSelectedPermissions] = useState<string[]>([]);
@@ -34,13 +30,9 @@ export default function RolesContent({ onChildModalChange }: RolesContentProps) 
     const { roles, setRoles } = useRoles();
     const [deletingRole, setDeletingRole] = useState<Role | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
-    const filteredRoles = roles.filter(role => role.name.startsWith(searchQuery.toLowerCase()))
+    const filteredRoles = roles?.filter(role => role?.name?.startsWith(searchQuery.toLowerCase())) || []
     const [selectedColor, setSelectedColor] = useState("F3F4F6");
     const [showPicker, setShowPicker] = useState(false);
-
-    useEffect(() => {
-        onChildModalChange?.(!!deletingRole);
-    }, [deletingRole]);
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -73,47 +65,79 @@ export default function RolesContent({ onChildModalChange }: RolesContentProps) 
         }
     };
 
-    const permissionString = selectedPermissions.join("|");
-
-    const handleSaveRole = async () => {
-        const trimmed = roleName.trim();
+    const validateRoleName = (name: string): boolean => {
+        const trimmed = name.trim();
         if (trimmed.length < 1) {
             setError("Role name must be at least 1 characters.");
-            return;
+            return false;
         }
         if (trimmed.length > 20) {
             setError("Role name can't be longer than 20 characters.");
+            return false;
+        }
+        return true;
+    };
+
+    const handleCreateRole = async () => {
+        const trimmed = roleName.trim();
+        if (!validateRoleName(roleName)) {
             return;
         }
-        setError('');
 
         if (!communityId) return;
-        try {
-            const { response, data } = editingRole
-                ? await api.roles.update(communityId, editingRole.id, trimmed, selectedColor, permissionString)
-                : await api.roles.create(communityId, trimmed, selectedColor, permissionString);
 
-            if (response.ok) {
-                const savedRole = { id: data.id, name: data.name, color: data.color, permissions: data.permissions };
-                if (editingRole) {
-                    setRoles(prev =>
-                        prev.map(r => (r.id === editingRole.id ? savedRole : r))
-                    );
-                    setEditingRole(savedRole);
-                } else {
-                    setRoles(prev => [...prev, savedRole]);
-                    setIsCreateRole(false);
-                    setEditingRole(null);
-                    setRoleName('');
-                    setSelectedPermissions([]);
-                }
+        try {
+            const permissionString = selectedPermissions.join("|");
+            const { data } = await api.roles.create(communityId, trimmed, selectedColor, permissionString);
+
+            if (data.success) {
+                setIsCreateRole(false);
+                setEditingRole(null);
+                setRoleName('');
+                setSelectedColor("F3F4F6");
+                setSelectedPermissions([]);
                 setHasUnsavedChanges(false);
+                setError('');
             } else {
-                setError(data.detail || "Failed to save role.");
+                setError(data.detail || "Failed to create role.");
             }
         } catch (err) {
-            console.log("failed to save role: ", err);
-            setError("Failed to save role.");
+            console.log("failed to create role: ", err);
+            setError("Failed to create role.");
+        }
+    };
+
+    const handleUpdateRole = async () => {
+        const trimmed = roleName.trim();
+        if (!validateRoleName(roleName)) {
+            return;
+        }
+
+        if (!communityId || !editingRole) return;
+
+        try {
+            const permissionString = selectedPermissions.join("|");
+            const { data } = await api.roles.update(communityId, editingRole.id, trimmed, selectedColor, permissionString);
+
+            if (data.success) {
+                const updatedRole = { id: data.id, name: data.name, color: data.color, permissions: data.permissions };
+                setEditingRole(updatedRole);
+                setHasUnsavedChanges(false);
+                setError('');
+            } else {
+                setError(data.detail || "Failed to update role.");
+            }
+        } catch (err) {
+            console.log("failed to update role: ", err);
+            setError("Failed to update role.");
+        }
+    };
+
+    const handleSaveRole = async () => {
+        if (editingRole) {
+            await handleUpdateRole();
+        } else {
+            await handleCreateRole();
         }
     };
 
@@ -126,6 +150,7 @@ export default function RolesContent({ onChildModalChange }: RolesContentProps) 
             );
         } else {
             setRoleName('');
+            setSelectedColor("F3F4F6");
             setSelectedPermissions([]);
         }
         setHasUnsavedChanges(false);
@@ -226,7 +251,7 @@ export default function RolesContent({ onChildModalChange }: RolesContentProps) 
                             {colors.map((row, i) => (
                                 <div key={i} className="flex gap-2">
                                     {row.map(color => (
-                                        <div className="w-[20px] h-[20px] ">
+                                        <div key={color} className="w-[20px] h-[20px] ">
                                             <ColorSwatch key={color} color={color} onClick={() => handleColorChange(color)} isSelected={selectedColor === color} />
                                         </div>
                                     ))}
