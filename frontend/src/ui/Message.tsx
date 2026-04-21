@@ -26,6 +26,8 @@ export default function Message({
   isFirstInGroup,
   isLastInGroup,
 }: MessageProps) {
+  if (!message) return null;
+
   const joinPattern = /\/join\/[\w-]+/;
   const isInviteLink = joinPattern.test(message.message);
   const isLink =
@@ -176,14 +178,14 @@ export default function Message({
     }
 
     const allMembers = [...onlineMembers, ...offlineMembers];
-    const sender = allMembers.find(m => m.id === message.senderId);
+    const sender = allMembers.find(member => member.id === message.senderId);
     if (!sender?.roles?.length) {
       setSenderColor("");
       return;
     }
 
     for (const role of roles) {
-      if (sender.roles.some(r => r.id === role.id) && role.color) {
+      if (sender.roles.some(role => role.id === role.id) && role.color) {
         setSenderColor(role.color);
         return;
       }
@@ -191,14 +193,23 @@ export default function Message({
     setSenderColor("");
   }, [communityId, onlineMembers, offlineMembers, roles, message.senderId])
 
+  const scrollToReply = () => {
+    const target = document.getElementById(`message-${message.replyToId}`);
+    if (target) {
+      target.scrollIntoView({ behavior: "smooth", block: "center" })
+      target.classList.add("bg-basalt");
+      setTimeout(() => target.classList.remove("bg-basalt"), 1000);
+    }
+  };
+
   return (
-    <div onContextMenu={handleContextMenu} className={`${isReplyMessage && "bg-basalt"} rounded-tr rounded-br ${isLastInGroup && "mb-4"} px-4 flex flex-col items-start flex-row ${isEditingMessage && "bg-basalt"} hover:bg-basalt group transition duration-200`}>
+    <div id={`message-${message.id}`} onContextMenu={handleContextMenu} className={`${isReplyMessage && "bg-basalt"} rounded-tr rounded-br ${isLastInGroup && "mb-4"} px-4 flex flex-col items-start flex-row ${isEditingMessage && "bg-basalt"} hover:bg-basalt group transition duration-200`}>
     {message.replyToId && isFirstInGroup && (
-        <div className="flex items-center gap-1 ml-[52px] text-xs mt-1">
+        <div onClick={scrollToReply} className="flex items-center gap-1 ml-[52px] text-xs mt-1 cursor-pointer">
           <Icon svgPaths={icons.reply} className="size-3 text-gray-500" />
-          <UserAvatar showStatus={false} src={message.replyToImage} height={16} width={16} />
-          <span className="font-semibold text-emerald">{message.replyToUsername}</span>
-          <span className="truncate max-w-[300px] text-gray-100">{message.replyToMessage}</span>
+          <UserAvatar src={message.replyToImage ?? null} size={20} showStatus={false} />
+          <span className="font-semibold text-emerald">{message.replyToUsername ?? null}</span>
+          <span className="truncate max-w-[300px] text-gray-100">{message.replyToMessage ?? null}</span>
         </div>
       )}
       <div
@@ -206,7 +217,7 @@ export default function Message({
       >
         {isFirstInGroup ? (
           <div className="flex-shrink-0 mt-1">
-            <UserAvatar src={message.senderImage} showStatus={false} />
+            <UserAvatar src={message.senderImage} size={40} showStatus={false} />
           </div>
         ) : (
           <div className="min-w-[40px] max-w-[40px] flex justify-center items-center h-[22px] mt-[2px]">
@@ -257,7 +268,7 @@ export default function Message({
                   </div>
                 </div>
               ) : (
-                <CommunityCard joinBtn community={communityData} />
+                <CommunityCard community={communityData} />
               )}
             </>
           ) : isLink ? (

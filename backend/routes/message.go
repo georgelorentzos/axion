@@ -154,6 +154,7 @@ func MessageRoutes(mux *http.ServeMux) {
 			"type":      "unreadDirectMessages",
 			"id":        currentUser.ID,
 			"username":  currentUser.Username,
+			"bio":       currentUser.Bio,
 			"image":     currentUser.Image,
 			"isOnline":  currentUser.IsOnline,
 			"createdAt": currentUser.CreatedAt,

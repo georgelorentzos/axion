@@ -1,5 +1,6 @@
 import { type Conversation } from './types/conversation';
 import { useLocation } from 'react-router-dom';
+import UserAvatar from '../avatar/UserAvatar';
 
 type ConversationButtonProps = {
   onClick?: () => void,
@@ -29,15 +30,10 @@ export default function ConversationButton({
         onClick={onClick}
       >
         <div className="relative h-[50px] w-[50px] rounded-full overflow-hidden">
-          <img
-            loading="eager"
-            decoding="async"
-            fetchPriority="high"
-            draggable="false"
+          <UserAvatar 
             src={conversation.image}
-            className={`
-            h-full w-full object-cover
-          `}
+            size={50}
+            showStatus={false}
           />
         </div>
         <div className="absolute bottom-[-3px] right-[-3px] w-5 h-5 rounded-full bg-crimson flex items-center justify-center text-[12px] border-2 border-outline">{conversation.unreadCount}</div>

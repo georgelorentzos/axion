@@ -87,14 +87,18 @@ export default function Chat() {
         };
     }, [hasMore, isLoading, loadMoreMessages]);
 
+    if (!user) return null;
+
     return (
         <div ref={conversationRef} className="flex-1 min-w-0 h-screen border-r border-outline flex flex-col overflow-hidden">
             <div className="h-[60px] border-b border-outline flex items-center px-4 gap-2 flex-shrink-0">
                 <div className="flex justify-between items-center w-full">
                     <div className="flex items-center gap-2">
                         <UserAvatar
-                            src={user?.image}
-                            online={user?.isOnline}
+                            src={user.image}
+                            isOnline={user.isOnline}
+                            size={40}
+                            showStatus
                         />
                         <div className="flex flex-col leading-none gap-1">
                             <div className="text-gray-100">{user?.username}</div>

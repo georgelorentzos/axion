@@ -1,5 +1,4 @@
 import UserAvatar from "../avatar/UserAvatar";
-import React from "react";
 import { useLocation } from "react-router-dom";
 import { type User } from "../../features/user/types/user";
 
@@ -26,6 +25,7 @@ export default function UserCard({
   joinedAtText,
   children,
 }: UserCardProps) {
+  if (!user) return null;
   const location = useLocation();
   const isSelected = location.pathname === `/chat/${user?.id}`;
   const isClickable = !!onClick;
@@ -42,7 +42,12 @@ export default function UserCard({
       }`}
     >
       <div className="flex items-center gap-2">
-        <UserAvatar src={user?.image} online={user?.isOnline} showStatus={showStatus} />
+        <UserAvatar 
+            src={user.image}
+            isOnline={user.isOnline}
+            size={40}
+            showStatus
+        />
         <div className="flex flex-col leading-none gap-1">
           <div className="text-gray-100" style={usernameColor ? { color: `#${usernameColor}` } : undefined}>{user?.username}</div>
           {showLatestMessage ? (

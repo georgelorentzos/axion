@@ -21,7 +21,7 @@ export default function TextArea({ onChange, onKeyDown, placeholder, defaultValu
 
     useEffect(() => {
         if (clearSignal && editableRef.current) {
-            editableRef.current.innerHTML = '';
+            editableRef.current.textContent = defaultValue || "";
         }
     }, [clearSignal]);
 

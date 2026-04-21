@@ -10,7 +10,11 @@ export default function BanCard({ ban, children }: BanCardProps) {
   return (
     <div className="transition duration-300 py-2.5 pl-2 pr-4 flex justify-between items-center w-full rounded-lg hover:bg-basalt">
       <div className="flex items-center gap-2">
-        <UserAvatar src={ban.image} showStatus={false} />
+        <UserAvatar 
+          src={ban.image}
+          size={40}
+          showStatus={false} 
+        />
         <div className="flex flex-col leading-none gap-1">
           <div className="text-gray-100">{ban.username}</div>
           {ban.reason && (

@@ -34,7 +34,7 @@ type ChannelMessage struct {
 	IsEdited        bool      `json:"isEdited"`
 	CreatedAt       time.Time `json:"createdAt"`
 	SenderUsername  string    `json:"senderUsername"`
-	SenderImage     string    `json:"senderImage"`
+	SenderImage     *string   `json:"senderImage"`
 	ReplyToMessage  *string   `json:"replyToMessage"`
 	ReplyToUsername *string   `json:"replyToUsername"`
 	ReplyToImage    *string   `json:"replyToImage"`

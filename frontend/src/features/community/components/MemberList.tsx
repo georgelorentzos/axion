@@ -1,6 +1,6 @@
 import { useMembers } from "../contexts/useMembers";
 import UserCard from "../../../ui/card/UserCard";
-import MemberPreview from "./memberpreview/MemberPreview";
+import MemberPreview from "../../../ui/memberpreview/MemberPreview";
 import React, { useState, useEffect, useRef } from "react";
 import ActionMenu from "../../../ui/action-menu/ActionMenu";
 import ActionMenuButton from "../../../ui/action-menu/ActionMenuButton";

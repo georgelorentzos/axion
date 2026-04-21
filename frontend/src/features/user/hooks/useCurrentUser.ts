@@ -1,14 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
-import { type User } from '../types/user';
+import { type CurrentUser } from '../types/user';
 import { api } from '../../../api/client';
 import { useParams } from 'react-router-dom';
 
-interface UseCurrentUserReturn {
-    currentUser: User | null;
-}
-
-export function useCurrentUser(): UseCurrentUserReturn {
-    const [currentUser, setCurrentUser] = useState<User | null>(null);
+export function useCurrentUser() {
+    const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
     const { communityId } = useParams();
     const fetchedPermissionsFor = useRef<string | null>(null);
 
@@ -20,8 +16,10 @@ export function useCurrentUser(): UseCurrentUserReturn {
                     setCurrentUser({
                         id: data.id,
                         username: data.username,
+                        email: data.email,
+                        bio: data.bio,
                         image: data.image,
-                        isOnline: data.isOnline,
+                        isOnline: true,
                         createdAt: data.createdAt,
                     });
                 }
@@ -75,5 +73,5 @@ export function useCurrentUser(): UseCurrentUserReturn {
         }
     }, [currentUser, communityId]);
 
-    return { currentUser };
+    return { currentUser, setCurrentUser };
 }

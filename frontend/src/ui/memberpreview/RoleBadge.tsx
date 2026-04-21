@@ -1,13 +1,13 @@
 import { useParams } from "react-router-dom";
-import { type Role } from "../../types/role";
-import { type User } from "../../../user/types/user";
-import { useMembers } from "../../contexts/useMembers";
-import { api } from "../../../../api/client";
-import { useCurrentUser } from "../../../user/contexts/useCurrentUser";
-import { PERMISSIONS } from "../../../../constants/permissions";
-import { useCommunity } from "../../hooks/useCommunity";
-import Icon from "../../../../ui/Icon";
-import { icons } from "../../../../constants/Icons";
+import { type Role } from "../../features/community/types/role";
+import { type User } from "../../features/user/types/user";
+import { useMembers } from "../../features/community/contexts/useMembers";
+import { api } from "../../api/client";
+import { useCurrentUser } from "../../features/user/contexts/useCurrentUser";
+import { PERMISSIONS } from "../../constants/permissions";
+import { useCommunity } from "../../features/community/contexts/useCommunity";
+import Icon from "../Icon";
+import { icons } from "../../constants/Icons";
 
 type RoleBadgeProps = {
     member: User;

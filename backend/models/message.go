@@ -13,7 +13,7 @@ type DirectMessage struct {
 	CreatedAt         time.Time `json:"createdAt"`
 	ReplyToID         *string   `json:"replyToId"`
 	SenderUsername    string    `json:"senderUsername"`
-	SenderImage       string    `json:"senderImage"`
+	SenderImage       *string   `json:"senderImage"`
 	ReplyToUsername   *string   `json:"replyToUsername"`
 	ReplyToImage      *string   `json:"replyToImage"`
 	ReplyToMessage    *string   `json:"replyToMessage"`

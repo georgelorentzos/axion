@@ -133,7 +133,7 @@ func FriendRoutes(mux *http.ServeMux) {
 		currentUserID := r.Header.Get("X-User-ID")
 
 		rows, err := database.DB.Query(`
-			SELECT u.id, u.username, u.image, u.is_online, u.created_at
+			SELECT u.id, u.username, u.bio, u.image, u.is_online, u.created_at
 			FROM friends f
 			JOIN users u ON (
 				(f.requester_id = $1 AND f.addressee_id = u.id) OR
@@ -154,10 +154,11 @@ func FriendRoutes(mux *http.ServeMux) {
 		var friends []map[string]any
 		for rows.Next() {
 			var user models.User
-			rows.Scan(&user.ID, &user.Username, &user.Image, &user.IsOnline, &user.CreatedAt)
+			rows.Scan(&user.ID, &user.Username, &user.Bio, &user.Image, &user.IsOnline, &user.CreatedAt)
 			friends = append(friends, map[string]any{
 				"id":        user.ID,
 				"username":  user.Username,
+				"bio":       user.Bio,
 				"image":     user.Image,
 				"isOnline":  user.IsOnline,
 				"createdAt": user.CreatedAt.Year(),

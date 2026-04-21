@@ -51,6 +51,7 @@ func PendingRoutes(mux *http.ServeMux) {
 			"type":      "allyRequestAccepted",
 			"id":        currentUser.ID,
 			"username":  currentUser.Username,
+			"bio":       currentUser.Bio,
 			"image":     currentUser.Image,
 			"isOnline":  currentUser.IsOnline,
 			"createdAt": currentUser.CreatedAt,
@@ -60,6 +61,7 @@ func PendingRoutes(mux *http.ServeMux) {
 			"type":      "allyRequestAccepted",
 			"id":        user.ID,
 			"username":  user.Username,
+			"bio":       user.Bio,
 			"image":     user.Image,
 			"isOnline":  user.IsOnline,
 			"createdAt": user.CreatedAt,
@@ -103,7 +105,7 @@ func PendingRoutes(mux *http.ServeMux) {
 		currentUserID := r.Header.Get("X-User-ID")
 
 		rows, err := database.DB.Query(`
-			SELECT u.id, u.username, u.image, u.is_online, u.created_at
+			SELECT u.id, u.username, u.bio, u.image, u.is_online, u.created_at
 			FROM friends f
 			JOIN users u ON u.id = f.requester_id
 			WHERE f.addressee_id = $1 AND f.status = $2;
@@ -118,10 +120,11 @@ func PendingRoutes(mux *http.ServeMux) {
 		var users []map[string]any
 		for rows.Next() {
 			var user models.User
-			rows.Scan(&user.ID, &user.Username, &user.Image, &user.IsOnline, &user.CreatedAt)
+			rows.Scan(&user.ID, &user.Username, &user.Bio, &user.Image, &user.IsOnline, &user.CreatedAt)
 			users = append(users, map[string]any{
 				"id":        user.ID,
 				"username":  user.Username,
+				"bio":       user.Bio,
 				"image":     user.Image,
 				"isOnline":  user.IsOnline,
 				"createdAt": user.CreatedAt.Year(),

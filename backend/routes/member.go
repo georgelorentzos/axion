@@ -237,6 +237,7 @@ func MemberRoutes(mux *http.ServeMux) {
 			SELECT 
 				u.id,
 				u.username,
+				u.bio,
 				u.image,
 				u.is_online,
 				u.created_at,
@@ -268,6 +269,7 @@ func MemberRoutes(mux *http.ServeMux) {
 			err := rows.Scan(
 				&member.ID,
 				&member.Username,
+				&member.Bio,
 				&member.Image,
 				&member.IsOnline,
 				&member.CreatedAt,
@@ -284,6 +286,7 @@ func MemberRoutes(mux *http.ServeMux) {
 				memberMap[member.ID] = map[string]any{
 					"id":        member.ID,
 					"username":  member.Username,
+					"bio":       member.Bio,
 					"image":     member.Image,
 					"isOnline":  member.IsOnline,
 					"createdAt": member.CreatedAt,

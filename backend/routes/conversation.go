@@ -96,7 +96,7 @@ func ConversationRoutes(mux *http.ServeMux) {
 
 		rows, err := database.DB.Query(`
 			SELECT 
-				u.id, u.username, u.image, u.is_online, u.created_at,
+				u.id, u.username, u.bio, u.image, u.is_online, u.created_at,
 				c.message
 			FROM conversations c
 			JOIN users u ON (
@@ -123,7 +123,7 @@ func ConversationRoutes(mux *http.ServeMux) {
 		for rows.Next() {
 			var user models.User
 			var latestMessage string
-			rows.Scan(&user.ID, &user.Username, &user.Image, &user.IsOnline, &user.CreatedAt, &latestMessage)
+			rows.Scan(&user.ID, &user.Username, &user.Bio, &user.Image, &user.IsOnline, &user.CreatedAt, &latestMessage)
 
 			if seen[user.ID] {
 				continue
@@ -133,6 +133,7 @@ func ConversationRoutes(mux *http.ServeMux) {
 			conversations = append(conversations, map[string]any{
 				"id":            user.ID,
 				"username":      user.Username,
+				"bio":           user.Bio,
 				"image":         user.Image,
 				"isOnline":      user.IsOnline,
 				"createdAt":     user.CreatedAt.Year(),

@@ -14,12 +14,13 @@ export function useFriends() {
         if (!response.ok) throw new Error('Fetch all friends failed');
         
         setFriends(
-          (data.friends || []).map((friendData: any) => ({
-            id: friendData.id,
-            username: friendData.username,
-            image: friendData.image,
-            isOnline: friendData.isOnline,
-            createdAt: friendData.createdAt,
+          (data.friends || []).map((data: any) => ({
+            id: data.id,
+            username: data.username,
+            bio: data.bio,
+            image: data.image,
+            isOnline: data.isOnline,
+            createdAt: data.createdAt,
           }))
         );
       } catch (error) {
@@ -51,6 +52,7 @@ export function useFriends() {
                 return {
                   ...friend,
                   username: data.username,
+                  bio: data.bio,
                   image: data.image,
                   isOnline: data.isOnline,
                   createdAt: data.createdAt
@@ -70,6 +72,7 @@ export function useFriends() {
               {
                 id: data.id,
                 username: data.username,
+                bio: data.bio,
                 image: data.image,
                 isOnline: data.isOnline,
                 createdAt: data.createdAt

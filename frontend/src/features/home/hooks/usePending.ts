@@ -44,6 +44,7 @@ export function usePending() {
               {
                 id: data.id,
                 username: data.username,
+                bio: data.bio,
                 image: data.image,
                 isOnline: data.isOnline,
                 createdAt: data.createdAt

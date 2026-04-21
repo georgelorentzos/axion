@@ -15,7 +15,7 @@ func CreateLog(communityID string, userID string, title string, note *string) er
 		logID, communityID, userID, title, note,
 	)
 
-	var userImage string
+	var userImage *string
 	err = database.DB.QueryRow(
 		"SELECT image FROM users WHERE id = $1", userID,
 	).Scan(&userImage)

@@ -5,15 +5,14 @@ import { useState } from 'react';
 import CommunityAvatar from '../avatar/CommunityAvatar';
 import { icons } from '../../constants/Icons';
 import Icon from '../Icon';
+import { type Community } from '../../features/community/types/community';
 
 type CommunityButtonProps = {
     onClick?: () => void;
     isHome?: boolean;
     isCreate?: boolean;
     isCommunity?: boolean;
-    communityId?: string;
-    communityImage?: string;
-    communityName?: string;
+    community?: Community;
 }
 
 export default function CommunityButton({
@@ -21,13 +20,10 @@ export default function CommunityButton({
     isHome,
     isCreate,
     isCommunity,
-    communityId,
-    communityImage,
-    communityName
+    community
 }: CommunityButtonProps) {
     const location = useLocation();
     const [createModalIsOpen, setCreateModalIsOpen] = useState(false);
-    const apiUrl = window.GLOBAL_ENV.API_ENDPOINT;
 
     const handleCreateCommunityModal = () => {
         setCreateModalIsOpen(prev => !prev);
@@ -75,7 +71,8 @@ export default function CommunityButton({
     }
 
     if (isCommunity) {
-        const isSelected = location.pathname.startsWith(`/community/${communityId}`);
+        if (!community) return null;
+        const isSelected = location.pathname.startsWith(`/community/${community?.id}`);
 
         return (
             <div className='relative flex items-center group'>
@@ -94,11 +91,8 @@ export default function CommunityButton({
                     }`}
                     onClick={onClick}
                 >
-                  {communityImage ? (
-                    <CommunityAvatar src={`${apiUrl}${communityImage}`} />
-                  ) : (
-                    <CommunityAvatar name={communityName?.charAt(0).toUpperCase()} />
-                  )}
+
+                <CommunityAvatar community={community} />
                 </button>
             </div>
         );

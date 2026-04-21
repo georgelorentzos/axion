@@ -156,7 +156,7 @@ func (m *ConnectionManager) notifyFriends(userID string, eventType string) {
 
 func (m *ConnectionManager) sendOnlineFriendsToUser(conn *websocket.Conn, userID string) {
 	rows, err := database.DB.Query(`
-		SELECT u.id, u.username, u.profile_image, u.created_at
+		SELECT u.id, u.username, u.image, u.created_at
 		FROM friends f
 		JOIN users u ON (
 			(f.requester_id = $1 AND f.addressee_id = u.id) OR

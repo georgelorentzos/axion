@@ -87,9 +87,7 @@ export default function CommunityList() {
                     }} 
                     key={community.id}
                     isCommunity
-                    communityId={community.id}
-                    communityImage={community.image}
-                    communityName={community.name}
+                    community={community}
                 />
             ))}
   

@@ -1,11 +1,11 @@
 import { useState } from "react";
-import SearchBar from "../../../../ui/SearchBar";
-import { useRoles } from "../../contexts/useRoles";
-import RoleCard from "../../../../ui/card/RoleCard";
-import { api } from "../../../../api/client";
+import SearchBar from "../SearchBar";
+import { useRoles } from "../../features/community/contexts/useRoles";
+import RoleCard from "../card/RoleCard";
+import { api } from "../../api/client";
 import { useParams } from "react-router-dom";
-import { type User } from "../../../user/types/user";
-import { type Role } from "../../types/role";
+import { type User } from "../../features/user/types/user";
+import { type Role } from "../../features/community/types/role";
 
 type AddRoleProps = {
     member: User;

@@ -1,12 +1,20 @@
+import { type Community } from "../../features/community/types/community";
+
 type CommunityAvatarProps = {
-  src?: string;
-  name?: string;
-  isCommunityCard?: boolean;
+  community: Community;
 };
 
-export default function CommunityAvatar({ src, name, isCommunityCard }: CommunityAvatarProps) {
+export default function CommunityAvatar({ community }: CommunityAvatarProps) {
+  const apiUrl = window.GLOBAL_ENV.API_ENDPOINT;
 
-  if (src) {
+  const getImageUrl = (path: string) => {
+    if (path.startsWith("blob:") || path.startsWith("data:") || path.startsWith("http")) {
+      return path;
+    }
+    return apiUrl + path;
+  };
+
+  if (community.image) {
     return (
       <div className="relative h-[50px] w-[50px] rounded-2xl overflow-hidden">
         <img
@@ -14,17 +22,17 @@ export default function CommunityAvatar({ src, name, isCommunityCard }: Communit
           decoding="async"
           fetchPriority="high"
           draggable="false"
-          src={src}
-          alt={name}
-          className={`h-full w-full object-cover`}
+          src={getImageUrl(community.image)}
+          alt={community.name}
+          className="h-full w-full object-cover"
         />
       </div>
     );
   }
 
   return (
-    <div className={`${isCommunityCard ? "bg-basalt border border-outline" : ""} h-[50px] w-[50px] rounded-2xl flex items-center justify-center text-lg font-semibold`}>
-      {name?.charAt(0).toUpperCase()}
+    <div className="bg-basalt border border-outline h-[50px] w-[50px] rounded-2xl flex items-center justify-center text-lg font-semibold">
+      {community.name?.charAt(0).toUpperCase()}
     </div>
   );
 }

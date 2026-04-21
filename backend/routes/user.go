@@ -7,9 +7,66 @@ import (
 	"axion/models"
 	"encoding/json"
 	"net/http"
+	"path/filepath"
 )
 
 func UserRoutes(mux *http.ServeMux) {
+	mux.HandleFunc("PATCH /me", middleware.Auth(func(w http.ResponseWriter, r *http.Request) {
+		currentUser, err := handlers.GetUser(r.Header.Get("X-User-ID"))
+
+		if err != nil {
+			handlers.WriteErrorResponse(w, http.StatusNotFound, "User not found.")
+			return
+		}
+
+		r.ParseMultipartForm(10 << 20)
+
+		username, ok := handlers.ValidateName(w, r.FormValue("username"), "Community", 32)
+		if !ok {
+			return
+		}
+
+		email, ok := handlers.ValidateEmail(w, r.FormValue("email"), "Community")
+		if !ok {
+			return
+		}
+
+		bio := r.FormValue("bio")
+
+		var imagePath *string
+		file, header, err := r.FormFile("image")
+		if err == nil {
+			defer file.Close()
+			path, err := handlers.SaveFile(file, filepath.Ext(header.Filename))
+			if err != nil {
+				handlers.WriteErrorResponse(w, http.StatusInternalServerError, "Failed to save image.")
+				return
+			}
+			imagePath = &path
+		}
+
+		if handlers.CheckFieldTaken(w, "username", username, currentUser.ID) {
+			return
+		}
+		if handlers.CheckFieldTaken(w, "email", email, currentUser.ID) {
+			return
+		}
+
+		_, err = database.DB.Exec(
+			"UPDATE users SET username = $1, email = $2, bio = $3, image = $4 WHERE id = $5",
+			username, email, bio, imagePath, currentUser.ID,
+		)
+
+		if err != nil {
+			handlers.WriteErrorResponse(w, http.StatusInternalServerError, "Failed to update user.")
+			return
+		}
+
+		json.NewEncoder(w).Encode(map[string]any{
+			"success": true,
+		})
+	}))
+
 	mux.HandleFunc("GET /me", middleware.Auth(func(w http.ResponseWriter, r *http.Request) {
 		currentUser, err := handlers.GetUser(r.Header.Get("X-User-ID"))
 
@@ -19,11 +76,13 @@ func UserRoutes(mux *http.ServeMux) {
 		}
 
 		json.NewEncoder(w).Encode(map[string]any{
-			"success":  true,
-			"id":       currentUser.ID,
-			"username": currentUser.Username,
-			"image":    currentUser.Image,
-			"email":    currentUser.Email,
+			"success":   true,
+			"id":        currentUser.ID,
+			"username":  currentUser.Username,
+			"email":     currentUser.Email,
+			"bio":       currentUser.Bio,
+			"image":     currentUser.Image,
+			"createdAt": currentUser.CreatedAt,
 		})
 	}))
 
@@ -90,6 +149,7 @@ func UserRoutes(mux *http.ServeMux) {
 			"success":   true,
 			"id":        user.ID,
 			"username":  user.Username,
+			"bio":       user.Bio,
 			"image":     user.Image,
 			"isOnline":  user.IsOnline,
 			"createdAt": user.CreatedAt,

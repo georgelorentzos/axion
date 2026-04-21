@@ -40,3 +40,31 @@ func ValidateName(w http.ResponseWriter, name string, label string, max int) (st
 	}
 	return name, true
 }
+
+func ValidateEmail(w http.ResponseWriter, email string, label string) (string, bool) {
+	email = strings.TrimSpace(email)
+	if len(email) < 1 {
+		WriteErrorResponse(w, http.StatusBadRequest, label+" email is required.")
+		return "", false
+	}
+
+	atIndex := strings.Index(email, "@")
+	if atIndex < 1 {
+		WriteErrorResponse(w, http.StatusBadRequest, label+" email must contain an '@' symbol.")
+		return "", false
+	}
+
+	domain := email[atIndex+1:]
+	dotIndex := strings.LastIndex(domain, ".")
+	if dotIndex < 1 || dotIndex == len(domain)-1 {
+		WriteErrorResponse(w, http.StatusBadRequest, label+" email must contain a valid domain.")
+		return "", false
+	}
+
+	if len(email) > 254 {
+		WriteErrorResponse(w, http.StatusBadRequest, label+" email can't be longer than 254 characters.")
+		return "", false
+	}
+
+	return email, true
+}

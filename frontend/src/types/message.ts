@@ -9,7 +9,7 @@ export type Message = {
   channelId?: string;
   recipientId?: string;
   replyToId?: string;
-  replyToUsername?: string;
-  replyToImage?: string;
-  replyToMessage?: string;
+  replyToUsername?: string | null;
+  replyToImage?: string | null;
+  replyToMessage?: string | null;
 };
