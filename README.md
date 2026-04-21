@@ -63,3 +63,11 @@
 | Styling | Tailwind CSS — utility-first responsive design |
 | Runtime | Bun — fast JavaScript runtime and package manager |
 | Containerization | Docker & Docker Compose — reproducible multi-service deployment |
+
+---
+
+## Migration & Performance
+
+The Axion backend was originally written in Python and has been fully rewritten in Go. During this migration, the entire codebase was refactored from the ground up — resulting in a cleaner architecture, better separation of concerns, and a fully scalable foundation. This eliminated the overhead of a heavy web framework, reduced memory consumption, and significantly improved request throughput and WebSocket concurrency — Go's lightweight goroutine model handles thousands of concurrent connections far more efficiently than a threaded Python server.
+
+The application is production-ready and fully containerized with Docker, making it straightforward to deploy and scale horizontally.
