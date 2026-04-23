@@ -71,14 +71,17 @@ export default function AccountContent() {
 
     const handleSave = async () => {
         try {
+            if (imageRemoved) {
+                await api.users.removeImage();
+            }
+
             const formData = new FormData();
             formData.append("username", username);
             formData.append("email", email);
             formData.append("bio", bio);
+            
             if (imageFile) {
                 formData.append("image", imageFile);
-            } else if (imageRemoved) {
-                formData.append("image", "");
             }
 
             const { data } = await api.users.update(formData);

@@ -31,8 +31,8 @@ export function useMembers() {
             const data = JSON.parse(event.data);
             
             if (data.type === "memberJoined") {
-                setMembers(previousMembers => [
-                    ...previousMembers,
+                setMembers(prevMembers => [
+                    ...prevMembers,
                     {
                         id: data.id,
                         username: data.username,
@@ -45,14 +45,28 @@ export function useMembers() {
             }
             
             if (data.type === "memberLeft") {
-                setMembers(previousMembers => 
-                    previousMembers.filter(member => member.id !== data.id)
+                setMembers(prevMembers => 
+                    prevMembers.filter(member => member.id !== data.id)
+                );
+            }
+
+            if (data.type === "userProfileUpdated") {
+                setMembers(prevMembers =>
+                    prevMembers.map(member =>
+                        member.id === data.id
+                        ? {
+                            ...member,
+                            username: data.username,
+                            bio: data.bio, 
+                            image: data.image,
+                        } : member
+                    )
                 );
             }
             
             if (data.type === "memberRolesUpdated") {
-                setMembers(previousMembers => 
-                    previousMembers.map(member => {
+                setMembers(prevMembers => 
+                    prevMembers.map(member => {
                         if (member.id !== data.id) return member;
                         return { ...member, roles: data.roles };
                     })
@@ -60,8 +74,8 @@ export function useMembers() {
             }
             
             if (data.type === "roleDeleted") {
-                setMembers(previousMembers => 
-                    previousMembers.map(member => ({
+                setMembers(prevMembers => 
+                    prevMembers.map(member => ({
                         ...member,
                         roles: member.roles?.filter(role => role.id !== data.id)
                     }))
@@ -69,26 +83,26 @@ export function useMembers() {
             }
             
             if (data.type === "roleUpdated") {
-                setMembers(previousMembers => 
-                    previousMembers.map(member => ({
+                setMembers(prevMembers => 
+                    prevMembers.map(member => ({
                         ...member,
                         roles: member.roles?.map(role => 
                             role.id === data.id
-                                ? { 
-                                    ...role, 
-                                    name: data.name, 
-                                    color: data.color, 
-                                    permissions: data.permissions 
-                                  }
-                                : role
+                            ? { 
+                                ...role, 
+                                name: data.name, 
+                                color: data.color, 
+                                permissions: data.permissions 
+                              }
+                            : role
                         )
                     }))
                 );
             }
             
             if (data.type === "memberOnline") {
-                setMembers(previousMembers => 
-                    previousMembers.map(member =>
+                setMembers(prevMembers => 
+                    prevMembers.map(member =>
                         member.id === data.id 
                             ? { ...member, isOnline: true } 
                             : member
@@ -97,8 +111,8 @@ export function useMembers() {
             }
             
             if (data.type === "memberOffline") {
-                setMembers(previousMembers => 
-                    previousMembers.map(member =>
+                setMembers(prevMembers => 
+                    prevMembers.map(member =>
                         member.id === data.id 
                             ? { ...member, isOnline: false } 
                             : member

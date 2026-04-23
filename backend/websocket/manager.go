@@ -9,6 +9,7 @@ import (
 	"github.com/gorilla/websocket"
 
 	"axion/database"
+	"axion/handlers"
 )
 
 type ConnectionManager struct {
@@ -69,6 +70,29 @@ func (m *ConnectionManager) Disconnect(conn *websocket.Conn, userID string) {
 		}
 	}
 	m.mu.Unlock()
+}
+
+func (m *ConnectionManager) BroadcastUserProfileUpdate(userID string, payload map[string]any) {
+	friends, err := handlers.GetFriends(userID)
+	if err == nil {
+		for _, friend := range friends {
+			Manager.BroadcastToUser(friend.ID, payload)
+		}
+	}
+
+	conversations, err := handlers.GetConversations(userID)
+	if err == nil {
+		for _, conversation := range conversations {
+			Manager.BroadcastToUser(conversation.ID, payload)
+		}
+	}
+
+	communities, err := handlers.GetCommunities(userID)
+	if err == nil {
+		for _, community := range communities {
+			Manager.BroadcastToCommunity(community.ID, payload)
+		}
+	}
 }
 
 func (m *ConnectionManager) BroadcastToCommunity(communityID string, payload map[string]any) {

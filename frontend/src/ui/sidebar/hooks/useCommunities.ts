@@ -3,63 +3,82 @@ import { type Community } from "../../../features/community/types/community";
 import { api } from "../../../api/client";
 
 export function useCommunities() {
-    const [communities, setCommunities] = useState<Community[] | null>(null);
+    const [communities, setCommunities] = useState<Community[]>([]);
     const [loading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        const handleCommunities = async () => {
+        const fetchCommunities = async () => {
             try {
                 const { data } = await api.communities.getAll();
                 setCommunities(data.communities || []);
             } catch (error) {
-                console.error('Fetch all friends error:', error);
+                console.log("error fetching communities:", error);
                 setCommunities([]);
             } finally {
                 setIsLoading(false);
             }
         };
-        handleCommunities();
-    }, []);
 
-    const updateCommunity = (updatedCommunity: {
-        id: string;
-        name: string;
-        image: string;
-    }) => {
-        setCommunities(prev =>
-            prev?.map(community =>
-                community.id === updatedCommunity.id
-                    ? {
-                        ...community,
-                        name: updatedCommunity.name,
-                        image: updatedCommunity.image
-                    }
-                    : community
-            ) || null
-        );
-    };
+        fetchCommunities();
+    }, []);
 
     useEffect(() => {
-        const handleMessage = async (event: MessageEvent) => {
+        const webSocket = window._ws?.ws;
+        if (!webSocket) return;
+
+        const handleMessage = (event: MessageEvent) => {
             const data = JSON.parse(event.data);
+
+            if (data.type === "communityCreated") {
+                setCommunities(prev => [
+                    ...prev,
+                    {
+                        id: data.id,
+                        name: data.name,
+                        image: data.image,
+                        description: data.description,
+                        createdAt: data.createdAt,
+                        ownerId: data.ownerId,
+                    },
+                ]);
+            }
+
             if (data.type === "communityDeleted") {
-                setCommunities(communities => communities?.filter(community => community.id !== data.id) || null);
+                setCommunities(prev =>
+                    prev.filter(c => c.id !== data.id)
+                );
             }
+
             if (data.type === "communityUpdated") {
-                setCommunities(prev => prev?.map(community =>
-                    community.id === data.id ? { ...community, name: data.name, image: data.image } : community
-                ) || null);
+                setCommunities(prev =>
+                    prev.map(c =>
+                        c.id === data.id
+                            ? {
+                                  ...c,
+                                  name: data.name,
+                                  image: data.image,
+                              }
+                            : c
+                    )
+                );
             }
-            if (data.type === "memberKicked" || data.type === "memberBanned") {
-                setCommunities(prev => prev?.filter(community => community.id !== data.id) || null);
+
+            if (
+                data.type === "memberKicked" ||
+                data.type === "memberBanned"
+            ) {
+                setCommunities(prev =>
+                    prev.filter(c => c.id !== data.id)
+                );
             }
-        }
-        const ws = window._ws?.ws;
-        if (ws) {
-            ws.addEventListener("message", handleMessage);
-            return () => ws.removeEventListener("message", handleMessage);
-        }
+        };
+
+        webSocket.addEventListener("message", handleMessage);
+
+        return () => {
+            webSocket.removeEventListener("message", handleMessage);
+        };
     }, []);
 
-    return { communities, setCommunities, loading, updateCommunity };
+    return { communities, setCommunities, loading };
 }

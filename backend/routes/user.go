@@ -5,6 +5,7 @@ import (
 	"axion/handlers"
 	"axion/middleware"
 	"axion/models"
+	ws "axion/websocket"
 	"encoding/json"
 	"net/http"
 	"path/filepath"
@@ -33,7 +34,8 @@ func UserRoutes(mux *http.ServeMux) {
 
 		bio := r.FormValue("bio")
 
-		var imagePath *string
+		imagePath := currentUser.Image
+
 		file, header, err := r.FormFile("image")
 		if err == nil {
 			defer file.Close()
@@ -61,6 +63,46 @@ func UserRoutes(mux *http.ServeMux) {
 			handlers.WriteErrorResponse(w, http.StatusInternalServerError, "Failed to update user.")
 			return
 		}
+
+		ws.Manager.BroadcastUserProfileUpdate(currentUser.ID, map[string]any{
+			"type":     "userProfileUpdated",
+			"id":       currentUser.ID,
+			"username": username,
+			"bio":      bio,
+			"image":    imagePath,
+		})
+
+		json.NewEncoder(w).Encode(map[string]any{
+			"success": true,
+		})
+	}))
+
+	mux.HandleFunc("DELETE /me/image", middleware.Auth(func(w http.ResponseWriter, r *http.Request) {
+		currentUser, err := handlers.GetUser(r.Header.Get("X-User-ID"))
+		if err != nil {
+			handlers.WriteErrorResponse(w, http.StatusNotFound, "User not found.")
+			return
+		}
+
+		if currentUser.Image != nil && *currentUser.Image != "" {
+			handlers.DeleteFile(*currentUser.Image)
+		}
+
+		_, err = database.DB.Exec(
+			"UPDATE users SET image = NULL WHERE id = $1",
+			currentUser.ID,
+		)
+
+		if err != nil {
+			handlers.WriteErrorResponse(w, http.StatusInternalServerError, "Failed to remove image.")
+			return
+		}
+
+		ws.Manager.BroadcastUserProfileUpdate(currentUser.ID, map[string]any{
+			"type":  "userProfileUpdated",
+			"id":    currentUser.ID,
+			"image": nil,
+		})
 
 		json.NewEncoder(w).Encode(map[string]any{
 			"success": true,

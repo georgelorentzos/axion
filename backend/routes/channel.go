@@ -7,6 +7,7 @@ import (
 	"axion/middleware"
 	"axion/models"
 	"axion/schemas"
+	"axion/services"
 	ws "axion/websocket"
 	"encoding/json"
 	"net/http"
@@ -77,7 +78,7 @@ func ChannelRoutes(mux *http.ServeMux) {
 			"categoryId": req.CategoryID,
 		})
 
-		err = handlers.CreateLog(communityID, currentUser.ID, currentUser.Username+" created the channel "+channelName, nil)
+		err = services.CreateLog(communityID, currentUser.ID, currentUser.Username+" created the channel "+channelName, nil)
 
 		if err != nil {
 			handlers.WriteErrorResponse(w, http.StatusInternalServerError, "Failed to create log.")
@@ -152,7 +153,7 @@ func ChannelRoutes(mux *http.ServeMux) {
 			"id":   channelID,
 		})
 
-		err = handlers.CreateLog(community.ID, currentUser.ID, currentUser.Username+" deleted the channel "+channel.Name, nil)
+		err = services.CreateLog(community.ID, currentUser.ID, currentUser.Username+" deleted the channel "+channel.Name, nil)
 
 		if err != nil {
 			handlers.WriteErrorResponse(w, http.StatusInternalServerError, "Failed to create log.")

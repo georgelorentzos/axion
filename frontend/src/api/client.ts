@@ -47,6 +47,8 @@ export const api = {
     me: () => request("/api/me"),
     update: (formData: FormData) =>
       request("/api/me", { method: "PATCH", body: formData, isFormData: true }),
+    removeImage: () =>
+      request("/api/me/image", { method: "DELETE" }),
     search: (search: string) =>
       request(`/api/users/search?search=${encodeURIComponent(search)}`),
     get: (userId: string) => request(`/api/users/${userId}`),

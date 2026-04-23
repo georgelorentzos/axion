@@ -25,8 +25,8 @@ export function useChannels() {
         const handleMessage = async (event: MessageEvent) => {
             const data = JSON.parse(event.data);
             if (data.type === "channelCreated") {
-                setChannels(prev => [
-                    ...(prev || []), {
+                setChannels(prevChannels => [
+                    ...(prevChannels || []), {
                         id: data.id,
                         name: data.name,
                         categoryId: data.categoryId
@@ -34,13 +34,14 @@ export function useChannels() {
                 ]);
             }
             if (data.type === "channelDeleted") {
-                setChannels(prev => prev?.filter(c => c.id !== data.id) || null);
+                setChannels(prevChannels => prevChannels?.filter(channel => channel.id !== data.id) || null);
             }
         };
-        const ws = window._ws?.ws;
-        if (ws) {
-            ws.addEventListener("message", handleMessage);
-            return () => ws.removeEventListener("message", handleMessage);
+
+        const webSocket = window._ws?.ws;
+        if (webSocket) {
+            webSocket.addEventListener("message", handleMessage);
+            return () => webSocket.removeEventListener("message", handleMessage);
         }
     }, [communityId]);
 

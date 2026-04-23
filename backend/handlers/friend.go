@@ -5,6 +5,36 @@ import (
 	"axion/models"
 )
 
+func GetFriends(userID string) ([]models.Friend, error) {
+	rows, err := database.DB.Query(`
+		SELECT 
+			CASE 
+				WHEN requester_id = $1 THEN addressee_id
+				ELSE requester_id
+			END AS friend_id
+		FROM friends
+		WHERE (requester_id = $1 OR addressee_id = $1)
+	`, userID)
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	var friends []models.Friend
+
+	for rows.Next() {
+		var friend models.Friend
+		if err := rows.Scan(&friend.ID); err != nil {
+			return nil, err
+		}
+		friends = append(friends, friend)
+	}
+
+	return friends, err
+}
+
 func GetFriend(userID1 string, userID2 string) (models.Friend, error) {
 	var friend models.Friend
 

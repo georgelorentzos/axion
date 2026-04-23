@@ -7,6 +7,7 @@ import (
 	"axion/middleware"
 	"axion/models"
 	"axion/schemas"
+	"axion/services"
 	ws "axion/websocket"
 	"encoding/json"
 	"net/http"
@@ -96,7 +97,7 @@ func BanRoutes(mux *http.ServeMux) {
 			return
 		}
 
-		err = handlers.CreateLog(communityID, userID, currentUser.Username+" banned "+user.Username, nil)
+		err = services.CreateLog(communityID, userID, currentUser.Username+" banned "+user.Username, nil)
 
 		if err != nil {
 			handlers.WriteErrorResponse(w, http.StatusInternalServerError, "Failed to create log.")
@@ -182,7 +183,7 @@ func BanRoutes(mux *http.ServeMux) {
 			return
 		}
 
-		err = handlers.CreateLog(communityID, userID, currentUser.Username+" unbanned "+user.Username, nil)
+		err = services.CreateLog(communityID, userID, currentUser.Username+" unbanned "+user.Username, nil)
 
 		if err != nil {
 			handlers.WriteErrorResponse(w, http.StatusInternalServerError, "Failed to create log.")

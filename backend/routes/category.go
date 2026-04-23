@@ -7,6 +7,7 @@ import (
 	"axion/middleware"
 	"axion/models"
 	"axion/schemas"
+	"axion/services"
 	ws "axion/websocket"
 	"encoding/json"
 	"net/http"
@@ -74,7 +75,7 @@ func CategoryRoutes(mux *http.ServeMux) {
 			"name": categoryName,
 		})
 
-		err = handlers.CreateLog(community.ID, currentUser.ID, currentUser.Username+" created the category "+categoryName, nil)
+		err = services.CreateLog(community.ID, currentUser.ID, currentUser.Username+" created the category "+categoryName, nil)
 
 		if err != nil {
 			handlers.WriteErrorResponse(w, http.StatusInternalServerError, "Failed to create log.")
@@ -146,7 +147,7 @@ func CategoryRoutes(mux *http.ServeMux) {
 			"id":   category.ID,
 		})
 
-		err = handlers.CreateLog(community.ID, currentUser.ID, currentUser.Username+" deleted the category "+category.Name, nil)
+		err = services.CreateLog(community.ID, currentUser.ID, currentUser.Username+" deleted the category "+category.Name, nil)
 
 		if err != nil {
 			handlers.WriteErrorResponse(w, http.StatusInternalServerError, "Failed to create log.")

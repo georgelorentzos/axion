@@ -6,6 +6,7 @@ import (
 	"axion/handlers"
 	"axion/middleware"
 	"axion/models"
+	"axion/services"
 	ws "axion/websocket"
 	"encoding/json"
 	"net/http"
@@ -132,7 +133,7 @@ func CommunityRoutes(mux *http.ServeMux) {
 				return
 			}
 
-			err = handlers.CreateLog(communityID, currentUser.ID, currentUser.Username+" updated community name to "+name, nil)
+			err = services.CreateLog(communityID, currentUser.ID, currentUser.Username+" updated community name to "+name, nil)
 
 			if err != nil {
 				handlers.WriteErrorResponse(w, http.StatusInternalServerError, "Failed to create log.")
@@ -140,7 +141,8 @@ func CommunityRoutes(mux *http.ServeMux) {
 			}
 		}
 
-		var imagePath *string
+		imagePath := community.Image
+
 		file, header, err := r.FormFile("image")
 		if err == nil {
 			defer file.Close()
@@ -160,7 +162,7 @@ func CommunityRoutes(mux *http.ServeMux) {
 				return
 			}
 
-			err = handlers.CreateLog(communityID, currentUser.ID, currentUser.Username+" updated community image", nil)
+			err = services.CreateLog(communityID, currentUser.ID, currentUser.Username+" updated community image", nil)
 
 			if err != nil {
 				handlers.WriteErrorResponse(w, http.StatusInternalServerError, "Failed to create log.")
@@ -168,24 +170,18 @@ func CommunityRoutes(mux *http.ServeMux) {
 			}
 		}
 
-		oldImage := community.Image
-		finalImage := imagePath
-		if finalImage == nil {
-			finalImage = oldImage
-		}
-
 		ws.Manager.BroadcastToCommunity(communityID, map[string]any{
 			"type":  "communityUpdated",
 			"id":    communityID,
 			"name":  name,
-			"image": finalImage,
+			"image": imagePath,
 		})
 
 		json.NewEncoder(w).Encode(map[string]any{
 			"success":   true,
 			"id":        communityID,
 			"name":      name,
-			"image":     finalImage,
+			"image":     imagePath,
 			"ownerId":   community.OwnerID,
 			"createdAt": community.CreatedAt.Format("2006"),
 		})

@@ -47,13 +47,13 @@ export function useConversations() {
             const data = JSON.parse(event.data);
 
             if (data.type === 'conversationUpdated') {
-                setConversations(prev => {
-                    const conversationExists = prev.find(
+                setConversations(prevConversations => {
+                    const conversationExists = prevConversations.find(
                         conversation => conversation.user.id === data.id
                     );
                     
                     if (conversationExists) {
-                        return prev.map(conversation =>
+                        return prevConversations.map(conversation =>
                             conversation.user.id === data.id
                                 ? { ...conversation, latestMessage: data.latestMessage }
                                 : conversation
@@ -72,21 +72,37 @@ export function useConversations() {
                             },
                             latestMessage: data.latestMessage,
                         },
-                        ...prev,
+                        ...prevConversations,
                     ];
                 });
             }
 
+            if (data.type === "userProfileUpdated") {
+                setConversations(prev =>
+                    prev.map(conversation => conversation.user.id === data.id
+                        ? {
+                            ...conversation,
+                            user: {
+                                ...conversation.user,
+                                username: data.username,
+                                bio: data.bio,
+                                image: data.image,
+                            },
+                        } : conversation
+                    )
+                )
+            }
+
             if (data.type === 'conversationDeleted') {
-                setConversations(prev => 
-                    prev.filter(conversation => conversation.user.id !== data.id)
+                setConversations(prevConversations => 
+                    prevConversations.filter(conversation => conversation.user.id !== data.id)
                 );
                 navigate('/');
             }
 
             if (data.type === 'userOnline') {
-                setConversations(prev =>
-                    prev.map(conversation =>
+                setConversations(prevConversations =>
+                    prevConversations.map(conversation =>
                         conversation.user.id === data.id
                             ? { ...conversation, user: { ...conversation.user, isOnline: true } }
                             : conversation
@@ -95,8 +111,8 @@ export function useConversations() {
             }
 
             if (data.type === 'userOffline') {
-                setConversations(prev =>
-                    prev.map(conversation =>
+                setConversations(prevConversations =>
+                    prevConversations.map(conversation =>
                         conversation.user.id === data.id
                             ? { ...conversation, user: { ...conversation.user, isOnline: false } }
                             : conversation

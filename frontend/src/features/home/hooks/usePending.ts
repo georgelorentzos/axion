@@ -27,8 +27,8 @@ export function usePending() {
       try {
         const data = JSON.parse(event.data);
 
-        setPending(prev =>
-          prev.map(pending => {
+        setPending(prevPending =>
+          prevPending.map(pending => {
             if (pending.id === (data.id)) {
               if (data.type === 'pendingOnline') return { ...pending, isOnline: true };
               if (data.type === 'pendingOffline') return { ...pending, isOnline: false };
@@ -38,8 +38,8 @@ export function usePending() {
         );
 
         if (data.type === 'allyRequestSent') {
-          setPending(prev => {
-            if (prev.find(p => p.id === data.id)) return prev;
+          setPending(prevPending => {
+            if (prevPending.find(p => p.id === data.id)) return prevPending;
             return [
               {
                 id: data.id,
@@ -49,11 +49,11 @@ export function usePending() {
                 isOnline: data.isOnline,
                 createdAt: data.createdAt
               },
-              ...prev
+              ...prevPending
             ];
           });
         } else if (data.type === 'allyRequestDeleted') {
-          setPending(prev => prev.filter(pending => pending.id !== data.id));
+          setPending(prevPending => prevPending.filter(pending => pending.id !== data.id));
         }
       } catch (error) {
         console.error('Parse error:', error);

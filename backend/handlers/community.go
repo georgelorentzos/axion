@@ -5,6 +5,32 @@ import (
 	"axion/models"
 )
 
+func GetCommunities(userID string) ([]models.Community, error) {
+	rows, err := database.DB.Query(`
+		SELECT cs.id FROM communities cs
+		JOIN community_members cm ON cm.community_id = cs.id
+		WHERE cm.user_id = $1
+	`, userID)
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	var communities []models.Community
+
+	for rows.Next() {
+		var community models.Community
+		if err := rows.Scan(&community.ID); err != nil {
+			return nil, err
+		}
+		communities = append(communities, community)
+	}
+
+	return communities, err
+}
+
 func GetCommunity(communityID string) (models.Community, error) {
 	var community models.Community
 

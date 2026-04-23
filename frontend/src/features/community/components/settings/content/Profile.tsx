@@ -17,7 +17,7 @@ type ProfileContentProps = {
 export default function ProfileContent({ community, onCommunityUpdate }: ProfileContentProps) {
     const navigate = useNavigate();
     const location = useLocation();
-    const { updateCommunity } = useCommunities();
+    const { setCommunities } = useCommunities();
     const { members, onlineMembers } = useMembers();
 
     const [name, setName] = useState(community?.name || "");
@@ -106,7 +106,17 @@ export default function ProfileContent({ community, onCommunityUpdate }: Profile
             setImageRemoved(false);
 
             onCommunityUpdate(updatedCommunity);
-            updateCommunity(updatedCommunity);
+            setCommunities(prev =>
+                prev.map(c =>
+                    c.id === updatedCommunity.id
+                        ? {
+                              ...c,
+                              name: updatedCommunity.name,
+                              image: updatedCommunity.image,
+                          }
+                        : c
+                )
+            );
 
             navigate(location.pathname, {
                 replace: true,

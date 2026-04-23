@@ -7,6 +7,7 @@ import (
 	"axion/middleware"
 	"axion/models"
 	"axion/schemas"
+	"axion/services"
 	ws "axion/websocket"
 	"encoding/json"
 	"net/http"
@@ -95,7 +96,7 @@ func MemberRoutes(mux *http.ServeMux) {
 			"id":   community.ID,
 		})
 
-		err = handlers.CreateLog(community.ID, currentUser.ID, currentUser.Username+" kicked "+user.Username, &req.Reason)
+		err = services.CreateLog(community.ID, currentUser.ID, currentUser.Username+" kicked "+user.Username, &req.Reason)
 
 		if err != nil {
 			handlers.WriteErrorResponse(w, http.StatusInternalServerError, "Failed to create log.")
@@ -175,7 +176,7 @@ func MemberRoutes(mux *http.ServeMux) {
 			return
 		}
 
-		err = handlers.ToggleMemberRole(
+		err = services.ToggleMemberRole(
 			community.ID, member.ID, role.ID, role.Name,
 			currentUser.ID, currentUser.Username, user.Username,
 		)

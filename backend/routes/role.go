@@ -7,6 +7,7 @@ import (
 	"axion/middleware"
 	"axion/models"
 	"axion/schemas"
+	"axion/services"
 	ws "axion/websocket"
 	"encoding/json"
 	"net/http"
@@ -79,7 +80,7 @@ func RoleRoutes(mux *http.ServeMux) {
 			return
 		}
 
-		err = handlers.CreateLog(community.ID, currentUser.ID, currentUser.Username+" created the role "+roleName, nil)
+		err = services.CreateLog(community.ID, currentUser.ID, currentUser.Username+" created the role "+roleName, nil)
 
 		if err != nil {
 			handlers.WriteErrorResponse(w, http.StatusInternalServerError, "Failed to create log.")
@@ -168,7 +169,7 @@ func RoleRoutes(mux *http.ServeMux) {
 			return
 		}
 
-		err = handlers.CreateLog(community.ID, currentUser.ID, currentUser.Username+" updated the role "+roleName, nil)
+		err = services.CreateLog(community.ID, currentUser.ID, currentUser.Username+" updated the role "+roleName, nil)
 
 		if err != nil {
 			handlers.WriteErrorResponse(w, http.StatusInternalServerError, "Failed to create log.")
@@ -244,7 +245,7 @@ func RoleRoutes(mux *http.ServeMux) {
 			return
 		}
 
-		err = handlers.CreateLog(community.ID, currentUser.ID, currentUser.Username+" deleted the role "+role.Name, nil)
+		err = services.CreateLog(community.ID, currentUser.ID, currentUser.Username+" deleted the role "+role.Name, nil)
 
 		if err != nil {
 			handlers.WriteErrorResponse(w, http.StatusInternalServerError, "Failed to create log.")
