@@ -41,16 +41,7 @@ export default function Category({ category, children }: CategoryProps) {
 
     const handleCreateChannel = async (name: string) => {
         if (!communityId) return;
-        const { data } = await api.channels.create(communityId, name, category.id);
-        if (data.success) {
-           setChannels(prev => [
-            ...(prev || []), {
-                id: data.id,
-                name: data.name,
-                categoryId: data.categoryId
-            }
-           ]);
-        }
+        await api.channels.create(communityId, name, category.id);
         setIsCreateChannelModalOpen(false);
     };
 

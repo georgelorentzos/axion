@@ -86,10 +86,7 @@ func ChannelRoutes(mux *http.ServeMux) {
 		}
 
 		json.NewEncoder(w).Encode(map[string]any{
-			"success":    true,
-			"id":         channelID,
-			"name":       channelName,
-			"categoryId": req.CategoryID,
+			"success": true,
 		})
 	}))
 
@@ -139,12 +136,24 @@ func ChannelRoutes(mux *http.ServeMux) {
 			return
 		}
 
-		_, err = database.DB.Exec(`
+		tx, err := database.DB.Begin()
+
+		if err != nil {
+			handlers.WriteErrorResponse(w, http.StatusInternalServerError, "Failed to start transaction.")
+			return
+		}
+
+		tx.Exec(`
+			DELETE FROM channel_messages WHERE community_id = $1 AND channel_id = $2
+		`, community.ID, channel.ID)
+		tx.Exec(`
 			DELETE FROM community_channels WHERE community_id = $1 AND id = $2
 		`, community.ID, channel.ID)
 
+		err = tx.Commit()
+
 		if err != nil {
-			handlers.WriteErrorResponse(w, http.StatusInternalServerError, "Invalid community or channel delete failed.")
+			handlers.WriteErrorResponse(w, http.StatusInternalServerError, "Failed to delete channel.")
 			return
 		}
 

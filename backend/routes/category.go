@@ -133,12 +133,24 @@ func CategoryRoutes(mux *http.ServeMux) {
 			return
 		}
 
-		_, err = database.DB.Exec(`
+		tx, err := database.DB.Begin()
+
+		if err != nil {
+			handlers.WriteErrorResponse(w, http.StatusInternalServerError, "Failed to start transaction.")
+			return
+		}
+
+		tx.Exec(`
+			UPDATE community_channels SET category_id = NULL WHERE community_id = $1 AND category_id = $2
+		`, community.ID, category.ID)
+		tx.Exec(`
 			DELETE FROM community_categories WHERE community_id = $1 AND id = $2
 		`, community.ID, category.ID)
 
+		err = tx.Commit()
+
 		if err != nil {
-			handlers.WriteErrorResponse(w, http.StatusBadRequest, "Failed to delete category (invalid community or category id).")
+			handlers.WriteErrorResponse(w, http.StatusInternalServerError, "Failed to delete category.")
 			return
 		}
 

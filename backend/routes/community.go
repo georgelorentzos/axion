@@ -278,6 +278,7 @@ func CommunityRoutes(mux *http.ServeMux) {
 		if community.OwnerID == currentUserID {
 
 			tx, err := database.DB.Begin()
+
 			if err != nil {
 				handlers.WriteErrorResponse(w, http.StatusInternalServerError, "Failed to start transaction.")
 				return
@@ -314,6 +315,7 @@ func CommunityRoutes(mux *http.ServeMux) {
 		} else {
 
 			tx, err := database.DB.Begin()
+
 			if err != nil {
 				handlers.WriteErrorResponse(w, http.StatusInternalServerError, "Failed to start transaction.")
 				return
