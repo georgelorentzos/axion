@@ -71,3 +71,18 @@
 The Axion backend was originally written in Python and has been fully rewritten in Go. During this migration, the entire codebase was refactored from the ground up — resulting in a cleaner architecture, better separation of concerns, and a fully scalable foundation. This eliminated the overhead of a heavy web framework, reduced memory consumption, and significantly improved request throughput and WebSocket concurrency — Go's lightweight goroutine model handles thousands of concurrent connections far more efficiently than a threaded Python server.
 
 The application is production-ready and fully containerized with Docker, making it straightforward to deploy and scale horizontally.
+
+## Screenshots
+
+<img src="screenshots/lo1.png" alt="Dashboard Preview" style="max-width: 100%;" />
+<img src="screenshots/lo2.png" alt="Dashboard Preview" style="max-width: 100%;" />
+<img src="screenshots/lo3.png" alt="Dashboard Preview" style="max-width: 100%;" />
+<img src="screenshots/lo4.png" alt="Dashboard Preview" style="max-width: 100%;" />
+<img src="screenshots/lo5.png" alt="Dashboard Preview" style="max-width: 100%;" />
+<img src="screenshots/lo6.png" alt="Dashboard Preview" style="max-width: 100%;" />
+<img src="screenshots/lo7.png" alt="Dashboard Preview" style="max-width: 100%;" />
+<img src="screenshots/lo8.png" alt="Dashboard Preview" style="max-width: 100%;" />
+<img src="screenshots/lo9.png" alt="Dashboard Preview" style="max-width: 100%;" />
+<img src="screenshots/lo10.png" alt="Dashboard Preview" style="max-width: 100%;" />
+<img src="screenshots/lo11.png" alt="Dashboard Preview" style="max-width: 100%;" />
+<img src="screenshots/lo12.png" alt="Dashboard Preview" style="max-width: 100%;" />
