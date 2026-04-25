@@ -21,10 +21,12 @@ import (
 func AuthRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("POST /auth", func(w http.ResponseWriter, r *http.Request) {
 		var req schemas.AuthRequest
-		handlers.DecodeJSON(w, r, &req)
+		if !handlers.DecodeJSON(w, r, &req) {
+			return
+		}
 
 		if req.Email == "" {
-			handlers.WriteErrorResponse(w, http.StatusInternalServerError, "Failed to delete messages.")
+			handlers.WriteErrorResponse(w, http.StatusBadRequest, "Email is required.")
 			return
 		}
 
@@ -52,7 +54,7 @@ func AuthRoutes(mux *http.ServeMux) {
 			"DELETE FROM tokens WHERE user_id = $1 AND type = 'Auth'", userID,
 		)
 		if err != nil {
-			handlers.WriteErrorResponse(w, http.StatusBadRequest, "Failed to delete token.")
+			handlers.WriteErrorResponse(w, http.StatusInternalServerError, "Failed to delete token.")
 			return
 		}
 
@@ -65,7 +67,7 @@ func AuthRoutes(mux *http.ServeMux) {
 			tokenID, token, "Auth", userID, expiresAt,
 		)
 		if err != nil {
-			handlers.WriteErrorResponse(w, http.StatusBadRequest, "Failed to create token.")
+			handlers.WriteErrorResponse(w, http.StatusInternalServerError, "Failed to create token.")
 			return
 		}
 
@@ -103,7 +105,9 @@ func AuthRoutes(mux *http.ServeMux) {
 
 	mux.HandleFunc("POST /verify-token", func(w http.ResponseWriter, r *http.Request) {
 		var req schemas.CreateToken
-		handlers.DecodeJSON(w, r, &req)
+		if !handlers.DecodeJSON(w, r, &req) {
+			return
+		}
 
 		var token models.Token
 		err := database.DB.QueryRow(
@@ -125,9 +129,8 @@ func AuthRoutes(mux *http.ServeMux) {
 			_, err = database.DB.Exec(
 				"DELETE FROM tokens WHERE token = $1", token.Token,
 			)
-
 			if err != nil {
-				handlers.WriteErrorResponse(w, http.StatusBadRequest, "Failed to delete token.")
+				handlers.WriteErrorResponse(w, http.StatusInternalServerError, "Failed to delete token.")
 				return
 			}
 
@@ -135,28 +138,19 @@ func AuthRoutes(mux *http.ServeMux) {
 			return
 		}
 
-		var isVerified bool
-		err = database.DB.QueryRow(
-			"SELECT is_verified FROM users WHERE id = $1", token.UserID,
-		).Scan(&isVerified)
-
-		if err != nil {
-			handlers.WriteErrorResponse(w, http.StatusNotFound, "User not found.")
-			return
-		}
-
 		_, err = database.DB.Exec(
 			"UPDATE users SET is_verified = TRUE WHERE id = $1", token.UserID,
 		)
 		if err != nil {
-			handlers.WriteErrorResponse(w, http.StatusBadRequest, "Failed to update user column.")
+			handlers.WriteErrorResponse(w, http.StatusInternalServerError, "Failed to update user.")
 			return
 		}
 
-		_, err = database.DB.Exec("DELETE FROM tokens WHERE token = $1", token.Token)
-
+		_, err = database.DB.Exec(
+			"DELETE FROM tokens WHERE token = $1", token.Token,
+		)
 		if err != nil {
-			handlers.WriteErrorResponse(w, http.StatusBadRequest, "Failed to delete token.")
+			handlers.WriteErrorResponse(w, http.StatusInternalServerError, "Failed to delete token.")
 			return
 		}
 
@@ -168,6 +162,7 @@ func AuthRoutes(mux *http.ServeMux) {
 		jwtToken := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims(payload))
 		jwtTokenString, err := jwtToken.SignedString([]byte(os.Getenv("JWT_SECRET")))
 		if err != nil {
+			handlers.WriteErrorResponse(w, http.StatusInternalServerError, "Failed to sign token.")
 			return
 		}
 
@@ -179,7 +174,9 @@ func AuthRoutes(mux *http.ServeMux) {
 
 	mux.HandleFunc("POST /validate-token", func(w http.ResponseWriter, r *http.Request) {
 		var req schemas.ValidateToken
-		handlers.DecodeJSON(w, r, &req)
+		if !handlers.DecodeJSON(w, r, &req) {
+			return
+		}
 
 		jwtToken, err := jwt.Parse(req.Token, func(token *jwt.Token) (any, error) {
 			return []byte(os.Getenv("JWT_SECRET")), nil
@@ -193,11 +190,7 @@ func AuthRoutes(mux *http.ServeMux) {
 		claims := jwtToken.Claims.(jwt.MapClaims)
 		userID := claims["user_id"].(string)
 
-		var user models.User
-		err = database.DB.QueryRow(
-			"SELECT id, username, email FROM users WHERE id = $1", userID,
-		).Scan(&user.ID, &user.Username, &user.Email)
-
+		user, err := handlers.GetUser(userID)
 		if err != nil {
 			handlers.WriteErrorResponse(w, http.StatusNotFound, "User not found.")
 			return
