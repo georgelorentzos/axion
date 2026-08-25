@@ -32,7 +32,7 @@ export default function AddRole({ member, isOpen, onClose }: AddRoleProps) {
     };
 
     return (
-        <div className="rounded-lg w-full h-auto bg-basalt z-50 flex gap-2 flex-col justify-between">
+        <div className="rounded-lg w-full h-auto z-50 flex gap-2 flex-col justify-between">
             <SearchBar onSearch={(e) => setSearchQuery(e)} bg="bg-onyx" />
             <div className="flex flex-col max-h-[200px] min-h-0 overflow-y-auto">
                 {filtered.map(role => (

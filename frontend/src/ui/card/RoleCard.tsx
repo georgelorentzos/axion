@@ -22,7 +22,7 @@ export default function RoleCard({
   return (
     <div
       onClick={onClick}
-      className={`shrink-0 cursor-pointer transition duration-300 h-[60px] px-4 flex justify-between items-center w-full rounded-lg ${hover}`}
+      className={`shrink-0 cursor-pointer transition duration-300 h-[40px] px-4 flex justify-between items-center w-full rounded-lg ${hover}`}
     >
       <div className="flex items-center gap-2">
         <div className={`w-[12px] h-[12px] bg-[#${role.color}] rounded-full`}></div>

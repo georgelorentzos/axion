@@ -52,7 +52,7 @@ export default function InviteFriend() {
             {friends && friends.length > 0 && (
                 <>
                     <SearchBar onSearch={(value: string) => setSearchQuery(value)} />
-                    <div className="w-full max-h-[200px] h-auto border border-outline rounded-xl overflow-y-auto flex flex-col gap-2 p-2">
+                    <div className="w-full max-h-[200px] h-auto border border-outline rounded-xl overflow-y-auto flex flex-col gap-2">
                         {searchQuery && filtered.length === 0 && (
                             <div className="text-gray-400 text-sm text-center py-5">No results found</div>
                         )}

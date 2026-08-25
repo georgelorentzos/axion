@@ -60,7 +60,7 @@ export default function MemberPreview({ member, isOpen, isExample, static: isSta
 
     return (
         <div
-            className={`p-4 rounded-lg w-[300px] h-auto bg-basalt border border-outline z-50 flex gap-2 flex-col justify-between transition duration-200 ${
+            className={`p-4 rounded-2xl w-[300px] h-auto  border border-outline z-50 flex gap-2 flex-col justify-between transition duration-200 ${
                 isStatic ? "relative" : "absolute top-0 right-full mr-2"
             } ${showFade ? "opacity-100" : "opacity-0"}`}
         >
@@ -79,6 +79,14 @@ export default function MemberPreview({ member, isOpen, isExample, static: isSta
                         {member.bio}
                     </div>
                 )}
+                
+                {member.roles && member.roles.length > 0 && (
+                    <div className="flex flex-wrap gap-2 w-full">
+                        {member.roles?.map((role: Role) => (
+                            <RoleBadge key={role.id} member={member} role={role} />
+                        ))}
+                    </div>
+                )}
 
                 {/* Example Button Logic */}
                 {isExample ? (
@@ -89,16 +97,11 @@ export default function MemberPreview({ member, isOpen, isExample, static: isSta
                             currentUser?.permissions?.includes(PERMISSIONS.ADMINISTRATOR) ||
                             currentUser?.permissions?.includes(PERMISSIONS.MANAGE_ROLES)
                         ) && (
-                            <Button text="+ Add Role" isGreen onClick={() => setIsAddRoleOpen(prev => !prev)} />
+                            !isAddRoleOpen && (
+                                <Button text="+ Add Role" isGreen onClick={() => setIsAddRoleOpen(prev => !prev)} />
+                            )
                         )}
                         
-                        {member.roles && member.roles.length > 0 && (
-                            <div className="flex flex-wrap gap-2 w-full">
-                                {member.roles?.map((role: Role) => (
-                                    <RoleBadge key={role.id} member={member} role={role} />
-                                ))}
-                            </div>
-                        )}
                     </>
                 )}
             </div>

@@ -86,10 +86,13 @@ export default function MemberList() {
                         setPos({ x: e.clientX, y: e.clientY });
                     }}
                 />
+                <div className="absolute right-full mr-2 top-0">
+
                 <MemberPreview
                     member={member}
                     isOpen={activeMemberId === member.id}
                 />
+                </div>
                 <ActionMenu
                     isOpen={actionMenuMemberId === member.id && member.id !== currentUser?.id}
                     onClose={() => setActionMenuMemberId(null)}
